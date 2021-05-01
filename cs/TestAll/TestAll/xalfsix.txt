@@ -1,0 +1,286 @@
+      program xalfsix
+!
+!   Test Driver of "alfsix" and "alfnix"
+!
+!   Author: Toshio FUKUSHIMA <Toshio.Fukushima@nao.ac.jp>
+!
+!   Reference: Fukushima (2013), Comp. Geosci., 63, 17-21
+!              Fukushima (2015), Proc. IAG Symp. 2013 Sci. Ass. (Potsdam), in printing
+!
+      implicit real*8 (a-h,o-z)
+      implicit integer (i-n)
+      parameter(MMAX=21600,MMAX23=2*MMAX+3)
+      real*8 xi(MMAX23),eta(MMAX23),zeta(MMAX23)
+      real*8 d(MMAX),e(MMAX),ps(0:2,MMAX),p(0:2,MMAX)
+      real*8 psm(0:2)
+      integer ips(2,MMAX),ipsm(2)
+      mx=3000
+      nx=mx*2
+      mprint=mx/6
+      nprint=nx/6
+      PIHALF=2.d0*atan(1.d0)
+      DEGRAD=PIHALF/90.d0
+      write(*,"(a20,2i10)") "nx,mx=",nx,mx
+      theta1=60.d0
+      theta2=30.d0
+      write(*,"(a20,0p2f10.5)") "theta1,theta2=",theta1,theta2
+      theta1=theta1*DEGRAD
+      theta2=theta2*DEGRAD
+      t1=cos(theta1)
+      t2=cos(theta2)
+      u1=sin(theta1)
+      u2=sin(theta2)
+      write(*,"(a20,0p4f10.5)") "t2,u2,t1,u1=",t2,u2,t1,u1
+      do m=1,MMAX23
+        xi(m)=sqrt(dble(m))
+        eta(m)=1.d0/xi(m)
+        zeta(m)=1.d0/dble(m)
+      enddo
+      do m=1,MMAX
+        d(m)=xi(2*m+1)*eta(2*m)
+      enddo
+      do m=2,MMAX
+            e(m)=zeta(2*m+2)*xi(m)*eta(m-1)*xi(2*m+1)*xi(2*m-1)
+      enddo
+      call alfsix(mx,xi,zeta,d,e,t1,u1,theta1,t2,u2,theta2,ps,ips)
+      write(*,"(2a10,3a20)") "n","m","Inm(t1,t2)","pnm(t1)","pnm(t2)"
+      do m=mprint,mx,mprint
+        do j=0,2
+          psm(j)=ps(j,m)
+        enddo
+        do j=1,2
+          ipsm(j)=ips(j,m)
+        enddo
+        call alfnix(m,nx,xi,eta,zeta,t1,u1,t2,u2,psm,ipsm,p)
+        do n=m,nx,nprint
+          if(n.gt.m) write (*,"(2i10,0p3f20.16)") n-1,m,p(0,n-1),p(1,n-1),p(2,n-1)
+          write (*,"(2i10,0p3f20.16)") n,m,p(0,n),p(1,n),p(2,n)
+        enddo
+      enddo
+      end program xalfsix
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      subroutine alfsix(mx,xi,zeta,d,e,t1,u1,theta1,t2,u2,theta2,ps,ips)
+!
+!   Compute Sectorial Integral of fnALF by using X-numbers
+!
+!   Author: Toshio FUKUSHIMA <Toshio.Fukushima@nao.ac.jp>
+!
+!   Reference: Fukushima (2013), Comp. Geosci., 63, 17-21
+!              Fukushima (2015), Proc. IAG Symp. 2013 Sci. Ass. (Potsdam), in printing
+!
+!   Note: The forward recursion may result a loss of the relative accuracy.
+!         However, it will be harmless in the following non-sectorial recursion
+!         as long as the absolute accuracy is assured.
+!
+      integer mx,ips(2,*),ix1,ix2,m
+      real*8 xi(*),zeta(*),d(*),e(*),t1,u1,theta1,t2,u2,theta2,ps(0:2,*)
+      real*8 x1,x2,dm,x2f
+!
+!   Initial value computation (No care for cancellation)
+!
+!   Note: When the integral interval is small, there is a chance of cancellation
+!         in computing ((t2*u2-theta2)-(t1*u1-theta1))
+!         and (t2*(3.d0-t2*t2)-t1*(3.d0-t1*t1)).
+!         In that case, one must use the cancellation-free formulation
+!         for the finite difference of fnALF.
+!         Refer to Fukushima (2012, J. Geodesy, 86, 745-754)
+!
+      x1=xi(3)*u1;ix1=0;ps(1,1)=x1;ips(1,1)=ix1
+      x2=xi(3)*u2;ix2=0;ps(2,1)=x2;ips(2,1)=ix2
+      ps(0,1)=zeta(2)*xi(3)*((t2*u2-theta2)-(t1*u1-theta1))
+      dm=d(2)
+      x1=(dm*u1)*x1;call xnorm(x1,ix1);ps(1,2)=x1;ips(1,2)=ix1
+      x2=(dm*u2)*x2;call xnorm(x2,ix2);ps(2,2)=x2;ips(2,2)=ix2
+      ps(0,2)=zeta(6)*xi(15)*(t2*(3.d0-t2*t2)-t1*(3.d0-t1*t1))
+!
+!   Forward recursion
+!
+      do m=3,mx
+        dm=d(m)
+        x1=(dm*u1)*x1;call xnorm(x1,ix1);ps(1,m)=x1;ips(1,m)=ix1
+        x2=(dm*u2)*x2;call xnorm(x2,ix2);ps(2,m)=x2;ips(2,m)=ix2
+        ps(0,m)=e(m)*ps(0,m-2)+zeta(m+1)*(t2*x2f(x2,ix2)-t1*x2f(x1,ix1))
+      enddo
+      return;end
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      subroutine alfnix(m,nx,xi,eta,zeta,t1,u1,t2,u2,ps,ips,p)
+!
+!   Compute Non-Sectorial Integral of fnALF by using X-numbers
+!
+!   Author: Toshio FUKUSHIMA <Toshio.Fukushima@nao.ac.jp>
+!
+!   Reference: Fukushima (2013), Comp. Geosci., 63, 17-21
+!              Fukushima (2015), Proc. IAG Symp. 2013 Sci. Ass. (Potsdam), in printing
+!
+      implicit real*8 (a-h,o-z)
+      implicit integer (i-n)
+      integer ips(2)
+      real*8 xi(*),eta(*),zeta(*),ps(0:2),p(0:2,*)
+!
+!   Initial value computation (No care for cancellation)
+!
+!   Note: When the integral interval is small, there is a chance of cancellation
+!         in computing (u2sq*p2-u1sq*p1).
+!         In that case, one must use the cancellation-free formulation
+!         for the finite difference of fnALF.
+!         Refer to Fukushima (2012, J. Geodesy, 86, 745-754)
+!
+      pin2=ps(0);p(0,m)=pin2
+      p1n2=ps(1);ip1n2=ips(1);p1=x2f(p1n2,ip1n2);p(1,m)=p1
+      p2n2=ps(2);ip2n2=ips(2);p2=x2f(p2n2,ip2n2);p(2,m)=p2
+      if(m+1.gt.nx) return
+      anm=xi(2*m+3);u1sq=u1*u1;u2sq=u2*u2
+      pin1=-anm*zeta(m+2)*(u2sq*p2-u1sq*p1);p(0,m+1)=pin1
+      p1n1=anm*t1*ps(1);ip1n1=ips(1);call xnorm(p1n1,ip1n1)
+      p1=x2f(p1n1,ip1n1);p(1,m+1)=p1
+      p2n1=anm*t2*ps(2);ip2n1=ips(2);call xnorm(p2n1,ip2n1)
+      p2=x2f(p2n1,ip2n1);p(2,m+1)=p2
+!
+!   X-number recursion
+!
+      do n=m+2,nx
+        temp=xi(2*n+1)*eta(n+m)*eta(n-m);anm=temp*xi(2*n-1)
+        bnm=temp*eta(2*n-3)*xi(n+m-1)*xi(n-m-1)
+        pin=zeta(n+1)*(dble(n-2)*bnm*pin2-anm*(u2sq*p2-u1sq*p1));p(0,n)=pin
+        call xlsum2(anm*t1,p1n1,ip1n1,-bnm,p1n2,ip1n2,p1n,ip1n);p1=x2f(p1n,ip1n);p(1,n)=p1
+        call xlsum2(anm*t2,p2n1,ip2n1,-bnm,p2n2,ip2n2,p2n,ip2n);p2=x2f(p2n,ip2n);p(2,n)=p2
+        pin2=pin1;pin1=pin;p1n2=p1n1;p1n1=p1n;p2n2=p2n1;p2n1=p2n
+        ip1n2=ip1n1;ip1n1=ip1n;ip2n2=ip2n1;ip2n1=ip2n
+!
+! Dynamic switch from X- to F-number comp., which saves the CPU time significantly.
+!
+        if(ip1n2.eq.0.and.ip2n2.eq.0) goto 1
+      enddo
+      return
+!
+! F-number recursion
+!
+ 1    continue
+      n1=n+1
+      do n=n1,nx
+        temp=xi(2*n+1)*eta(n+m)*eta(n-m);anm=temp*xi(2*n-1)
+        bnm=temp*eta(2*n-3)*xi(n+m-1)*xi(n-m-1)
+        pin=zeta(n+1)*(dble(n-2)*bnm*pin2-anm*(u2sq*p2-u1sq*p1));p(0,n)=pin
+        p1=anm*t1*p1n1-bnm*p1n2;p(1,n)=p1
+        p2=anm*t2*p2n1-bnm*p2n2;p(2,n)=p2
+        pin2=pin1;pin1=pin;p1n2=p1n1;p1n1=p1;p2n2=p2n1;p2n1=p2
+      enddo
+      return; end
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      real*8 function x2f(x,ix)
+      real*8 x
+      integer IND,ix
+      real*8 BIG,BIGI
+      parameter (IND=960,BIG=2.d0**IND,BIGI=2.d0**(-IND))
+      if(ix.eq.0) then
+        x2f=x
+      elseif(ix.eq.-1) then
+        x2f=x*BIGI
+      elseif(ix.eq.1) then
+        x2f=x*BIG
+      elseif(ix.lt.0) then
+        x2f=0.d0
+      elseif(x.lt.0) then
+        x2f=-BIG
+      else
+        x2f=BIG
+      endif
+      return
+      end
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      subroutine xlsum2(a,x,ix,b,y,iy,z,iz)
+      real*8 a,x,b,y,z,p,q
+      integer IND,ix,iy,iz,ip,iq,id
+      real*8 BIGI
+      parameter (IND=960,BIGI=2.d0**(-IND))
+      z=a*x; iz=ix
+      q=b*y; iq=iy
+      id=iz-iq
+      if(id.eq.0) then
+        z=z+q
+      elseif(id.eq.1) then
+        z=z+q*BIGI
+      elseif(id.eq.-1) then
+        z=q+z*BIGI; iz=iq
+      elseif(id.lt.-1) then
+        z=q; iz=iq
+      endif
+      call xnorm(z,iz)
+      return
+      end
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      subroutine xnorm(x,ix)
+      integer ix,IND
+      real*8 x
+      real*8 BIG,BIGI,BIGS,BIGSI
+      parameter (IND=960,BIG=2.d0**IND,BIGI=2.d0**(-IND))
+      parameter (BIGS=2.d0**(IND/2),BIGSI=2.d0**(-IND/2))
+      if(x.eq.0.d0) then
+        ix=0
+      elseif(abs(x).LT.BIGSI) then
+        x=x*BIG; ix=ix-1
+      elseif(abs(x).GE.BIGS) then
+        x=x*BIGI; ix=ix+1
+      endif
+      return
+      end
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+              nx,mx=      6000      3000
+      theta1,theta2=  60.00000  30.00000
+        t2,u2,t1,u1=   0.86603   0.50000   0.50000   0.86603
+         n         m          Inm(t1,t2)             pnm(t1)             pnm(t2)
+       500       500  0.0000000000000000  0.0000000000000000  0.0000000000000000
+      1499       500 -0.0021737682233791 -0.5073662310502622 -0.8749465873714464
+      1500       500 -0.0016937897173518  1.1817054315199065 -1.7770308292851418
+      2499       500 -0.0001317207372235  1.3675014184466272  0.1080522011157008
+      2500       500  0.0001485122517149 -0.2252212638535991 -1.0058454688830845
+      3499       500  0.0000872409438294 -1.5434010728333378 -2.1907509284289857
+      3500       500 -0.0001715104983639 -1.4477258480849828 -2.2643595837032215
+      4499       500  0.0003303860643825 -1.0400245102963575 -2.2154168727585102
+      4500       500  0.0001391868569711 -1.7092398521125292 -1.6550096312948379
+      5499       500 -0.0001411589874677 -1.6295742040602950 -2.1988297301359983
+      5500       500 -0.0002135472642383 -0.3435084549349223 -2.2019111943761080
+      1000      1000  0.0000000000000000  0.0000000000000000  0.0000000000000000
+      1999      1000  0.0162108153614305  1.8693840618179647  3.9940837661260007
+      2000      1000  0.0164884942430558  1.3463515085832716  4.2017323422789792
+      2999      1000  0.0002156832039805 -1.3478378547751997  0.2634833487325894
+      3000      1000 -0.0000405249282282  0.2772504252421422  1.2699311504624251
+      3999      1000  0.0006592469789512  1.0069914053930040  0.7077316624505334
+      4000      1000  0.0006161417471235 -0.7082318475962310  1.6702685957337189
+      4999      1000  0.0003577503111812 -1.5192453574195219 -1.3956016242505882
+      5000      1000  0.0000985850941628 -1.5019701105896692 -0.3449882461889344
+      5999      1000 -0.0001718178307065 -1.7278193329513019  1.5083903526224591
+      6000      1000 -0.0004278759708680 -0.7854223100210062  0.4794436032629008
+      1500      1500  0.0000000000000000  0.0000000000000000  0.0000000000000000
+      2499      1500  0.0273596921406910  1.7083820195167136  0.0000000000000000
+      2500      1500  0.0277866654516465  0.2270056716323634  0.0000000000000000
+      3499      1500  0.0001651696943906 -1.0903625659789720  3.0025890094599688
+      3500      1500 -0.0005083120821892 -1.8373531300777621  2.6101971961045938
+      4499      1500 -0.0004406078428324 -1.7655842752036242  0.3634324094289187
+      4500      1500 -0.0007168569370004 -0.7142149986361188 -0.6893843016307667
+      5499      1500 -0.0000538866544341 -0.9350150402322107  1.7011310639445749
+      5500      1500 -0.0001672529450866  0.7881117501556625  2.3082893324165146
+      2000      2000  0.0000000000000000  0.0000000000000000  0.0000000000000000
+      2999      2000  0.0285113215931882 -2.0377422077746861  0.0000000000000000
+      3000      2000  0.0277096562514450 -1.8670179048043392  0.0000000000000000
+      3999      2000  0.0119229166972752  1.1549490970750738  4.5073360133292519
+      4000      2000  0.0116673427030907 -0.5626757115164762  4.6921609977534793
+      4999      2000 -0.0004225991054064 -0.7396733989974611  2.8535075536409225
+      5000      2000 -0.0005461014020639  0.9908425486419403  2.5029765672637811
+      5999      2000  0.0003853393930602 -1.6295400602037282 -0.9695101114379234
+      6000      2000  0.0001364693186848 -1.4816714031961737  0.0690517518911176
+      2500      2500  0.0000000000000000  0.0000000000000000  0.0000000000000000
+      3499      2500  0.0298662081631376  0.2288038891471524  0.0000000000000000
+      3500      2500  0.0296355699370311 -1.4238898984545441  0.0000000000000000
+      4499      2500  0.0186309245899402 -0.6563662856643235  0.0000000000000000
+      4500      2500  0.0183078198799406 -1.8683749892338204  0.0000000000000000
+      5499      2500  0.0008445797178538  1.6450022088318801  1.5646605881061002
+      5500      2500  0.0009272034165634  0.2073680536530884  2.2517166632440300
+      3000      3000  0.0000000000000000  0.0000000000000000  0.0000000000000000
+      3999      3000  0.0289555923153154  2.3751481315957359  0.0000000000000000
+      4000      3000  0.0296650086116359  2.1165058086742103  0.0000000000000000
+      4999      3000  0.0193194199569725 -1.4309282593819306  0.0000000000000000
+      5000      3000  0.0189159835490967 -2.0064874068958956  0.0000000000000000
+      5999      3000  0.0096899104120433 -0.8006575304198100  4.8349902671163427
+      6000      3000  0.0092063996486528 -1.8670219692116659  5.0076742691856886
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
