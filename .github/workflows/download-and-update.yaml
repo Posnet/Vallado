@@ -1,0 +1,22 @@
+name: Download and Update source code.
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: '0 0 * * 0'
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Download latest code
+        run: bash download.sh
+      - name: Commit changes
+        env:
+          TZ: UTC
+        run: |-
+          git diff
+          git config --global user.email "vallado@denialof.services"
+          git config --global user.name "Vallado Bot"
+          git add -A && git commit -m "$(cat when.txt)"
+          git push
