@@ -13,6 +13,13 @@ for name in "${names[@]}"; do
 	rm "$name.zip"
 done
 
+sgp4="https://celestrak.com/publications/AIAA/2008-6770/AIAA-2008-6770.zip"
+echo "Fetching: $sgp4"
+curl -fL "$sgp4" > "sgp4.zip"
+rm -rf sgp4dc
+unzip "sgp4.zip"
+rm "sgp4.zip"
+
 curl -fL "https://celestrak.com/software/vallado/AstroSoftware.xlsx" > AstroSoftware.xlsl
 
 printf "Fetched on: %s\n" "$when" > when.txt
