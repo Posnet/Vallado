@@ -1,34 +1,32 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Text.RegularExpressions;
 using System.IO;
+using System.Collections.Generic;
 
 
-using MathTimeMethods;  // MathTimeLib.globals, MathTimeLib.Edirection
-using EOPSPWMethods;    // EOPDataClass, SPWData Class, iau80Class, iau00Class
-using AstroLibMethods;     // EOpt, jpldedataClass
+using MathTimeMethods;     // Edirection, globals
+using EOPSPWMethods;       // EOPDataClass, SPWDataClass, iau80Class, iau00Class
+using AstroLibMethods;     // EOpt, gravityConst, astroConst, xysdataClass, jpldedataClass
 using AstroLambertkMethods;
+using SGP4Methods; 
+using System.Data;
 
-
-namespace TestAll
+namespace TestAllTool
 {
     public partial class Form1 : Form
     {
         public MathTimeLib MathTimeLibr = new MathTimeLib();
 
-        // Sets up the data structures for EOP and SPW
         public EOPSPWLib EOPSPWLibr = new EOPSPWLib();
 
         public AstroLib AstroLibr = new AstroLib();
 
         public AstroLambertkLib AstroLambertkLibr = new AstroLambertkLib();
+
+        public SGP4Lib Sgp4Libr = new SGP4Lib();
 
         StringBuilder strbuild = new StringBuilder();
 
@@ -37,9 +35,10 @@ namespace TestAll
         //   public iau80Data iau80rec;
         // 000. gives leading 0's
         // ;+00.;-00. gives signs in front
-        string fmt = "0.0000000";
-        string fmtE = "0.0000000E0";
+        string fmt = "0.00000000000";
+        string fmtE = "0.0000000000E0";
         string fmt1 = "0.000000000000";
+        string fmt2 = "0.00000";
 
         public Form1()
         {
@@ -55,7 +54,7 @@ namespace TestAll
             vec1 = new double[3] { 2.3, 4.7, -1.6 };
             vec2 = new double[3] { 0.3, -0.7, 6.0 };
 
-            mat1 = MathTimeLibr.vecouter(vec1, vec2);
+            mat1 = MathTimeLibr.vecouter(vec1, vec2, 3);
 
             strbuild.AppendLine("vecout = " + mat1[0, 0].ToString(fmt).PadLeft(4) + " " + mat1[0, 1].ToString(fmt).PadLeft(4) + " " + mat1[0, 2].ToString(fmt).PadLeft(4) + " ");
             strbuild.AppendLine("vecout = " + mat1[1, 0].ToString(fmt).PadLeft(4) + " " + mat1[1, 1].ToString(fmt).PadLeft(4) + " " + mat1[1, 2].ToString(fmt).PadLeft(4));
@@ -167,9 +166,9 @@ namespace TestAll
             mat1 = new double[,] { { 3, 5, 6 }, { 2, 0, 3 }, { 1, 2, 8 } };
             MathTimeLibr.matinverse(mat1, 3, out matinv);
 
-            strbuild.AppendLine("mat1 = " + matinv[0, 0].ToString(fmt).PadLeft(4) + " " + matinv[0, 1].ToString(fmt).PadLeft(4) + " " + matinv[0, 2].ToString(fmt).PadLeft(4) + " ");
-            strbuild.AppendLine("mat1 = " + matinv[1, 0].ToString(fmt).PadLeft(4) + " " + matinv[1, 1].ToString(fmt).PadLeft(4) + " " + matinv[1, 2].ToString(fmt).PadLeft(4) + " ");
-            strbuild.AppendLine("mat1 = " + matinv[2, 0].ToString(fmt).PadLeft(4) + " " + matinv[2, 1].ToString(fmt).PadLeft(4) + " " + matinv[2, 2].ToString(fmt).PadLeft(4) + " ");
+            strbuild.AppendLine("matinv = " + matinv[0, 0].ToString(fmt).PadLeft(4) + " " + matinv[0, 1].ToString(fmt).PadLeft(4) + " " + matinv[0, 2].ToString(fmt).PadLeft(4) + " ");
+            strbuild.AppendLine("matinv = " + matinv[1, 0].ToString(fmt).PadLeft(4) + " " + matinv[1, 1].ToString(fmt).PadLeft(4) + " " + matinv[1, 2].ToString(fmt).PadLeft(4) + " ");
+            strbuild.AppendLine("matinv = " + matinv[2, 0].ToString(fmt).PadLeft(4) + " " + matinv[2, 1].ToString(fmt).PadLeft(4) + " " + matinv[2, 2].ToString(fmt).PadLeft(4) + " ");
 
             //Results: test before
             // 0.1016949    0.4745763 - 0.2542373
@@ -179,9 +178,9 @@ namespace TestAll
             mat1 = new double[,] { { 1, 3, 3 }, { 1, 4, 3 }, { 1, 3, 4 } };
             MathTimeLibr.matinverse(mat1, 3, out matinv);
 
-            strbuild.AppendLine("mat1 = " + matinv[0, 0].ToString(fmt).PadLeft(4) + " " + matinv[0, 1].ToString(fmt).PadLeft(4) + " " + matinv[0, 2].ToString(fmt).PadLeft(4) + " ");
-            strbuild.AppendLine("mat1 = " + matinv[1, 0].ToString(fmt).PadLeft(4) + " " + matinv[1, 1].ToString(fmt).PadLeft(4) + " " + matinv[1, 2].ToString(fmt).PadLeft(4) + " ");
-            strbuild.AppendLine("mat1 = " + matinv[2, 0].ToString(fmt).PadLeft(4) + " " + matinv[2, 1].ToString(fmt).PadLeft(4) + " " + matinv[2, 2].ToString(fmt).PadLeft(4) + " ");
+            strbuild.AppendLine("matinv = " + matinv[0, 0].ToString(fmt).PadLeft(4) + " " + matinv[0, 1].ToString(fmt).PadLeft(4) + " " + matinv[0, 2].ToString(fmt).PadLeft(4) + " ");
+            strbuild.AppendLine("matinv = " + matinv[1, 0].ToString(fmt).PadLeft(4) + " " + matinv[1, 1].ToString(fmt).PadLeft(4) + " " + matinv[1, 2].ToString(fmt).PadLeft(4) + " ");
+            strbuild.AppendLine("matinv = " + matinv[2, 0].ToString(fmt).PadLeft(4) + " " + matinv[2, 1].ToString(fmt).PadLeft(4) + " " + matinv[2, 2].ToString(fmt).PadLeft(4) + " ");
 
 
             double[,] ata = new double[,] {{264603537.493561, 206266447.729262, 274546062925.826, -282848493891885, 362835957483807, -4.3758299682612E+17 },
@@ -193,12 +192,12 @@ namespace TestAll
 
             MathTimeLibr.matinverse(ata, 6, out matinv);
 
-            strbuild.AppendLine("mat1 = " + matinv[0, 0].ToString(fmt1).PadLeft(4) + " " + matinv[0, 1].ToString(fmt1).PadLeft(4) + " " + matinv[0, 2].ToString(fmt1).PadLeft(4) + " " + matinv[0, 3].ToString(fmt1).PadLeft(4) + " " + matinv[0, 4].ToString(fmt1).PadLeft(4) + " " + matinv[0, 5].ToString(fmt1).PadLeft(4) + " ");
-            strbuild.AppendLine("mat1 = " + matinv[1, 0].ToString(fmt1).PadLeft(4) + " " + matinv[1, 1].ToString(fmt1).PadLeft(4) + " " + matinv[1, 2].ToString(fmt1).PadLeft(4) + " " + matinv[1, 3].ToString(fmt1).PadLeft(4) + " " + matinv[1, 4].ToString(fmt1).PadLeft(4) + " " + matinv[1, 5].ToString(fmt1).PadLeft(4) + " ");
-            strbuild.AppendLine("mat1 = " + matinv[2, 0].ToString(fmt1).PadLeft(4) + " " + matinv[2, 1].ToString(fmt1).PadLeft(4) + " " + matinv[2, 2].ToString(fmt1).PadLeft(4) + " " + matinv[2, 3].ToString(fmt1).PadLeft(4) + " " + matinv[2, 4].ToString(fmt1).PadLeft(4) + " " + matinv[2, 5].ToString(fmt1).PadLeft(4) + " ");
-            strbuild.AppendLine("mat1 = " + matinv[3, 0].ToString(fmt1).PadLeft(4) + " " + matinv[3, 1].ToString(fmt1).PadLeft(4) + " " + matinv[3, 2].ToString(fmt1).PadLeft(4) + " " + matinv[3, 3].ToString(fmt1).PadLeft(4) + " " + matinv[3, 4].ToString(fmt1).PadLeft(4) + " " + matinv[3, 5].ToString(fmt1).PadLeft(4) + " ");
-            strbuild.AppendLine("mat1 = " + matinv[4, 0].ToString(fmt1).PadLeft(4) + " " + matinv[4, 1].ToString(fmt1).PadLeft(4) + " " + matinv[4, 2].ToString(fmt1).PadLeft(4) + " " + matinv[4, 3].ToString(fmt1).PadLeft(4) + " " + matinv[4, 4].ToString(fmt1).PadLeft(4) + " " + matinv[4, 5].ToString(fmt1).PadLeft(4) + " ");
-            strbuild.AppendLine("mat1 = " + matinv[5, 0].ToString(fmt1).PadLeft(4) + " " + matinv[5, 1].ToString(fmt1).PadLeft(4) + " " + matinv[5, 2].ToString(fmt1).PadLeft(4) + " " + matinv[5, 3].ToString(fmt1).PadLeft(4) + " " + matinv[5, 4].ToString(fmt1).PadLeft(4) + " " + matinv[5, 5].ToString(fmt1).PadLeft(4) + " ");
+            strbuild.AppendLine("matinv = " + matinv[0, 0].ToString(fmt1).PadLeft(4) + " " + matinv[0, 1].ToString(fmt1).PadLeft(4) + " " + matinv[0, 2].ToString(fmt1).PadLeft(4) + " " + matinv[0, 3].ToString(fmt1).PadLeft(4) + " " + matinv[0, 4].ToString(fmt1).PadLeft(4) + " " + matinv[0, 5].ToString(fmt1).PadLeft(4) + " ");
+            strbuild.AppendLine("matinv = " + matinv[1, 0].ToString(fmt1).PadLeft(4) + " " + matinv[1, 1].ToString(fmt1).PadLeft(4) + " " + matinv[1, 2].ToString(fmt1).PadLeft(4) + " " + matinv[1, 3].ToString(fmt1).PadLeft(4) + " " + matinv[1, 4].ToString(fmt1).PadLeft(4) + " " + matinv[1, 5].ToString(fmt1).PadLeft(4) + " ");
+            strbuild.AppendLine("matinv = " + matinv[2, 0].ToString(fmt1).PadLeft(4) + " " + matinv[2, 1].ToString(fmt1).PadLeft(4) + " " + matinv[2, 2].ToString(fmt1).PadLeft(4) + " " + matinv[2, 3].ToString(fmt1).PadLeft(4) + " " + matinv[2, 4].ToString(fmt1).PadLeft(4) + " " + matinv[2, 5].ToString(fmt1).PadLeft(4) + " ");
+            strbuild.AppendLine("matinv = " + matinv[3, 0].ToString(fmt1).PadLeft(4) + " " + matinv[3, 1].ToString(fmt1).PadLeft(4) + " " + matinv[3, 2].ToString(fmt1).PadLeft(4) + " " + matinv[3, 3].ToString(fmt1).PadLeft(4) + " " + matinv[3, 4].ToString(fmt1).PadLeft(4) + " " + matinv[3, 5].ToString(fmt1).PadLeft(4) + " ");
+            strbuild.AppendLine("matinv = " + matinv[4, 0].ToString(fmt1).PadLeft(4) + " " + matinv[4, 1].ToString(fmt1).PadLeft(4) + " " + matinv[4, 2].ToString(fmt1).PadLeft(4) + " " + matinv[4, 3].ToString(fmt1).PadLeft(4) + " " + matinv[4, 4].ToString(fmt1).PadLeft(4) + " " + matinv[4, 5].ToString(fmt1).PadLeft(4) + " ");
+            strbuild.AppendLine("matinv = " + matinv[5, 0].ToString(fmt1).PadLeft(4) + " " + matinv[5, 1].ToString(fmt1).PadLeft(4) + " " + matinv[5, 2].ToString(fmt1).PadLeft(4) + " " + matinv[5, 3].ToString(fmt1).PadLeft(4) + " " + matinv[5, 4].ToString(fmt1).PadLeft(4) + " " + matinv[5, 5].ToString(fmt1).PadLeft(4) + " ");
 
             double[,] mat3 = MathTimeLibr.matmult(ata, matinv, 6, 6, 6);
 
@@ -238,7 +237,11 @@ namespace TestAll
             double[,] mat1 = new double[3, 3];
             double[,] a = new double[3, 3];
 
-            //         mat1 = MathTimeLibr.cholesky(a);
+            mat1 = MathTimeLibr.cholesky(a);
+
+            strbuild.AppendLine("matcho = " + mat1[0, 0].ToString(fmt1).PadLeft(4) + " " + mat1[0, 1].ToString(fmt1).PadLeft(4) + " " + mat1[0, 2].ToString(fmt1).PadLeft(4));
+            strbuild.AppendLine("matcho = " + mat1[1, 0].ToString(fmt1).PadLeft(4) + " " + mat1[1, 1].ToString(fmt1).PadLeft(4) + " " + mat1[1, 2].ToString(fmt1).PadLeft(4));
+            strbuild.AppendLine("matcho = " + mat1[2, 0].ToString(fmt1).PadLeft(4) + " " + mat1[2, 1].ToString(fmt1).PadLeft(4) + " " + mat1[2, 2].ToString(fmt1).PadLeft(4));
         }
 
         public void testposvelcov2pts()
@@ -250,6 +253,9 @@ namespace TestAll
 
             AstroLibr.posvelcov2pts(reci, veci, cov, out sigmapts);
 
+            strbuild.AppendLine("sigmapts = " + sigmapts[0, 0].ToString(fmt1).PadLeft(4) + " " + sigmapts[0, 1].ToString(fmt1).PadLeft(4) + " " + sigmapts[0, 2].ToString(fmt1).PadLeft(4) + " " + sigmapts[0, 3].ToString(fmt1).PadLeft(4) + " " + sigmapts[0, 4].ToString(fmt1).PadLeft(4) + " " + sigmapts[0, 5].ToString(fmt1).PadLeft(4) + " ");
+            strbuild.AppendLine("sigmapts = " + sigmapts[1, 0].ToString(fmt1).PadLeft(4) + " " + sigmapts[1, 1].ToString(fmt1).PadLeft(4) + " " + sigmapts[1, 2].ToString(fmt1).PadLeft(4) + " " + sigmapts[1, 3].ToString(fmt1).PadLeft(4) + " " + sigmapts[1, 4].ToString(fmt1).PadLeft(4) + " " + sigmapts[1, 5].ToString(fmt1).PadLeft(4) + " ");
+            strbuild.AppendLine("sigmapts = " + sigmapts[2, 0].ToString(fmt1).PadLeft(4) + " " + sigmapts[2, 1].ToString(fmt1).PadLeft(4) + " " + sigmapts[2, 2].ToString(fmt1).PadLeft(4) + " " + sigmapts[2, 3].ToString(fmt1).PadLeft(4) + " " + sigmapts[2, 4].ToString(fmt1).PadLeft(4) + " " + sigmapts[2, 5].ToString(fmt1).PadLeft(4) + " ");
         }
 
         public void testposcov2pts()
@@ -296,9 +302,17 @@ namespace TestAll
 
             // form sigmapts pos/vel
             AstroLibr.posvelcov2pts(r1, v1, cov2, out sigmapts);
+            strbuild.AppendLine("sigmapts = " + sigmapts[0, 0].ToString(fmt1).PadLeft(4) + " " + sigmapts[0, 1].ToString(fmt1).PadLeft(4) + " " + sigmapts[0, 2].ToString(fmt1).PadLeft(4) + " " + sigmapts[0, 3].ToString(fmt1).PadLeft(4) + " " + sigmapts[0, 4].ToString(fmt1).PadLeft(4) + " " + sigmapts[0, 5].ToString(fmt1).PadLeft(4) + " ");
+            strbuild.AppendLine("sigmapts = " + sigmapts[1, 0].ToString(fmt1).PadLeft(4) + " " + sigmapts[1, 1].ToString(fmt1).PadLeft(4) + " " + sigmapts[1, 2].ToString(fmt1).PadLeft(4) + " " + sigmapts[1, 3].ToString(fmt1).PadLeft(4) + " " + sigmapts[1, 4].ToString(fmt1).PadLeft(4) + " " + sigmapts[1, 5].ToString(fmt1).PadLeft(4) + " ");
+            strbuild.AppendLine("sigmapts = " + sigmapts[2, 0].ToString(fmt1).PadLeft(4) + " " + sigmapts[2, 1].ToString(fmt1).PadLeft(4) + " " + sigmapts[2, 2].ToString(fmt1).PadLeft(4) + " " + sigmapts[2, 3].ToString(fmt1).PadLeft(4) + " " + sigmapts[2, 4].ToString(fmt1).PadLeft(4) + " " + sigmapts[2, 5].ToString(fmt1).PadLeft(4) + " ");
+
             // reassemble covariance at each step and write out
             AstroLibr.remakecovpv(sigmapts, out yu, out covout);
             AstroLibr.poscov2pts(reci, cov, out sigmapts);
+
+            strbuild.AppendLine("sigmapts = " + sigmapts[0, 0].ToString(fmt1).PadLeft(4) + " " + sigmapts[0, 1].ToString(fmt1).PadLeft(4) + " " + sigmapts[0, 2].ToString(fmt1).PadLeft(4) + " " + sigmapts[0, 3].ToString(fmt1).PadLeft(4) + " " + sigmapts[0, 4].ToString(fmt1).PadLeft(4) + " " + sigmapts[0, 5].ToString(fmt1).PadLeft(4) + " ");
+            strbuild.AppendLine("sigmapts = " + sigmapts[1, 0].ToString(fmt1).PadLeft(4) + " " + sigmapts[1, 1].ToString(fmt1).PadLeft(4) + " " + sigmapts[1, 2].ToString(fmt1).PadLeft(4) + " " + sigmapts[1, 3].ToString(fmt1).PadLeft(4) + " " + sigmapts[1, 4].ToString(fmt1).PadLeft(4) + " " + sigmapts[1, 5].ToString(fmt1).PadLeft(4) + " ");
+            strbuild.AppendLine("sigmapts = " + sigmapts[2, 0].ToString(fmt1).PadLeft(4) + " " + sigmapts[2, 1].ToString(fmt1).PadLeft(4) + " " + sigmapts[2, 2].ToString(fmt1).PadLeft(4) + " " + sigmapts[2, 3].ToString(fmt1).PadLeft(4) + " " + sigmapts[2, 4].ToString(fmt1).PadLeft(4) + " " + sigmapts[2, 5].ToString(fmt1).PadLeft(4) + " ");
         }
 
         public void testremakecovpv()
@@ -309,6 +323,10 @@ namespace TestAll
             double[,] cov2 = new double[6, 6];
 
             AstroLibr.remakecovpv(sigmapts, out yu, out cov);
+
+            strbuild.AppendLine("cov = " + cov[0, 0].ToString(fmt1).PadLeft(4) + " " + cov[0, 1].ToString(fmt1).PadLeft(4) + " " + cov[0, 2].ToString(fmt1).PadLeft(4));
+            strbuild.AppendLine("cov = " + cov[1, 0].ToString(fmt1).PadLeft(4) + " " + cov[1, 1].ToString(fmt1).PadLeft(4) + " " + cov[1, 2].ToString(fmt1).PadLeft(4));
+            strbuild.AppendLine("cov = " + cov[2, 0].ToString(fmt1).PadLeft(4) + " " + cov[2, 1].ToString(fmt1).PadLeft(4) + " " + cov[2, 2].ToString(fmt1).PadLeft(4));
         }
         public void testremakecovp()
         {
@@ -316,6 +334,10 @@ namespace TestAll
             double[] yu = new double[6];
             double[,] cov = new double[6, 6];
             AstroLibr.remakecovp(sigmapts, out yu, out cov);
+
+            strbuild.AppendLine("cov = " + cov[0, 0].ToString(fmt1).PadLeft(4) + " " + cov[0, 1].ToString(fmt1).PadLeft(4) + " " + cov[0, 2].ToString(fmt1).PadLeft(4));
+            strbuild.AppendLine("cov = " + cov[1, 0].ToString(fmt1).PadLeft(4) + " " + cov[1, 1].ToString(fmt1).PadLeft(4) + " " + cov[1, 2].ToString(fmt1).PadLeft(4));
+            strbuild.AppendLine("cov = " + cov[2, 0].ToString(fmt1).PadLeft(4) + " " + cov[2, 1].ToString(fmt1).PadLeft(4) + " " + cov[2, 2].ToString(fmt1).PadLeft(4));
         }
         public void testmatequal()
         {
@@ -460,7 +482,14 @@ namespace TestAll
             double excelPercentile;
             Int32 arrSize;
             excelPercentile = 0.3;
-            arrSize = 8;
+            arrSize = 7;
+            sequence[0] = 45.3;
+            sequence[1] = 5.63;
+            sequence[2] = 5.13;
+            sequence[3] = 345.3;
+            sequence[4] = 45.3;
+            sequence[5] = 3445.3;
+            sequence[6] = 0.03;
 
             ans = MathTimeLibr.Percentile(sequence, excelPercentile, arrSize);
 
@@ -470,8 +499,12 @@ namespace TestAll
         {
             double[] vec = new double[3];
             double[] vec3 = new double[3];
-            double xval;
-            xval = 23.4;
+            double xval, rad;
+            rad = 180.0 / Math.PI;
+            vec[0] = 23.4;
+            vec[1] = 6723.4;
+            vec[2] = -2.4;
+            xval = 225.0 / rad;
 
             vec3 = MathTimeLibr.rot1(vec, xval);
 
@@ -481,8 +514,12 @@ namespace TestAll
         {
             double[] vec3 = new double[3];
             double[] vec = new double[3];
-            double xval;
-            xval = 23.4;
+            double xval, rad;
+            rad = 180.0 / Math.PI;
+            vec[0] = 23.4;
+            vec[1] = 6723.4;
+            vec[2] = -2.4;
+            xval = 23.4 / rad;
             vec3 = MathTimeLibr.rot2(vec, xval);
 
             strbuild.AppendLine("testrot2 = " + vec3[0].ToString(fmt).PadLeft(4) + " " + vec3[1].ToString(fmt).PadLeft(4) + " " + vec3[2].ToString(fmt).PadLeft(4));
@@ -491,8 +528,12 @@ namespace TestAll
         {
             double[] vec3 = new double[3];
             double[] vec = new double[3];
-            double xval;
-            xval = 23.4;
+            double xval, rad;
+            rad = 180.0 / Math.PI;
+            vec[0] = 23.4;
+            vec[1] = 6723.4;
+            vec[2] = -2.4;
+            xval = 323.4 / rad;
             vec3 = MathTimeLibr.rot3(vec, xval);
 
             strbuild.AppendLine("testrot3 = " + vec3[0].ToString(fmt).PadLeft(4) + " " + vec3[1].ToString(fmt).PadLeft(4) + " " + vec3[2].ToString(fmt).PadLeft(4));
@@ -516,6 +557,9 @@ namespace TestAll
             p4 = 32.0;
 
             MathTimeLibr.cubicspl(p1, p2, p3, p4, out acu0, out acu1, out acu2, out acu3);
+
+            strbuild.AppendLine("cubicspl = " + acu0.ToString(fmt).PadLeft(7) + acu1.ToString(fmt).PadLeft(7)
+                + acu2.ToString(fmt).PadLeft(7) + acu3.ToString(fmt).PadLeft(7));
         }
         public void testcubic()
         {
@@ -530,6 +574,9 @@ namespace TestAll
 
             MathTimeLibr.cubic(a3, b2, c1, d0, opt, out r1r, out r1i, out r2r, out r2i, out r3r, out r3i);
 
+            strbuild.AppendLine("cubic = " + r1r.ToString(fmt).PadLeft(7) + r1i.ToString(fmt).PadLeft(7)
+                + r2r.ToString(fmt).PadLeft(7) + r2i.ToString(fmt).PadLeft(7)
+                + r3r.ToString(fmt).PadLeft(7) + r3i.ToString(fmt).PadLeft(7));
         }
         public void testcubicinterp()
         {
@@ -546,6 +593,8 @@ namespace TestAll
             valuein = 4.0;
 
             ans = MathTimeLibr.cubicinterp(p1a, p1b, p1c, p1d, p2a, p2b, p2c, p2d, valuein);
+
+            strbuild.AppendLine("cubicint = " + ans.ToString(fmt).PadLeft(7));
         }
 
         public void testquadratic()
@@ -559,6 +608,9 @@ namespace TestAll
             opt = 'I';  // all roots, unique, real
 
             MathTimeLibr.quadratic(a, b, c, opt, out r1r, out r1i, out r2r, out r2i);
+
+            strbuild.AppendLine("quad = " + r1r.ToString(fmt).PadLeft(7) + r1i.ToString(fmt).PadLeft(7)
+                + r2r.ToString(fmt).PadLeft(7) + r2i.ToString(fmt).PadLeft(7));
         }
 
         public void testconvertMonth()
@@ -567,7 +619,7 @@ namespace TestAll
             monstr = "Jan";
             int mon;
 
-            mon = MathTimeLibr.convertMonth(monstr);
+            mon = MathTimeLibr.getIntMonth(monstr);
         }
 
         public void testjday()
@@ -612,7 +664,7 @@ namespace TestAll
         public void testiau80in()
         {
             Int32 year, mon, day, hr, minute, dat;
-            double jd, jdFrac, jdut1, second, dut1, ttt, lod, xp, yp, ddx, ddy, ddpsi, ddeps;
+            double jd, jdFrac, second, dut1, lod, xp, yp, ddx, ddy, ddpsi, ddeps;
             int i;
             double f107, f107bar, ap, avgap, kp, sumkp;
             double[] aparr = new double[8];
@@ -665,17 +717,47 @@ namespace TestAll
 
         public void testfundarg()
         {
-            double ttt, l, l1, f, d, raan, lonmer, lonven, lonear, lonmar, lonjup, lonsat, lonurn, lonnep, precrate;
+            double[] fArgs = new double[14];
+            double ttt;
             AstroLib.EOpt opt = AstroLib.EOpt.e80;
             ttt = 0.042623631889;
 
-            AstroLibr.fundarg(ttt, opt, out l, out l1, out f, out d, out raan,
-                out lonmer, out lonven, out lonear, out lonmar, out lonjup, out lonsat, out lonurn, out lonnep,
-                out precrate);
+            AstroLibr.fundarg(ttt, opt, out fArgs);
+            strbuild.AppendLine("fundarg = " + fArgs[0].ToString(fmt).PadLeft(4) + " " + fArgs[1].ToString(fmt).PadLeft(4) + " "
+                + fArgs[2].ToString(fmt).PadLeft(4) + " " + fArgs[3].ToString(fmt).PadLeft(4) + " " + fArgs[4].ToString(fmt).PadLeft(4) + " "
+                + fArgs[5].ToString(fmt).PadLeft(4) + " " + fArgs[6].ToString(fmt).PadLeft(4) + " " + fArgs[7].ToString(fmt).PadLeft(4) + " "
+                + fArgs[8].ToString(fmt).PadLeft(4) + " " + fArgs[9].ToString(fmt).PadLeft(4) + " " + fArgs[10].ToString(fmt).PadLeft(4) + " "
+                + fArgs[11].ToString(fmt).PadLeft(4) + " " + fArgs[12].ToString(fmt).PadLeft(4) + " " + fArgs[13].ToString(fmt).PadLeft(4));
 
-            strbuild.AppendLine("fundarg = " + lonmer.ToString(fmt).PadLeft(4) + " " + lonven.ToString(fmt).PadLeft(4) + " " + lonear.ToString(fmt).PadLeft(4) + " " +
-                lonmar.ToString(fmt).PadLeft(4) + " " + lonjup.ToString(fmt).PadLeft(4) + " " + lonsat.ToString(fmt).PadLeft(4) + " " +
-                lonurn.ToString(fmt).PadLeft(4) + lonnep.ToString(fmt).PadLeft(4) + " " + precrate.ToString(fmt).PadLeft(4));
+            // do in deg
+            for (int i = 0; i < 14; i++)
+                fArgs[i] = fArgs[i] * 180.0 / Math.PI;
+
+            strbuild.AppendLine("fundarg = " + fArgs[0].ToString(fmt).PadLeft(4) + " " + fArgs[1].ToString(fmt).PadLeft(4) + " "
+                + fArgs[2].ToString(fmt).PadLeft(4) + " " + fArgs[3].ToString(fmt).PadLeft(4) + " " + fArgs[4].ToString(fmt).PadLeft(4) + " "
+                + fArgs[5].ToString(fmt).PadLeft(4) + " " + fArgs[6].ToString(fmt).PadLeft(4) + " " + fArgs[7].ToString(fmt).PadLeft(4) + " "
+                + fArgs[8].ToString(fmt).PadLeft(4) + " " + fArgs[9].ToString(fmt).PadLeft(4) + " " + fArgs[10].ToString(fmt).PadLeft(4) + " "
+                + fArgs[11].ToString(fmt).PadLeft(4) + " " + fArgs[12].ToString(fmt).PadLeft(4) + " " + fArgs[13].ToString(fmt).PadLeft(4));
+
+
+            AstroLibr.fundarg(ttt, AstroLib.EOpt.e06cio, out fArgs);
+            strbuild.AppendLine("fundarg = " + fArgs[0].ToString(fmt).PadLeft(4) + " " + fArgs[1].ToString(fmt).PadLeft(4) + " "
+                + fArgs[2].ToString(fmt).PadLeft(4) + " " + fArgs[3].ToString(fmt).PadLeft(4) + " " + fArgs[4].ToString(fmt).PadLeft(4) + " "
+                + fArgs[5].ToString(fmt).PadLeft(4) + " " + fArgs[6].ToString(fmt).PadLeft(4) + " " + fArgs[7].ToString(fmt).PadLeft(4) + " "
+                + fArgs[8].ToString(fmt).PadLeft(4) + " " + fArgs[9].ToString(fmt).PadLeft(4) + " " + fArgs[10].ToString(fmt).PadLeft(4) + " "
+                + fArgs[11].ToString(fmt).PadLeft(4) + " " + fArgs[12].ToString(fmt).PadLeft(4) + " " + fArgs[13].ToString(fmt).PadLeft(4));
+
+            // do in deg
+            for (int i = 0; i < 14; i++)
+                fArgs[i] = fArgs[i] * 180.0 / Math.PI;
+
+            strbuild.AppendLine("fundarg = " + fArgs[0].ToString(fmt).PadLeft(4) + " " + fArgs[1].ToString(fmt).PadLeft(4) + " "
+                + fArgs[2].ToString(fmt).PadLeft(4) + " " + fArgs[3].ToString(fmt).PadLeft(4) + " " + fArgs[4].ToString(fmt).PadLeft(4) + " "
+                + fArgs[5].ToString(fmt).PadLeft(4) + " " + fArgs[6].ToString(fmt).PadLeft(4) + " " + fArgs[7].ToString(fmt).PadLeft(4) + " "
+                + fArgs[8].ToString(fmt).PadLeft(4) + " " + fArgs[9].ToString(fmt).PadLeft(4) + " " + fArgs[10].ToString(fmt).PadLeft(4) + " "
+                + fArgs[11].ToString(fmt).PadLeft(4) + " " + fArgs[12].ToString(fmt).PadLeft(4) + " " + fArgs[13].ToString(fmt).PadLeft(4));
+
+
         }
         public void testprecess()
         {
@@ -684,70 +766,117 @@ namespace TestAll
             AstroLib.EOpt opt = AstroLib.EOpt.e80;
 
             ttt = 0.042623631889;
+            // ttt = 0.04262362174880504;
             prec = AstroLibr.precess(ttt, opt, out psia, out wa, out epsa, out chia);
 
             strbuild.AppendLine("prec = " + prec[0, 0].ToString(fmt).PadLeft(4) + " " + prec[0, 1].ToString(fmt).PadLeft(4) + " " + prec[0, 2].ToString(fmt).PadLeft(4) + " ");
             strbuild.AppendLine("prec = " + prec[1, 0].ToString(fmt).PadLeft(4) + " " + prec[1, 1].ToString(fmt).PadLeft(4) + " " + prec[1, 2].ToString(fmt).PadLeft(4) + " ");
             strbuild.AppendLine("prec = " + prec[2, 0].ToString(fmt).PadLeft(4) + " " + prec[2, 1].ToString(fmt).PadLeft(4) + " " + prec[2, 2].ToString(fmt).PadLeft(4) + " ");
+
+            prec = AstroLibr.precess(ttt, AstroLib.EOpt.e06eq, out psia, out wa, out epsa, out chia);
+
+            strbuild.AppendLine("prec00 = " + prec[0, 0].ToString(fmt).PadLeft(4) + " " + prec[0, 1].ToString(fmt).PadLeft(4) + " " + prec[0, 2].ToString(fmt).PadLeft(4) + " ");
+            strbuild.AppendLine("prec00 = " + prec[1, 0].ToString(fmt).PadLeft(4) + " " + prec[1, 1].ToString(fmt).PadLeft(4) + " " + prec[1, 2].ToString(fmt).PadLeft(4) + " ");
+            strbuild.AppendLine("prec00 = " + prec[2, 0].ToString(fmt).PadLeft(4) + " " + prec[2, 1].ToString(fmt).PadLeft(4) + " " + prec[2, 2].ToString(fmt).PadLeft(4) + " ");
         }
 
         public void testnutation()
         {
+            double[] fArgs = new double[14];
             double ttt, ddpsi, ddeps;
             double[,] nut = new double[3, 3];
+            double[,] nut00 = new double[3, 3];
             AstroLib.EOpt opt = AstroLib.EOpt.e80;
+            EOPSPWLib.iau80Class iau80arr;
+            EOPSPWLib.iau00Class iau00arr;
             string nutLoc;
             nutLoc = @"D:\Codes\LIBRARY\DataLib\nut80.dat";
-            EOPSPWLibr.iau80in(nutLoc, out EOPSPWLibr.iau80arr);
-            double deltapsi, deltaeps, trueeps, meaneps, raan;
+            EOPSPWLibr.iau80in(nutLoc, out iau80arr);
+            nutLoc = @"D:\Codes\LIBRARY\DataLib\";
+            EOPSPWLibr.iau00in(nutLoc, out iau00arr);
+
+            double deltapsi, deltaeps, trueeps, meaneps;
             ttt = 0.042623631889;
             ddpsi = -0.052195;
             ddeps = -0.003875;
-            nut = AstroLibr.nutation(ttt, ddpsi, ddeps, EOPSPWLibr.iau80arr, opt, out deltapsi, out deltaeps, out trueeps, out meaneps, out raan);
+
+            AstroLibr.fundarg(ttt, opt, out fArgs);
+
+            nut = AstroLibr.nutation(ttt, ddpsi, ddeps, EOPSPWLibr.iau80arr, opt, fArgs, out deltapsi, out deltaeps, out trueeps, out meaneps);
 
             strbuild.AppendLine("nut = " + nut[0, 0].ToString(fmt).PadLeft(4) + " " + nut[0, 1].ToString(fmt).PadLeft(4) + " " + nut[0, 2].ToString(fmt).PadLeft(4) + " ");
             strbuild.AppendLine("nut = " + nut[1, 0].ToString(fmt).PadLeft(4) + " " + nut[1, 1].ToString(fmt).PadLeft(4) + " " + nut[1, 2].ToString(fmt).PadLeft(4) + " ");
             strbuild.AppendLine("nut = " + nut[2, 0].ToString(fmt).PadLeft(4) + " " + nut[2, 1].ToString(fmt).PadLeft(4) + " " + nut[2, 2].ToString(fmt).PadLeft(4) + " ");
+
+            AstroLibr.fundarg(ttt, AstroLib.EOpt.e06eq, out fArgs);
+            nut00 = AstroLibr.precnutbias00a(ttt, ddpsi, ddeps, EOPSPWLibr.iau00arr, AstroLib.EOpt.e06eq, fArgs);
+            strbuild.AppendLine("nut06 c= " + nut[0, 0].ToString(fmt).PadLeft(4) + " " + nut[0, 1].ToString(fmt).PadLeft(4) + " " + nut[0, 2].ToString(fmt).PadLeft(4) + " ");
+            strbuild.AppendLine("nut06 c= " + nut[1, 0].ToString(fmt).PadLeft(4) + " " + nut[1, 1].ToString(fmt).PadLeft(4) + " " + nut[1, 2].ToString(fmt).PadLeft(4) + " ");
+            strbuild.AppendLine("nut06 c= " + nut[2, 0].ToString(fmt).PadLeft(4) + " " + nut[2, 1].ToString(fmt).PadLeft(4) + " " + nut[2, 2].ToString(fmt).PadLeft(4) + " ");
+
+            //AstroLibr.fundarg(ttt, AstroLib.EOpt.e00a, out fArgs);
+            //nut00 = AstroLibr.nutation00a(ttt, ddpsi, ddeps, EOPSPWLibr.iau00arr, AstroLib.EOpt.e00a);
+            //strbuild.AppendLine("nut06 a= " + nut[0, 0].ToString(fmt).PadLeft(4) + " " + nut[0, 1].ToString(fmt).PadLeft(4) + " " + nut[0, 2].ToString(fmt).PadLeft(4) + " ");
+            //strbuild.AppendLine("nut06 a= " + nut[1, 0].ToString(fmt).PadLeft(4) + " " + nut[1, 1].ToString(fmt).PadLeft(4) + " " + nut[1, 2].ToString(fmt).PadLeft(4) + " ");
+            //strbuild.AppendLine("nut06 a= " + nut[2, 0].ToString(fmt).PadLeft(4) + " " + nut[2, 1].ToString(fmt).PadLeft(4) + " " + nut[2, 2].ToString(fmt).PadLeft(4) + " ");
         }
 
 
         public void testnutationqmod()
         {
+            double[] fArgs = new double[14];
             double[,] nutq = new double[3, 3];
-            double ttt, deltapsi, deltaeps, meaneps, raan;
+            double ttt, deltapsi, deltaeps, meaneps;
             AstroLib.EOpt opt = AstroLib.EOpt.e80;
             string nutLoc;
             nutLoc = @"D:\Codes\LIBRARY\DataLib\nut80.dat";
             EOPSPWLibr.iau80in(nutLoc, out EOPSPWLibr.iau80arr);
             ttt = 0.042623631889;
+            // ttt = 0.04262362174880504;
 
-            nutq = AstroLibr.nutationqmod(ttt, EOPSPWLibr.iau80arr, opt, out deltapsi, out deltaeps, out meaneps, out raan);
+            AstroLibr.fundarg(ttt, opt, out fArgs);
+
+            nutq = AstroLibr.nutationqmod(ttt, EOPSPWLibr.iau80arr, opt, fArgs, out deltapsi, out deltaeps, out meaneps);
         }
         public void testsidereal()
         {
+            double[] fArgs = new double[14];
             double[,] nut = new double[3, 3];
             double[,] st = new double[3, 3];
-            double ttt, jdut1, deltapsi, deltaeps, meaneps, trueeps, ddpsi, ddeps, raan, lod;
-            int eqeterms;
+            double ttt, jdut1, deltapsi, deltaeps, meaneps, trueeps, ddpsi, ddeps, lod;
+            int eqeterms = 2;
             AstroLib.EOpt opt = AstroLib.EOpt.e80;
             EOPSPWLib.iau80Class iau80arr;
-            eqeterms = 2;
+            EOPSPWLib.iau00Class iau00arr;
             jdut1 = 2453101.82740678310;
             ttt = 0.042623631889;
+            //ttt = 0.04262362174880504;
             lod = 0.001556;
             string nutLoc;
             nutLoc = @"D:\Codes\LIBRARY\DataLib\nut80.dat";
             EOPSPWLibr.iau80in(nutLoc, out iau80arr);
+            nutLoc = @"D:\Codes\LIBRARY\DataLib\";
+            EOPSPWLibr.iau00in(nutLoc, out iau00arr);
 
             ddpsi = -0.052195;
             ddeps = -0.003875;
-            nut = AstroLibr.nutation(ttt, ddpsi, ddeps, EOPSPWLibr.iau80arr, opt, out deltapsi, out deltaeps, out trueeps, out meaneps, out raan);
 
-            st = AstroLibr.sidereal(jdut1, deltapsi, meaneps, raan, lod, eqeterms, opt);
-
+            AstroLibr.fundarg(ttt, opt, out fArgs);
+            nut = AstroLibr.nutation(ttt, ddpsi, ddeps, EOPSPWLibr.iau80arr, opt, fArgs,
+                out deltapsi, out deltaeps, out trueeps, out meaneps);
+            st = AstroLibr.sidereal(jdut1, deltapsi, meaneps, fArgs, lod, eqeterms, opt);
             strbuild.AppendLine("st = " + st[0, 0].ToString(fmt).PadLeft(4) + " " + st[0, 1].ToString(fmt).PadLeft(4) + " " + st[0, 2].ToString(fmt).PadLeft(4) + " ");
             strbuild.AppendLine("st = " + st[1, 0].ToString(fmt).PadLeft(4) + " " + st[1, 1].ToString(fmt).PadLeft(4) + " " + st[1, 2].ToString(fmt).PadLeft(4) + " ");
             strbuild.AppendLine("st = " + st[2, 0].ToString(fmt).PadLeft(4) + " " + st[2, 1].ToString(fmt).PadLeft(4) + " " + st[2, 2].ToString(fmt).PadLeft(4) + " ");
+
+
+            AstroLibr.fundarg(ttt, AstroLib.EOpt.e06eq, out fArgs);
+            nut = AstroLibr.nutation(ttt, ddpsi, ddeps, EOPSPWLibr.iau80arr, AstroLib.EOpt.e06eq, fArgs,
+                out deltapsi, out deltaeps, out trueeps, out meaneps);
+            st = AstroLibr.sidereal(jdut1, deltapsi, meaneps, fArgs, lod, eqeterms, AstroLib.EOpt.e06eq);
+            strbuild.AppendLine("st00 = " + st[0, 0].ToString(fmt).PadLeft(4) + " " + st[0, 1].ToString(fmt).PadLeft(4) + " " + st[0, 2].ToString(fmt).PadLeft(4) + " ");
+            strbuild.AppendLine("st00 = " + st[1, 0].ToString(fmt).PadLeft(4) + " " + st[1, 1].ToString(fmt).PadLeft(4) + " " + st[1, 2].ToString(fmt).PadLeft(4) + " ");
+            strbuild.AppendLine("st00 = " + st[2, 0].ToString(fmt).PadLeft(4) + " " + st[2, 1].ToString(fmt).PadLeft(4) + " " + st[2, 2].ToString(fmt).PadLeft(4) + " ");
         }
         public void testpolarm()
         {
@@ -756,6 +885,7 @@ namespace TestAll
             AstroLib.EOpt opt = AstroLib.EOpt.e80;
 
             ttt = 0.042623631889;
+            //ttt = 0.04262363188899416;
             xp = 0.0;
             yp = 0.0;
             opt = AstroLib.EOpt.e80;
@@ -765,6 +895,12 @@ namespace TestAll
             strbuild.AppendLine("pm = " + pm[0, 0].ToString(fmt).PadLeft(4) + " " + pm[0, 1].ToString(fmt).PadLeft(4) + " " + pm[0, 2].ToString(fmt).PadLeft(4) + " ");
             strbuild.AppendLine("pm = " + pm[1, 0].ToString(fmt).PadLeft(4) + " " + pm[1, 1].ToString(fmt).PadLeft(4) + " " + pm[1, 2].ToString(fmt).PadLeft(4) + " ");
             strbuild.AppendLine("pm = " + pm[2, 0].ToString(fmt).PadLeft(4) + " " + pm[2, 1].ToString(fmt).PadLeft(4) + " " + pm[2, 2].ToString(fmt).PadLeft(4) + " ");
+
+            pm = AstroLibr.polarm(xp, yp, ttt, AstroLib.EOpt.e06eq);
+
+            strbuild.AppendLine("pm06 = " + pm[0, 0].ToString(fmt).PadLeft(4) + " " + pm[0, 1].ToString(fmt).PadLeft(4) + " " + pm[0, 2].ToString(fmt).PadLeft(4) + " ");
+            strbuild.AppendLine("pm06 = " + pm[1, 0].ToString(fmt).PadLeft(4) + " " + pm[1, 1].ToString(fmt).PadLeft(4) + " " + pm[1, 2].ToString(fmt).PadLeft(4) + " ");
+            strbuild.AppendLine("pm06 = " + pm[2, 0].ToString(fmt).PadLeft(4) + " " + pm[2, 1].ToString(fmt).PadLeft(4) + " " + pm[2, 2].ToString(fmt).PadLeft(4) + " ");
         }
         public void testgstime()
         {
@@ -851,17 +987,18 @@ namespace TestAll
 
         public void testeci_ecef()
         {
+            double[] fArgs = new double[14];
             double[] reci = new double[3];
             double[] veci = new double[3];
-            int eqeterms;
             double[] recef = new double[3];
             double[] vecef = new double[3];
             double conv;
             Int32 year, mon, day, hr, minute, dat;
-            double jd, jdFrac, jdut1, second, dut1, ttt, lod, xp, yp, ddx, ddy, ddpsi, ddeps;
-            EOPSPWLib.iau80Class iau80arr;
-            EOPSPWLib.iau00Class iau00arr;
-            conv = Math.PI / (180.0 * 3600.0);
+            double jd, jdFrac, jdut1, second, dut1, ttt, lod, xp, yp, ddx, ddy, ddpsi, ddeps,
+                jdtt, jdftt;
+            double x, y, s;
+
+            conv = Math.PI / (180.0 * 3600.0);  // arcsec to rad
 
             recef = new double[] { -1033.4793830, 7901.2952754, 6380.3565958 };
             vecef = new double[] { -3.225636520, -2.872451450, 5.531924446 };
@@ -871,6 +1008,15 @@ namespace TestAll
             hr = 7;
             minute = 51;
             second = 28.386009;
+
+            // sofa example -------------
+            //year = 2007;
+            //mon = 4;
+            //day = 5;
+            //hr = 12;
+            //minute = 0;
+            //second = 0.0;
+
             MathTimeLibr.jday(year, mon, day, hr, minute, second, out jd, out jdFrac);
 
             dut1 = -0.4399619;      // sec
@@ -882,38 +1028,110 @@ namespace TestAll
             ddeps = -0.003875 * conv;
             ddx = -0.000205 * conv;    // " to rad
             ddy = -0.000136 * conv;
-            eqeterms = 2;
 
-            ttt = (jd + jdFrac + (dat + 32.184) / 86400.0 - 2451545.0) / 36525.0;
+            // sofa example -------------
+            //dut1 = -0.072073685;      // sec
+            //dat = 33;                // sec
+            //xp = 0.0349282 * conv;  // " to rad
+            //yp = 0.4833163 * conv;
+            //lod = 0.0;
+            //ddpsi = -0.0550655 * conv;  // " to rad
+            //ddeps = -0.006358 * conv;
+            //ddx = 0.000175 * conv;    // " to rad
+            //ddy = -0.0002259 * conv;
+
+            jdtt = jd;
+            jdftt = jdFrac + (dat + 32.184) / 86400.0;
+            ttt = (jdtt + jdftt - 2451545.0) / 36525.0;
+            Console.WriteLine("ttt wo base (use this) " + ttt.ToString());
             jdut1 = jd + jdFrac + dut1 / 86400.0;
 
             strbuild.AppendLine("ITRF          IAU-76/FK5   " + recef[0].ToString(fmt).PadLeft(4) + " " + recef[1].ToString(fmt).PadLeft(4) + " " + recef[2].ToString(fmt).PadLeft(4) + " "
                 + vecef[0].ToString(fmt).PadLeft(4) + " " + vecef[1].ToString(fmt).PadLeft(4) + " " + vecef[2].ToString(fmt).PadLeft(4));
 
             string nutLoc;
+            EOPSPWLib.iau80Class iau80arr;
+            EOPSPWLib.iau00Class iau00arr;
             nutLoc = @"D:\Codes\LIBRARY\DataLib\nut80.dat";
             EOPSPWLibr.iau80in(nutLoc, out iau80arr);
-            AstroLibr.eci_ecef(ref reci, ref veci, iau80arr, MathTimeLib.Edirection.efrom,
-                 ttt, jdut1, lod, xp, yp, eqeterms, ddpsi, ddeps, AstroLib.EOpt.e80, ref recef, ref vecef);
-
-            strbuild.AppendLine("GCRF          IAU-76/FK5   " + reci[0].ToString(fmt).PadLeft(4) + " " + reci[1].ToString(fmt).PadLeft(4) + " " + reci[2].ToString(fmt).PadLeft(4) + " "
-                + veci[0].ToString(fmt).PadLeft(4) + " " + veci[1].ToString(fmt).PadLeft(4) + " " + veci[2].ToString(fmt).PadLeft(4));
 
             nutLoc = @"D:\Codes\LIBRARY\DataLib\";
             EOPSPWLibr.iau00in(nutLoc, out iau00arr);
-            AstroLibr.eci_ecef00(ref reci, ref veci, iau00arr, MathTimeLib.Edirection.efrom,
-                 ttt, jdut1, lod, xp, yp, eqeterms, ddx, ddy, AstroLib.EOpt.e00cio, ref recef, ref vecef);
-            strbuild.AppendLine("GCRF          IAU-2010 CIO " + reci[0].ToString(fmt).PadLeft(4) + " " + reci[1].ToString(fmt).PadLeft(4) + " " + reci[2].ToString(fmt).PadLeft(4) + " "
+
+            // test creating xys file
+            nutLoc = @"D:\Codes\LIBRARY\DataLib\";
+            // done, works. :-)
+            //AstroLibr.createXYS(nutLoc, iau00arr, fArgs);
+
+            // now read it in
+            double jdxysstart, jdfxysstart;
+            AstroLib.xysdataClass[] xysarr = AstroLibr.xysarr;
+            AstroLibr.initXYS(ref xysarr, nutLoc, "xysdata.dat", out jdxysstart, out jdfxysstart);
+
+            // now test it for interpolation
+            //jdtt = jd + jdFrac + (dat + 32.184) / 86400.0;
+            AstroLibr.fundarg(ttt, AstroLib.EOpt.e06cio, out fArgs);
+            AstroLibr.iau06xysSeries(ttt, iau00arr, fArgs, out x, out y, out s);
+            strbuild.AppendLine("iau06xys     x   " + x.ToString() + " y " + y.ToString() + " s " + s.ToString());
+            strbuild.AppendLine("iau06xys     x   " + (x / conv).ToString() + " y " + (y / conv).ToString() + " s " + (s / conv).ToString());
+            x = x + ddx;
+            y = y + ddy;
+            strbuild.AppendLine("iau06xys     x   " + x.ToString() + " y " + y.ToString() + " s " + s.ToString());
+            strbuild.AppendLine("iau06xys     x   " + (x / conv).ToString() + " y " + (y / conv).ToString() + " s " + (s / conv).ToString());
+            AstroLibr.findxysparam(jdtt + jdftt, 0.0, 'n', xysarr, jdxysstart, out x, out y, out s);
+            strbuild.AppendLine("findxysparam n x " + x.ToString() + "   y " + y.ToString() + "   s " + s.ToString());
+            AstroLibr.findxysparam(jdtt + jdftt, 0.0, 'l', xysarr, jdxysstart, out x, out y, out s);
+            strbuild.AppendLine("findxysparam l x " + x.ToString() + " y " + y.ToString() + " s " + s.ToString());
+            AstroLibr.findxysparam(jdtt + jdftt, 0.0, 's', xysarr, jdxysstart, out x, out y, out s);
+            strbuild.AppendLine("findxysparam s x " + x.ToString() + " y " + y.ToString() + " s " + s.ToString());
+
+            AstroLibr.eci_ecef(ref reci, ref veci, MathTimeLib.Edirection.efrom, ref recef, ref vecef,
+                 AstroLib.EOpt.e80, iau80arr, iau00arr,
+                 jdtt, jdftt, jdut1, jdxysstart, lod, xp, yp, ddpsi, ddeps, ddx, ddy);
+            strbuild.AppendLine("GCRF          IAU-76/FK5   " + reci[0].ToString(fmt).PadLeft(4) + " " + reci[1].ToString(fmt).PadLeft(4) + " " + reci[2].ToString(fmt).PadLeft(4) + " "
                 + veci[0].ToString(fmt).PadLeft(4) + " " + veci[1].ToString(fmt).PadLeft(4) + " " + veci[2].ToString(fmt).PadLeft(4));
 
-            AstroLibr.eci_ecef00(ref reci, ref veci, iau00arr, MathTimeLib.Edirection.efrom,
-                 ttt, jdut1, lod, xp, yp, eqeterms, ddx, ddy, AstroLib.EOpt.e00a, ref recef, ref vecef);
-            strbuild.AppendLine("GCRF          IAU-2010 00a " + reci[0].ToString(fmt).PadLeft(4) + " " + reci[1].ToString(fmt).PadLeft(4) + " " + reci[2].ToString(fmt).PadLeft(4) + " "
+            Console.WriteLine(" checking book test");
+            AstroLibr.eci_ecef(ref reci, ref veci, MathTimeLib.Edirection.efrom, ref recef, ref vecef,
+                 AstroLib.EOpt.e06cio, iau80arr, iau00arr,
+                 jdtt, jdftt, jdut1, jdxysstart, lod, xp, yp, ddpsi, ddeps, ddx, ddy);
+            strbuild.AppendLine("GCRF          IAU-2006 CIO " + reci[0].ToString(fmt).PadLeft(4) + " " + reci[1].ToString(fmt).PadLeft(4) + " " + reci[2].ToString(fmt).PadLeft(4) + " "
                 + veci[0].ToString(fmt).PadLeft(4) + " " + veci[1].ToString(fmt).PadLeft(4) + " " + veci[2].ToString(fmt).PadLeft(4));
+            Console.WriteLine("GCRF          IAU-2006 CIO " + reci[0].ToString(fmt).PadLeft(4) + " " + reci[1].ToString(fmt).PadLeft(4) + " " + reci[2].ToString(fmt).PadLeft(4) + " "
+                + veci[0].ToString(fmt).PadLeft(4) + " " + veci[1].ToString(fmt).PadLeft(4) + " " + veci[2].ToString(fmt).PadLeft(4));
+
+
+            // try backwards
+            AstroLibr.eci_ecef(ref reci, ref veci, MathTimeLib.Edirection.eto, ref recef, ref vecef,
+                AstroLib.EOpt.e06cio, iau80arr, iau00arr,
+                jdtt, jdftt, jdut1, jdxysstart, lod, xp, yp, ddpsi, ddeps, ddx, ddy);
+            strbuild.AppendLine("ITRF rev       IAU-76/FK5   " + recef[0].ToString(fmt).PadLeft(4) + " " + recef[1].ToString(fmt).PadLeft(4) + " " + recef[2].ToString(fmt).PadLeft(4) + " "
+                + vecef[0].ToString(fmt).PadLeft(4) + " " + vecef[1].ToString(fmt).PadLeft(4) + " " + vecef[2].ToString(fmt).PadLeft(4));
+            recef = new double[] { -1033.4793830, 7901.2952754, 6380.3565958 };
+            vecef = new double[] { -3.225636520, -2.872451450, 5.531924446 };
+
+
+            // these are not correct
+            AstroLibr.eci_ecef(ref reci, ref veci, MathTimeLib.Edirection.efrom, ref recef, ref vecef,
+                 AstroLib.EOpt.e06eq, iau80arr, iau00arr,
+                 jdtt, jdftt, jdut1, jdxysstart, lod, xp, yp, ddpsi, ddeps, ddx, ddy);
+            strbuild.AppendLine("GCRF          IAU-2006 06  " + reci[0].ToString(fmt).PadLeft(4) + " " + reci[1].ToString(fmt).PadLeft(4) + " " + reci[2].ToString(fmt).PadLeft(4) + " "
+                + veci[0].ToString(fmt).PadLeft(4) + " " + veci[1].ToString(fmt).PadLeft(4) + " " + veci[2].ToString(fmt).PadLeft(4));
+            Console.WriteLine("GCRF          IAU-2006 06  " + reci[0].ToString(fmt).PadLeft(4) + " " + reci[1].ToString(fmt).PadLeft(4) + " " + reci[2].ToString(fmt).PadLeft(4) + " "
+                + veci[0].ToString(fmt).PadLeft(4) + " " + veci[1].ToString(fmt).PadLeft(4) + " " + veci[2].ToString(fmt).PadLeft(4));
+
+            AstroLibr.eci_ecef(ref reci, ref veci, MathTimeLib.Edirection.efrom, ref recef, ref vecef,
+                 AstroLib.EOpt.e00a, iau80arr, iau00arr,
+                 jdtt, jdftt, jdut1, jdxysstart, lod, xp, yp, ddpsi, ddeps, ddx, ddy);
+            strbuild.AppendLine("GCRF          IAU-2006 00a  " + reci[0].ToString(fmt).PadLeft(4) + " " + reci[1].ToString(fmt).PadLeft(4) + " " + reci[2].ToString(fmt).PadLeft(4) + " "
+                + veci[0].ToString(fmt).PadLeft(4) + " " + veci[1].ToString(fmt).PadLeft(4) + " " + veci[2].ToString(fmt).PadLeft(4));
+            Console.WriteLine("GCRF          IAU-2006 00a  " + reci[0].ToString(fmt).PadLeft(4) + " " + reci[1].ToString(fmt).PadLeft(4) + " " + reci[2].ToString(fmt).PadLeft(4) + " "
+                + veci[0].ToString(fmt).PadLeft(4) + " " + veci[1].ToString(fmt).PadLeft(4) + " " + veci[2].ToString(fmt).PadLeft(4));
+            strbuild.AppendLine("00a case is wrong");
+
 
 
             // writeout data for table interpolation
-            double x, y, s;
             Int32 i;
             year = 1980;
             mon = 1;
@@ -924,6 +1142,8 @@ namespace TestAll
             Int32 mjdeopstart, ktrActObs;
             string EOPupdate;
             double jdeopstart;
+            char interp = 'x';  // full series
+
 
             nutLoc = @"D:\Codes\LIBRARY\DataLib\";
             EOPSPWLibr.iau00in(nutLoc, out iau00arr);
@@ -938,7 +1158,7 @@ namespace TestAll
             jdeopstart = mjdeopstart + 2400000.5;
 
             // now find table of CIO values
-            double l, l1, f, d, lonmer, lonven, lonear, lonmar, lonjup, lonsat, lonurn, lonnep, precrate, deltapsi, deltaeps, raan, tempval;
+            double deltapsi, deltaeps, tempval;
 
             // rad to "
             double convrt = (180.0 * 3600.0) / Math.PI;
@@ -948,11 +1168,11 @@ namespace TestAll
                 MathTimeLibr.jday(year, mon, day + i, hr, minute, second, out jd, out jdFrac);
                 //EOPSPWLibr.findeopparam(jd, jdFrac, 's', EOPSPWLibr.eopdata, mjdeopstart + 2400000.5, out dut1, out dat,
                 //   out lod, out xp, out yp, out ddpsi, out ddeps, out ddx, out ddy);
-                ttt = (jd + jdFrac + (dat + 32.184) / 86400.0 - 2451545.0) / 36525.0;
+                jdtt = jd;
+                jdftt = jdFrac + (dat + 32.184) / 86400.0;
+                ttt = (jdtt + jdftt - 2451545.0) / 36525.0;
 
-                AstroLibr.fundarg(ttt, AstroLib.EOpt.e80, out l, out l1, out f, out d, out raan,
-                   out lonmer, out lonven, out lonear, out lonmar,
-                   out lonjup, out lonsat, out lonurn, out lonnep, out precrate);
+                AstroLibr.fundarg(ttt, AstroLib.EOpt.e80, out fArgs);
 
                 ddpsi = 0.0;
                 ddeps = 0.0;
@@ -961,8 +1181,8 @@ namespace TestAll
                 int ii;
                 for (ii = 105; ii >= 0; ii--)
                 {
-                    tempval = iau80arr.iar80[ii, 0] * l + iau80arr.iar80[ii, 1] * l1 + iau80arr.iar80[ii, 2] * f +
-                             iau80arr.iar80[ii, 3] * d + iau80arr.iar80[ii, 4] * raan;
+                    tempval = iau80arr.iar80[ii, 0] * fArgs[0] + iau80arr.iar80[ii, 1] * fArgs[1] + iau80arr.iar80[ii, 2] * fArgs[2] +
+                             iau80arr.iar80[ii, 3] * fArgs[3] + iau80arr.iar80[ii, 4] * fArgs[4];
                     deltapsi = deltapsi + (iau80arr.rar80[ii, 0] + iau80arr.rar80[ii, 1] * ttt) * Math.Sin(tempval);
                     deltaeps = deltaeps + (iau80arr.rar80[ii, 2] + iau80arr.rar80[ii, 3] * ttt) * Math.Cos(tempval);
                 }
@@ -972,9 +1192,10 @@ namespace TestAll
                 deltaeps = (deltaeps + ddeps) % (2.0 * Math.PI);
 
                 // CIO parameters
+                AstroLibr.fundarg(ttt, AstroLib.EOpt.e06cio, out fArgs);
                 ddx = 0.0;
                 ddy = 0.0;
-                AstroLibr.iau00xys(ttt, ddx, ddy, AstroLib.EOpt.e00cio, iau00arr, out x, out y, out s);
+                AstroLibr.iau06xys(jdtt, jdftt, ddx, ddy, interp, iau00arr, fArgs, jdxysstart, out x, out y, out s);
                 x = x * convrt;
                 y = y * convrt;
                 s = s * convrt;
@@ -988,9 +1209,249 @@ namespace TestAll
         }
         public void testtod2ecef()
         {
+            double[] fArgs = new double[14];
+            double[] reci = new double[3];
+            double[] veci = new double[3];
+            double[] recii = new double[3];
+            double[] vecii = new double[3];
+            double[] rmod = new double[3];
+            double[] vmod = new double[3];
             double[] rtod = new double[3];
             double[] vtod = new double[3];
-            int eqeterms;
+            double[] rpef = new double[3];
+            double[] vpef = new double[3];
+            double[] recef = new double[3];
+            double[] vecef = new double[3];
+            double[] recefi = new double[3];
+            double[] vecefi = new double[3];
+            double[] rtemp = new double[3];
+            double[] vtemp = new double[3];
+            double conv;
+            Int32 year, mon, day, hr, minute, dat;
+            double jd, jdFrac, jdut1, second, dut1, ttt, lod, xp, yp, ddx, ddy, ddpsi, ddeps,
+                jdtt, jdftt, jdxysstart;
+
+            conv = Math.PI / (180.0 * 3600.0);
+
+            recef = new double[] { -1033.4793830, 7901.2952754, 6380.3565958 };
+            vecef = new double[] { -3.225636520, -2.872451450, 5.531924446 };
+            year = 2004;
+            mon = 4;
+            day = 6;
+            hr = 7;
+            minute = 51;
+            second = 28.386009;
+            MathTimeLibr.jday(year, mon, day, hr, minute, second, out jd, out jdFrac);
+
+            dut1 = -0.4399619;      // sec
+            dat = 32;               // sec
+            xp = -0.140682 * conv;  // " to rad
+            yp = 0.333309 * conv;
+            lod = 0.0015563;
+            ddpsi = -0.052195 * conv;  // " to rad
+            ddeps = -0.003875 * conv;
+            ddx = -0.000205 * conv;    // " to rad
+            ddy = -0.000136 * conv;
+
+            reci = new double[] { 0.0, 0.0, 0.0 };
+            veci = new double[] { 0.0, 0.0, 0.0 };
+
+            string nutLoc;
+            EOPSPWLib.iau80Class iau80arr;
+            EOPSPWLib.iau00Class iau00arr;
+            nutLoc = @"D:\Codes\LIBRARY\DataLib\nut80.dat";
+            EOPSPWLibr.iau80in(nutLoc, out iau80arr);
+            nutLoc = @"D:\Codes\LIBRARY\DataLib\";
+            EOPSPWLibr.iau00in(nutLoc, out iau00arr);
+            jdtt = jd;
+            jdftt = jdFrac + (dat + 32.184) / 86400.0;
+            ttt = (jdtt + jdftt - 2451545.0) / 36525.0;
+
+            // now read it in
+            double jdfxysstart;
+            AstroLib.xysdataClass[] xysarr = AstroLibr.xysarr;
+            AstroLibr.initXYS(ref xysarr, nutLoc, "xysdata.dat", out jdxysstart, out jdfxysstart);
+
+            jdut1 = jd + jdFrac + dut1 / 86400.0;
+
+            strbuild.AppendLine("ITRF start    IAU-76/FK5   " + recef[0].ToString(fmt).PadLeft(4) + " " + recef[1].ToString(fmt).PadLeft(4) + " " + recef[2].ToString(fmt).PadLeft(4) + " "
+                + vecef[0].ToString(fmt).PadLeft(4) + " " + vecef[1].ToString(fmt).PadLeft(4) + " " + vecef[2].ToString(fmt).PadLeft(4));
+
+            // PEF
+            AstroLibr.ecef_pef(ref recef, ref vecef, MathTimeLib.Edirection.eto, ref rpef, ref vpef,
+                AstroLib.EOpt.e80, ttt, xp, yp);
+            strbuild.AppendLine("PEF           IAU-76/FK5   " + rpef[0].ToString(fmt).PadLeft(4) + " " +
+                rpef[1].ToString(fmt).PadLeft(4) + " " + rpef[2].ToString(fmt).PadLeft(4) + " "
+                + vpef[0].ToString(fmt).PadLeft(4) + " " + vpef[1].ToString(fmt).PadLeft(4) + " " + vpef[2].ToString(fmt).PadLeft(4));
+            AstroLibr.ecef_pef(ref recii, ref vecii, MathTimeLib.Edirection.efrom, ref rpef, ref vpef,
+                AstroLib.EOpt.e80, ttt, xp, yp);
+            strbuild.AppendLine("ITRF  rev     IAU-76/FK5   " + recii[0].ToString(fmt).PadLeft(4) + " " + recii[1].ToString(fmt).PadLeft(4) + " " + recii[2].ToString(fmt).PadLeft(4) + " "
+                + vecii[0].ToString(fmt).PadLeft(4) + " " + vecii[1].ToString(fmt).PadLeft(4) + " " + vecii[2].ToString(fmt).PadLeft(4));
+
+            AstroLibr.ecef_pef(ref recef, ref vecef, MathTimeLib.Edirection.eto, ref rtemp, ref vtemp,
+                AstroLib.EOpt.e06cio, ttt, xp, yp);
+            strbuild.AppendLine("TIRS          IAU-2006 CIO " + rtemp[0].ToString(fmt).PadLeft(4) + " " +
+                rtemp[1].ToString(fmt).PadLeft(4) + " " + rtemp[2].ToString(fmt).PadLeft(4) + " "
+                + vtemp[0].ToString(fmt).PadLeft(4) + " " + vtemp[1].ToString(fmt).PadLeft(4) + " " + vtemp[2].ToString(fmt).PadLeft(4));
+            AstroLibr.ecef_pef(ref recefi, ref vecefi, MathTimeLib.Edirection.efrom, ref rtemp, ref vtemp,
+                AstroLib.EOpt.e06cio, ttt, xp, yp);
+            strbuild.AppendLine("ITRF rev      IAU-2006 CIO " + recefi[0].ToString(fmt).PadLeft(4) + " " + recefi[1].ToString(fmt).PadLeft(4) + " " + recefi[2].ToString(fmt).PadLeft(4) + " "
+                + vecefi[0].ToString(fmt).PadLeft(4) + " " + vecefi[1].ToString(fmt).PadLeft(4) + " " + vecefi[2].ToString(fmt).PadLeft(4));
+
+            // TOD
+            AstroLibr.ecef_tod(ref recef, ref vecef, MathTimeLib.Edirection.eto, ref rtod, ref vtod,
+                AstroLib.EOpt.e80, iau80arr, iau00arr,
+                ttt, jdut1, lod, xp, yp, 0.0, 0.0, ddx, ddy);
+            strbuild.AppendLine("TOD wo corr   IAU-76/FK5   " + rtod[0].ToString(fmt).PadLeft(4) + " " + rtod[1].ToString(fmt).PadLeft(4) + " " + rtod[2].ToString(fmt).PadLeft(4) + " "
+                + vtod[0].ToString(fmt).PadLeft(4) + " " + vtod[1].ToString(fmt).PadLeft(4) + " " + vtod[2].ToString(fmt).PadLeft(4));
+            AstroLibr.ecef_tod(ref recef, ref vecef, MathTimeLib.Edirection.eto, ref rtod, ref vtod,
+                AstroLib.EOpt.e80, iau80arr, iau00arr,
+                ttt, jdut1, lod, xp, yp, ddpsi, ddeps, ddx, ddy);
+            strbuild.AppendLine("TOD w corr    IAU-76/FK5   " + rtod[0].ToString(fmt).PadLeft(4) + " " + rtod[1].ToString(fmt).PadLeft(4) + " " + rtod[2].ToString(fmt).PadLeft(4) + " "
+                + vtod[0].ToString(fmt).PadLeft(4) + " " + vtod[1].ToString(fmt).PadLeft(4) + " " + vtod[2].ToString(fmt).PadLeft(4));
+            AstroLibr.ecef_tod(ref recefi, ref vecefi, MathTimeLib.Edirection.efrom, ref rtod, ref vtod,
+                AstroLib.EOpt.e80, iau80arr, iau00arr,
+                ttt, jdut1, lod, xp, yp, ddpsi, ddeps, ddx, ddy);
+            strbuild.AppendLine("ITRFi         IAU-76/FK5   " + recefi[0].ToString(fmt).PadLeft(4) + " " + recefi[1].ToString(fmt).PadLeft(4) + " " + recefi[2].ToString(fmt).PadLeft(4) + " "
+                + vecefi[0].ToString(fmt).PadLeft(4) + " " + vecefi[1].ToString(fmt).PadLeft(4) + " " + vecefi[2].ToString(fmt).PadLeft(4));
+
+            AstroLibr.ecef_tod(ref recef, ref vecef, MathTimeLib.Edirection.eto, ref rtemp, ref vtemp,
+                AstroLib.EOpt.e06cio, iau80arr, iau00arr,
+                ttt, jdut1, lod, xp, yp, ddpsi, ddeps, ddx, ddy);
+            strbuild.AppendLine("CIRS          IAU-2006 CIO " + rtemp[0].ToString(fmt).PadLeft(4) + " " +
+                rtemp[1].ToString(fmt).PadLeft(4) + " " + rtemp[2].ToString(fmt).PadLeft(4) + " "
+                + vtemp[0].ToString(fmt).PadLeft(4) + " " + vtemp[1].ToString(fmt).PadLeft(4) + " " + vtemp[2].ToString(fmt).PadLeft(4));
+            AstroLibr.ecef_tod(ref recefi, ref vecefi, MathTimeLib.Edirection.efrom, ref rtemp, ref vtemp,
+               AstroLib.EOpt.e06cio, iau80arr, iau00arr,
+               ttt, jdut1, lod, xp, yp, ddpsi, ddeps, ddx, ddy);
+            strbuild.AppendLine("ITRF rev      IAU-2006 CIO " + recefi[0].ToString(fmt).PadLeft(4) + " " + recefi[1].ToString(fmt).PadLeft(4) + " " + recefi[2].ToString(fmt).PadLeft(4) + " "
+                + vecefi[0].ToString(fmt).PadLeft(4) + " " + vecefi[1].ToString(fmt).PadLeft(4) + " " + vecefi[2].ToString(fmt).PadLeft(4));
+
+            // MOD
+            AstroLibr.ecef_mod(ref recef, ref vecef, MathTimeLib.Edirection.eto, ref rmod, ref vmod,
+                AstroLib.EOpt.e80, iau80arr, iau00arr,
+                jdtt, jdftt, jdut1, jdxysstart, lod, xp, yp, 0.0, 0.0, ddx, ddy);
+            strbuild.AppendLine("MOD wo corr   IAU-76/FK5   " + rmod[0].ToString(fmt).PadLeft(4) + " " +
+                rmod[1].ToString(fmt).PadLeft(4) + " " + rmod[2].ToString(fmt).PadLeft(4) + " "
+                + vmod[0].ToString(fmt).PadLeft(4) + " " + vmod[1].ToString(fmt).PadLeft(4) + " " + vmod[2].ToString(fmt).PadLeft(4));
+            AstroLibr.ecef_mod(ref recef, ref vecef, MathTimeLib.Edirection.eto, ref rmod, ref vmod,
+              AstroLib.EOpt.e80, iau80arr, iau00arr,
+              jdtt, jdftt, jdut1, jdxysstart, lod, xp, yp, ddpsi, ddeps, ddx, ddy);
+            strbuild.AppendLine("MOD  w corr   IAU-76/FK5   " + rmod[0].ToString(fmt).PadLeft(4) + " " +
+                rmod[1].ToString(fmt).PadLeft(4) + " " + rmod[2].ToString(fmt).PadLeft(4) + " "
+                + vmod[0].ToString(fmt).PadLeft(4) + " " + vmod[1].ToString(fmt).PadLeft(4) + " " + vmod[2].ToString(fmt).PadLeft(4));
+            AstroLibr.ecef_mod(ref recefi, ref vecefi, MathTimeLib.Edirection.efrom, ref rmod, ref vmod,
+                AstroLib.EOpt.e80, iau80arr, iau00arr,
+                jdtt, jdftt, jdut1, jdxysstart, lod, xp, yp, ddpsi, ddeps, ddx, ddy);
+            strbuild.AppendLine("ITRF  rev     IAU-76/FK5   " + recefi[0].ToString(fmt).PadLeft(4) + " " + recefi[1].ToString(fmt).PadLeft(4) + " " + recefi[2].ToString(fmt).PadLeft(4) + " "
+                + vecefi[0].ToString(fmt).PadLeft(4) + " " + vecefi[1].ToString(fmt).PadLeft(4) + " " + vecefi[2].ToString(fmt).PadLeft(4));
+
+
+            // J2000
+            AstroLibr.eci_ecef(ref recii, ref vecii, MathTimeLib.Edirection.efrom, ref recef, ref vecef,
+                 AstroLib.EOpt.e80, iau80arr, iau00arr,
+                 jdtt, jdftt, jdut1, jdxysstart, lod, xp, yp, 0.0, 0.0, ddx, ddy);
+            strbuild.AppendLine("J2000 wo corr IAU-76/FK5   " + recii[0].ToString(fmt).PadLeft(4) + " " + recii[1].ToString(fmt).PadLeft(4) + " " + recii[2].ToString(fmt).PadLeft(4) + " "
+                + vecii[0].ToString(fmt).PadLeft(4) + " " + vecii[1].ToString(fmt).PadLeft(4) + " " + vecii[2].ToString(fmt).PadLeft(4));
+
+            // GCRF
+            AstroLibr.eci_ecef(ref reci, ref veci, MathTimeLib.Edirection.efrom, ref recef, ref vecef,
+                 AstroLib.EOpt.e80, iau80arr, iau00arr,
+                 jdtt, jdftt, jdut1, jdxysstart, lod, xp, yp, ddpsi, ddeps, ddx, ddy);
+            strbuild.AppendLine("GCRF w corr   IAU-76/FK5   " + reci[0].ToString(fmt).PadLeft(4) + " " + reci[1].ToString(fmt).PadLeft(4) + " " + reci[2].ToString(fmt).PadLeft(4) + " "
+                + veci[0].ToString(fmt).PadLeft(4) + " " + veci[1].ToString(fmt).PadLeft(4) + " " + veci[2].ToString(fmt).PadLeft(4));
+            AstroLibr.eci_ecef(ref reci, ref veci, MathTimeLib.Edirection.eto, ref recefi, ref vecefi,
+                 AstroLib.EOpt.e80, iau80arr, iau00arr,
+                 jdtt, jdftt, jdut1, jdxysstart, lod, xp, yp, ddpsi, ddeps, ddx, ddy);
+            strbuild.AppendLine("ITRF rev      IAU-76/FK5   " + recefi[0].ToString(fmt).PadLeft(4) + " " + recefi[1].ToString(fmt).PadLeft(4) + " " + recefi[2].ToString(fmt).PadLeft(4) + " "
+                + vecef[0].ToString(fmt).PadLeft(4) + " " + vecefi[1].ToString(fmt).PadLeft(4) + " " + vecefi[2].ToString(fmt).PadLeft(4));
+
+            AstroLibr.eci_ecef(ref recii, ref vecii, MathTimeLib.Edirection.efrom, ref recef, ref vecef,
+                 AstroLib.EOpt.e06cio, iau80arr, iau00arr,
+                 jdtt, jdftt, jdut1, jdxysstart, lod, xp, yp, ddpsi, ddeps, ddx, ddy);
+            strbuild.AppendLine("GCRF          IAU-2006 CIO " + recii[0].ToString(fmt).PadLeft(4) + " " + recii[1].ToString(fmt).PadLeft(4) + " " + recii[2].ToString(fmt).PadLeft(4) + " "
+                + vecii[0].ToString(fmt).PadLeft(4) + " " + vecii[1].ToString(fmt).PadLeft(4) + " " + vecii[2].ToString(fmt).PadLeft(4));
+            AstroLibr.eci_ecef(ref recii, ref vecii, MathTimeLib.Edirection.eto, ref recefi, ref vecefi,
+                 AstroLib.EOpt.e06cio, iau80arr, iau00arr,
+                 jdtt, jdftt, jdut1, jdxysstart, lod, xp, yp, ddpsi, ddeps, ddx, ddy);
+            strbuild.AppendLine("ITRF rev      IAU-2006 CIO " + recefi[0].ToString(fmt).PadLeft(4) + " " + recefi[1].ToString(fmt).PadLeft(4) + " " + recefi[2].ToString(fmt).PadLeft(4) + " "
+                + vecefi[0].ToString(fmt).PadLeft(4) + " " + vecefi[1].ToString(fmt).PadLeft(4) + " " + vecefi[2].ToString(fmt).PadLeft(4));
+
+            // sofa
+            strbuild.AppendLine("SOFA ECI CIO  5102.508959486507   6123.011392959787   6378.136934384333");
+            strbuild.AppendLine("SOFA ECI 06a  5102.508965811828   6123.011397147659   6378.136925303720");
+            strbuild.AppendLine("SOFA ECI 00a  5102.508965732931   6123.011397847143   6378.136924695331");
+
+
+            // now reverses from eci
+            strbuild.AppendLine("GCRF wco STARTIAU-76/FK5   " + reci[0].ToString(fmt).PadLeft(4) + " " + reci[1].ToString(fmt).PadLeft(4) + " " + reci[2].ToString(fmt).PadLeft(4) + " "
+                + veci[0].ToString(fmt).PadLeft(4) + " " + veci[1].ToString(fmt).PadLeft(4) + " " + veci[2].ToString(fmt).PadLeft(4));
+
+            // PEF
+            AstroLibr.eci_pef(ref reci, ref veci, MathTimeLib.Edirection.eto, ref rpef, ref vpef,
+                 AstroLib.EOpt.e80, iau80arr, iau00arr,
+                 jdtt, jdftt, jdut1, jdxysstart, lod, ddpsi, ddeps, ddx, ddy);
+            strbuild.AppendLine("PEF           IAU-76/FK5   " + rpef[0].ToString(fmt).PadLeft(4) + " " +
+                rpef[1].ToString(fmt).PadLeft(4) + " " + rpef[2].ToString(fmt).PadLeft(4) + " "
+                + vpef[0].ToString(fmt).PadLeft(4) + " " + vpef[1].ToString(fmt).PadLeft(4) + " " + vpef[2].ToString(fmt).PadLeft(4));
+            AstroLibr.eci_pef(ref recii, ref vecii, MathTimeLib.Edirection.efrom, ref rpef, ref vpef,
+                AstroLib.EOpt.e80, iau80arr, iau00arr,
+                jdtt, jdftt, jdut1, jdxysstart, lod, ddpsi, ddeps, ddx, ddy);
+            strbuild.AppendLine("ECI rev       IAU-76/FK5   " + recii[0].ToString(fmt).PadLeft(4) + " " + recii[1].ToString(fmt).PadLeft(4) + " " + recii[2].ToString(fmt).PadLeft(4) + " "
+                + vecii[0].ToString(fmt).PadLeft(4) + " " + vecii[1].ToString(fmt).PadLeft(4) + " " + vecii[2].ToString(fmt).PadLeft(4));
+
+            AstroLibr.eci_pef(ref reci, ref veci, MathTimeLib.Edirection.eto, ref rpef, ref vpef,
+                AstroLib.EOpt.e06cio, iau80arr, iau00arr,
+                jdtt, jdftt, jdut1, jdxysstart, lod, ddpsi, ddeps, ddx, ddy);
+            strbuild.AppendLine("TIRS          IAU-2006 CIO  " + rpef[0].ToString(fmt).PadLeft(4) + " " +
+                rpef[1].ToString(fmt).PadLeft(4) + " " + rpef[2].ToString(fmt).PadLeft(4) + " "
+                + vpef[0].ToString(fmt).PadLeft(4) + " " + vpef[1].ToString(fmt).PadLeft(4) + " " + vpef[2].ToString(fmt).PadLeft(4));
+            AstroLibr.eci_pef(ref recii, ref vecii, MathTimeLib.Edirection.efrom, ref rpef, ref vpef,
+                AstroLib.EOpt.e06cio, iau80arr, iau00arr,
+                jdtt, jdftt, jdut1, jdxysstart, lod, ddpsi, ddeps, ddx, ddy);
+            strbuild.AppendLine("ECI rev       IAU-2006 CIO " + recii[0].ToString(fmt).PadLeft(4) + " " + recii[1].ToString(fmt).PadLeft(4) + " " + recii[2].ToString(fmt).PadLeft(4) + " "
+                + vecii[0].ToString(fmt).PadLeft(4) + " " + vecii[1].ToString(fmt).PadLeft(4) + " " + vecii[2].ToString(fmt).PadLeft(4));
+
+            // TOD
+            AstroLibr.eci_tod(ref reci, ref veci, MathTimeLib.Edirection.eto, ref rtod, ref vtod,
+                AstroLib.EOpt.e80, iau80arr, iau00arr,
+                jdtt, jdftt, jdut1, jdxysstart, lod, ddpsi, ddeps, ddx, ddy);
+            strbuild.AppendLine("TOD           IAU-76/FK5   " + rtod[0].ToString(fmt).PadLeft(4) + " " + rtod[1].ToString(fmt).PadLeft(4) + " " + rtod[2].ToString(fmt).PadLeft(4) + " "
+                + vtod[0].ToString(fmt).PadLeft(4) + " " + vtod[1].ToString(fmt).PadLeft(4) + " " + vtod[2].ToString(fmt).PadLeft(4));
+            AstroLibr.eci_tod(ref recii, ref vecii, MathTimeLib.Edirection.efrom, ref rtod, ref vtod,
+                AstroLib.EOpt.e80, iau80arr, iau00arr,
+                jdtt, jdftt, jdut1, jdxysstart, lod, ddpsi, ddeps, ddx, ddy);
+            strbuild.AppendLine("ECI rev       IAU-76/FK5   " + recii[0].ToString(fmt).PadLeft(4) + " " + recii[1].ToString(fmt).PadLeft(4) + " " + recii[2].ToString(fmt).PadLeft(4) + " "
+                + vecii[0].ToString(fmt).PadLeft(4) + " " + vecii[1].ToString(fmt).PadLeft(4) + " " + vecii[2].ToString(fmt).PadLeft(4));
+
+            AstroLibr.eci_tod(ref reci, ref veci, MathTimeLib.Edirection.eto, ref rtod, ref vtod,
+                AstroLib.EOpt.e06cio, iau80arr, iau00arr,
+                jdtt, jdftt, jdut1, jdxysstart, lod, ddpsi, ddeps, ddx, ddy);
+            strbuild.AppendLine("CIRS          IAU-2006 CIO " + rtod[0].ToString(fmt).PadLeft(4) + " " + rtod[1].ToString(fmt).PadLeft(4) + " " + rtod[2].ToString(fmt).PadLeft(4) + " "
+                + vtod[0].ToString(fmt).PadLeft(4) + " " + vtod[1].ToString(fmt).PadLeft(4) + " " + vtod[2].ToString(fmt).PadLeft(4));
+            AstroLibr.eci_tod(ref recii, ref vecii, MathTimeLib.Edirection.efrom, ref rtod, ref vtod,
+                AstroLib.EOpt.e06cio, iau80arr, iau00arr,
+                jdtt, jdftt, jdut1, jdxysstart, lod, ddpsi, ddeps, ddx, ddy);
+            strbuild.AppendLine("ECI rev       IAU-2006 CIO " + recii[0].ToString(fmt).PadLeft(4) + " " + recii[1].ToString(fmt).PadLeft(4) + " " + recii[2].ToString(fmt).PadLeft(4) + " "
+                + vecii[0].ToString(fmt).PadLeft(4) + " " + vecii[1].ToString(fmt).PadLeft(4) + " " + vecii[2].ToString(fmt).PadLeft(4));
+
+            // MOD
+            AstroLibr.eci_mod(ref reci, ref veci, MathTimeLib.Edirection.eto, ref rmod, ref vmod,
+                AstroLib.EOpt.e80, iau80arr, iau00arr, ttt);
+            strbuild.AppendLine("MOD           IAU-76/FK5   " + rmod[0].ToString(fmt).PadLeft(4) + " " +
+                rmod[1].ToString(fmt).PadLeft(4) + " " + rmod[2].ToString(fmt).PadLeft(4) + " "
+                + vmod[0].ToString(fmt).PadLeft(4) + " " + vmod[1].ToString(fmt).PadLeft(4) + " " + vmod[2].ToString(fmt).PadLeft(4));
+            AstroLibr.eci_mod(ref recii, ref vecii, MathTimeLib.Edirection.efrom, ref rmod, ref vmod,
+                AstroLib.EOpt.e80, iau80arr, iau00arr, ttt);
+            strbuild.AppendLine("ECI rev       IAU-76/FK5   " + recii[0].ToString(fmt).PadLeft(4) + " " + recii[1].ToString(fmt).PadLeft(4) + " " + recii[2].ToString(fmt).PadLeft(4) + " "
+                + vecii[0].ToString(fmt).PadLeft(4) + " " + vecii[1].ToString(fmt).PadLeft(4) + " " + vecii[2].ToString(fmt).PadLeft(4));
+        }
+        public void testteme_ecef()
+        {
+            double[] fArgs = new double[14];
+            double[] rteme = new double[3];
+            double[] vteme = new double[3];
+            int eqeterms = 2;
             double[] recef = new double[3];
             double[] vecef = new double[3];
             double conv;
@@ -1019,59 +1480,12 @@ namespace TestAll
             ddeps = -0.003875 * conv;
             ddx = -0.000205 * conv;    // " to rad
             ddy = -0.000136 * conv;
-            eqeterms = 2;
-
-            ttt = (jd + jdFrac + (dat + 32.184) / 86400.0 - 2451545.0) / 36525.0;
-            jdut1 = jd + jdFrac + dut1 / 86400.0;
-
-            strbuild.AppendLine("ITRF          IAU-76/FK5   " + recef[0].ToString(fmt).PadLeft(4) + " " + recef[1].ToString(fmt).PadLeft(4) + " " + recef[2].ToString(fmt).PadLeft(4) + " "
-                + vecef[0].ToString(fmt).PadLeft(4) + " " + vecef[1].ToString(fmt).PadLeft(4) + " " + vecef[2].ToString(fmt).PadLeft(4));
 
             string nutLoc = @"D:\Codes\LIBRARY\DataLib\nut80.dat";
             EOPSPWLibr.iau80in(nutLoc, out iau80arr);
 
-            AstroLibr.tod_ecef(ref rtod, ref vtod, MathTimeLib.Edirection.efrom, ttt, jdut1, lod, xp, yp, eqeterms,
-                ddpsi, ddeps, iau80arr, AstroLib.EOpt.e80, ref recef, ref vecef);
-
-            strbuild.AppendLine("TOD           IAU-76/FK5   " + rtod[0].ToString(fmt).PadLeft(4) + " " + rtod[1].ToString(fmt).PadLeft(4) + " " + rtod[2].ToString(fmt).PadLeft(4) + " "
-                + vtod[0].ToString(fmt).PadLeft(4) + " " + vtod[1].ToString(fmt).PadLeft(4) + " " + vtod[2].ToString(fmt).PadLeft(4));
-        }
-        public void testteme_ecef()
-        {
-            double[] rteme = new double[3];
-            double[] vteme = new double[3];
-            int eqeterms;
-            double[] recef = new double[3];
-            double[] vecef = new double[3];
-            double conv;
-            Int32 year, mon, day, hr, minute, dat;
-            double jd, jdFrac, jdut1, second, dut1, ttt, lod, xp, yp, ddx, ddy, ddpsi, ddeps;
-            EOPSPWLib.iau80Class iau80arr;
-
-            conv = Math.PI / (180.0 * 3600.0);
-
-            recef = new double[] { -1033.4793830, 7901.2952754, 6380.3565958 };
-            vecef = new double[] { -3.225636520, -2.872451450, 5.531924446 };
-            year = 2004;
-            mon = 4;
-            day = 6;
-            hr = 7;
-            minute = 51;
-            second = 28.386009;
-            MathTimeLibr.jday(year, mon, day, hr, minute, second, out jd, out jdFrac);
-
-            dut1 = -0.4399619;      // sec
-            dat = 32;               // sec
-            xp = -0.140682 * conv;  // " to rad
-            yp = 0.333309 * conv;
-            lod = 0.0015563;
-            ddpsi = -0.052195 * conv;  // " to rad
-            ddeps = -0.003875 * conv;
-            ddx = -0.000205 * conv;    // " to rad
-            ddy = -0.000136 * conv;
-            eqeterms = 2;
-
-            ttt = (jd + jdFrac + (dat + 32.184) / 86400.0 - 2451545.0) / 36525.0;
+            // note you have to use tdb for time of ineterst AND j2000 (when dat = 32)
+            ttt = (jd + jdFrac + (dat + 32.184) / 86400.0 - 2451545.0 - (32 + 32.184) / 86400.0) / 36525.0;
             jdut1 = jd + jdFrac + dut1 / 86400.0;
 
             strbuild.AppendLine("ITRF          IAU-76/FK5   " + recef[0].ToString(fmt).PadLeft(4) + " " + recef[1].ToString(fmt).PadLeft(4) + " " + recef[2].ToString(fmt).PadLeft(4) + " "
@@ -1079,12 +1493,20 @@ namespace TestAll
 
             AstroLibr.teme_ecef(ref rteme, ref vteme, MathTimeLib.Edirection.efrom, ttt, jdut1, lod, xp, yp,
                 eqeterms, AstroLib.EOpt.e80, ref recef, ref vecef);
-
             strbuild.AppendLine("TEME          IAU-76/FK5   " + rteme[0].ToString(fmt).PadLeft(4) + " " + rteme[1].ToString(fmt).PadLeft(4) + " " + rteme[2].ToString(fmt).PadLeft(4) + " "
                 + vteme[0].ToString(fmt).PadLeft(4) + " " + vteme[1].ToString(fmt).PadLeft(4) + " " + vteme[2].ToString(fmt).PadLeft(4));
+
+            recef = new double[] { 0.0, 0.0, 0.0 };
+            vecef = new double[] { 0.0, 0.0, 0.0 };
+            AstroLibr.teme_ecef(ref rteme, ref vteme, MathTimeLib.Edirection.eto, ttt, jdut1, lod, xp, yp,
+                eqeterms, AstroLib.EOpt.e80, ref recef, ref vecef);
+            strbuild.AppendLine("ITRF          IAU-76/FK5   " + recef[0].ToString(fmt).PadLeft(4) + " " + recef[1].ToString(fmt).PadLeft(4) + " " + recef[2].ToString(fmt).PadLeft(4) + " "
+                + vecef[0].ToString(fmt).PadLeft(4) + " " + vecef[1].ToString(fmt).PadLeft(4) + " " + vecef[2].ToString(fmt).PadLeft(4));
+
         }
         public void testteme_eci()
         {
+            double[] fArgs = new double[14];
             double[] rteme = new double[3];
             double[] vteme = new double[3];
             double[] reci = new double[3];
@@ -1115,22 +1537,27 @@ namespace TestAll
             ddx = -0.000205 * conv;    // " to rad
             ddy = -0.000136 * conv;
 
-            ttt = (jd + jdFrac + (dat + 32.184) / 86400.0 - 2451545.0) / 36525.0;
+            string nutLoc = @"D:\Codes\LIBRARY\DataLib\nut80.dat";
+            EOPSPWLibr.iau80in(nutLoc, out iau80arr);
+
+            // note you have to use tdb for time of ineterst AND j2000 (when dat = 32)
+            ttt = (jd + jdFrac + (dat + 32.184) / 86400.0 - 2451545.0 - (32 + 32.184) / 86400.0) / 36525.0;
             jdut1 = jd + jdFrac + dut1 / 86400.0;
 
             strbuild.AppendLine("GCRF          IAU-76/FK5   " + reci[0].ToString(fmt).PadLeft(4) + " " + reci[1].ToString(fmt).PadLeft(4) + " " + reci[2].ToString(fmt).PadLeft(4) + " "
                 + veci[0].ToString(fmt).PadLeft(4) + " " + veci[1].ToString(fmt).PadLeft(4) + " " + veci[2].ToString(fmt).PadLeft(4));
 
-            string nutLoc = @"D:\Codes\LIBRARY\DataLib\nut80.dat";
-            EOPSPWLibr.iau80in(nutLoc, out iau80arr);
-
             AstroLibr.teme_eci(ref rteme, ref vteme, iau80arr, MathTimeLib.Edirection.efrom, ttt, ddpsi, ddeps, AstroLib.EOpt.e80, ref reci, ref veci);
-
             strbuild.AppendLine("TEME          IAU-76/FK5   " + rteme[0].ToString(fmt).PadLeft(4) + " " + rteme[1].ToString(fmt).PadLeft(4) + " " + rteme[2].ToString(fmt).PadLeft(4) + " "
                 + vteme[0].ToString(fmt).PadLeft(4) + " " + vteme[1].ToString(fmt).PadLeft(4) + " " + vteme[2].ToString(fmt).PadLeft(4));
+
+            AstroLibr.teme_eci(ref rteme, ref vteme, iau80arr, MathTimeLib.Edirection.eto, ttt, ddpsi, ddeps, AstroLib.EOpt.e80, ref reci, ref veci);
+            strbuild.AppendLine("GCRF          IAU-76/FK5   " + reci[0].ToString(fmt).PadLeft(4) + " " + reci[1].ToString(fmt).PadLeft(4) + " " + reci[2].ToString(fmt).PadLeft(4) + " "
+                + veci[0].ToString(fmt).PadLeft(4) + " " + veci[1].ToString(fmt).PadLeft(4) + " " + veci[2].ToString(fmt).PadLeft(4));
         }
         public void testqmod2ecef()
         {
+            double[] fArgs = new double[14];
             double[] rqmod = new double[3];
             double[] vqmod = new double[3];
             double ttt, jdutc;
@@ -1142,6 +1569,8 @@ namespace TestAll
             ttt = 0.042623631889;
             jdutc = 2453101.82740678310;
 
+            AstroLibr.fundarg(ttt, opt, out fArgs);
+
             string nutLoc = @"D:\Codes\LIBRARY\DataLib\nut80.dat";
             EOPSPWLibr.iau80in(nutLoc, out iau80arr);
 
@@ -1149,6 +1578,7 @@ namespace TestAll
         }
         public void testcsm2efg()
         {
+            double[] fArgs = new double[14];
             double[] r1pef = new double[3];
             double[] v1pef = new double[3];
             double[] r1ecef = new double[3];
@@ -1174,9 +1604,10 @@ namespace TestAll
 
         public void testrv_elatlon()
         {
-            double rr, ecllat, ecllon, drr, decllat, decllon;
+            double rr, ecllat, ecllon, drr, decllat, decllon, rad;
             double[] rijk = new double[3];
             double[] vijk = new double[3];
+            rad = 180.0 / Math.PI;
             rr = 12756.00;
             ecllat = 60.04570;
             ecllon = 256.004567345;
@@ -1184,7 +1615,14 @@ namespace TestAll
             decllat = 6.798614;
             decllon = 0.00768;
 
+            AstroLibr.rv_elatlon(ref rijk, ref vijk, MathTimeLib.Edirection.efrom, ref rr, ref ecllat, ref ecllon, ref drr, ref decllat, ref decllon);
+            strbuild.AppendLine("rv ecllat " + rijk[0].ToString(fmt).PadLeft(4) + " " + rijk[1].ToString(fmt).PadLeft(4) + " " + rijk[2].ToString(fmt).PadLeft(4) + " " +
+                                " " + vijk[0].ToString(fmt).PadLeft(4) + " " + vijk[1].ToString(fmt).PadLeft(4) + " " + vijk[2].ToString(fmt).PadLeft(4));
+
             AstroLibr.rv_elatlon(ref rijk, ref vijk, MathTimeLib.Edirection.eto, ref rr, ref ecllat, ref ecllon, ref drr, ref decllat, ref decllon);
+
+            strbuild.AppendLine("ecllat  " + rr.ToString(fmt).PadLeft(4) + " " + (ecllat * rad).ToString(fmt).PadLeft(4) + " " + (ecllon * rad).ToString(fmt).PadLeft(4) + " " +
+                              " " + drr.ToString(fmt).PadLeft(4) + " " + decllat.ToString(fmt).PadLeft(4) + " " + decllon.ToString(fmt).PadLeft(4));
         }
 
         public void testrv2radec()
@@ -1198,14 +1636,14 @@ namespace TestAll
 
             AstroLibr.rv_radec(ref r, ref v, MathTimeLib.Edirection.eto, ref rr, ref rtasc, ref decl, ref drr, ref drtasc, ref ddecl);
             strbuild.AppendLine("rv radec " + r[0].ToString(fmt).PadLeft(4) + " " + r[1].ToString(fmt).PadLeft(4) + " " + r[2].ToString(fmt).PadLeft(4) + " " +
-                                "radec " + v[0].ToString(fmt).PadLeft(4) + " " + v[1].ToString(fmt).PadLeft(4) + " " + v[2].ToString(fmt).PadLeft(4));
-            strbuild.AppendLine("rv radec " + rr.ToString(fmt).PadLeft(4) + " " + rtasc.ToString(fmt).PadLeft(4) + " " + decl.ToString(fmt).PadLeft(4) + " " +
+                                " " + v[0].ToString(fmt).PadLeft(4) + " " + v[1].ToString(fmt).PadLeft(4) + " " + v[2].ToString(fmt).PadLeft(4));
+            strbuild.AppendLine("radec " + rr.ToString(fmt).PadLeft(4) + " " + rtasc.ToString(fmt).PadLeft(4) + " " + decl.ToString(fmt).PadLeft(4) + " " +
                                 "  " + drr.ToString(fmt).PadLeft(4) + " " + drtasc.ToString(fmt).PadLeft(4) + " " + ddecl.ToString(fmt).PadLeft(4));
 
             AstroLibr.rv_radec(ref r, ref v, MathTimeLib.Edirection.efrom, ref rr, ref rtasc, ref decl, ref drr, ref drtasc, ref ddecl);
 
-            strbuild.AppendLine("r  " + r[0].ToString(fmt).PadLeft(4) + " " + r[1].ToString(fmt).PadLeft(4) + " " + r[2].ToString(fmt).PadLeft(4) + " " +
-                                "v  " + v[0].ToString(fmt).PadLeft(4) + " " + v[1].ToString(fmt).PadLeft(4) + " " + v[2].ToString(fmt).PadLeft(4));
+            strbuild.AppendLine("rv radec  " + r[0].ToString(fmt).PadLeft(4) + " " + r[1].ToString(fmt).PadLeft(4) + " " + r[2].ToString(fmt).PadLeft(4) + " " +
+                                "  " + v[0].ToString(fmt).PadLeft(4) + " " + v[1].ToString(fmt).PadLeft(4) + " " + v[2].ToString(fmt).PadLeft(4));
         }
         public void testrv_razel()
         {
@@ -1213,12 +1651,13 @@ namespace TestAll
             double[] recef = new double[3];
             double[] vecef = new double[3];
             double[] rsecef = new double[3];
-            double rho, az, el, drho, daz, del, latgd, lon;
+            double rho, az, el, drho, daz, del, latgd, lon, alt;
             recef = new double[] { -605.79221660, -5870.22951108, 3493.05319896 };
             vecef = new double[] { -1.56825429, -3.70234891, -6.47948395 };
-            rsecef = new double[] { -1605.79221660, -570.22951108, 193.05319896 };
+            //rsecef = new double[] { -1605.79221660, -570.22951108, 193.05319896 };
             lon = -104.883 / rad;
             latgd = 39.883 / rad;
+            alt = 2.102;
             rho = 0.0186569;
             az = -0.3501725;
             el = -0.5839385;
@@ -1226,15 +1665,15 @@ namespace TestAll
             daz = -0.4806057;
             del = 0.6284403;
 
-            AstroLibr.rv_razel(ref recef, ref vecef, ref rsecef, latgd, lon, MathTimeLib.Edirection.eto, ref rho, ref az, ref el, ref drho, ref daz, ref del);
-            strbuild.AppendLine("r  " + recef[0].ToString(fmt).PadLeft(4) + " " + recef[1].ToString(fmt).PadLeft(4) + " " + recef[2].ToString(fmt).PadLeft(4) + " " +
-                                "v  " + vecef[0].ToString(fmt).PadLeft(4) + " " + vecef[1].ToString(fmt).PadLeft(4) + " " + vecef[2].ToString(fmt).PadLeft(4));
+            AstroLibr.rv_razel(ref recef, ref vecef, latgd, lon, alt, MathTimeLib.Edirection.eto, ref rho, ref az, ref el, ref drho, ref daz, ref del);
+            strbuild.AppendLine("rv_razel  " + recef[0].ToString(fmt).PadLeft(4) + " " + recef[1].ToString(fmt).PadLeft(4) + " " + recef[2].ToString(fmt).PadLeft(4) + " " +
+                                "  " + vecef[0].ToString(fmt).PadLeft(4) + " " + vecef[1].ToString(fmt).PadLeft(4) + " " + vecef[2].ToString(fmt).PadLeft(4));
             strbuild.AppendLine("razel " + rho.ToString(fmt).PadLeft(4) + " " + az.ToString(fmt).PadLeft(4) + " " + el.ToString(fmt).PadLeft(4) + " " +
                                 "  " + drho.ToString(fmt).PadLeft(4) + " " + daz.ToString(fmt).PadLeft(4) + " " + del.ToString(fmt).PadLeft(4));
 
-            AstroLibr.rv_razel(ref recef, ref vecef, ref rsecef, latgd, lon, MathTimeLib.Edirection.efrom, ref rho, ref az, ref el, ref drho, ref daz, ref del);
-            strbuild.AppendLine("r  " + recef[0].ToString(fmt).PadLeft(4) + " " + recef[1].ToString(fmt).PadLeft(4) + " " + recef[2].ToString(fmt).PadLeft(4) + " " +
-                                "v  " + vecef[0].ToString(fmt).PadLeft(4) + " " + vecef[1].ToString(fmt).PadLeft(4) + " " + vecef[2].ToString(fmt).PadLeft(4));
+            AstroLibr.rv_razel(ref recef, ref vecef, latgd, lon, alt, MathTimeLib.Edirection.efrom, ref rho, ref az, ref el, ref drho, ref daz, ref del);
+            strbuild.AppendLine("rv_razel  " + recef[0].ToString(fmt).PadLeft(4) + " " + recef[1].ToString(fmt).PadLeft(4) + " " + recef[2].ToString(fmt).PadLeft(4) + " " +
+                                "  " + vecef[0].ToString(fmt).PadLeft(4) + " " + vecef[1].ToString(fmt).PadLeft(4) + " " + vecef[2].ToString(fmt).PadLeft(4));
         }
 
         public void testrv_tradec()
@@ -1254,14 +1693,14 @@ namespace TestAll
             dtdecl = -0.7510033;
 
             AstroLibr.rv_tradec(ref rijk, ref vijk, rsijk, MathTimeLib.Edirection.eto, ref rho, ref trtasc, ref tdecl, ref drho, ref dtrtasc, ref dtdecl);
-            strbuild.AppendLine("r  " + rijk[0].ToString(fmt).PadLeft(4) + " " + rijk[1].ToString(fmt).PadLeft(4) + " " + rijk[2].ToString(fmt).PadLeft(4) + " " +
-                                "v  " + vijk[0].ToString(fmt).PadLeft(4) + " " + vijk[1].ToString(fmt).PadLeft(4) + " " + vijk[2].ToString(fmt).PadLeft(4));
+            strbuild.AppendLine("rv tradec  " + rijk[0].ToString(fmt).PadLeft(4) + " " + rijk[1].ToString(fmt).PadLeft(4) + " " + rijk[2].ToString(fmt).PadLeft(4) + " " +
+                                "  " + vijk[0].ToString(fmt).PadLeft(4) + " " + vijk[1].ToString(fmt).PadLeft(4) + " " + vijk[2].ToString(fmt).PadLeft(4));
             strbuild.AppendLine("tradec " + rho.ToString(fmt).PadLeft(4) + " " + trtasc.ToString(fmt).PadLeft(4) + " " + tdecl.ToString(fmt).PadLeft(4) + " " +
                                 "  " + drho.ToString(fmt).PadLeft(4) + " " + dtrtasc.ToString(fmt).PadLeft(4) + " " + dtdecl.ToString(fmt).PadLeft(4));
 
             AstroLibr.rv_tradec(ref rijk, ref vijk, rsijk, MathTimeLib.Edirection.efrom, ref rho, ref trtasc, ref tdecl, ref drho, ref dtrtasc, ref dtdecl);
-            strbuild.AppendLine("r  " + rijk[0].ToString(fmt).PadLeft(4) + " " + rijk[1].ToString(fmt).PadLeft(4) + " " + rijk[2].ToString(fmt).PadLeft(4) + " " +
-                                "v  " + vijk[0].ToString(fmt).PadLeft(4) + " " + vijk[1].ToString(fmt).PadLeft(4) + " " + vijk[2].ToString(fmt).PadLeft(4));
+            strbuild.AppendLine("rv tradec  " + rijk[0].ToString(fmt).PadLeft(4) + " " + rijk[1].ToString(fmt).PadLeft(4) + " " + rijk[2].ToString(fmt).PadLeft(4) + " " +
+                                "  " + vijk[0].ToString(fmt).PadLeft(4) + " " + vijk[1].ToString(fmt).PadLeft(4) + " " + vijk[2].ToString(fmt).PadLeft(4));
         }
         public void testrvsez_razel()
         {
@@ -1278,14 +1717,15 @@ namespace TestAll
             del = 0.6284403;
 
             AstroLibr.rvsez_razel(ref rhosez, ref drhosez, MathTimeLib.Edirection.eto, ref rho, ref az, ref el, ref drho, ref daz, ref del);
-            strbuild.AppendLine("r  " + rhosez[0].ToString(fmt).PadLeft(4) + " " + rhosez[1].ToString(fmt).PadLeft(4) + " " + rhosez[2].ToString(fmt).PadLeft(4) + " " +
-                             "v  " + drhosez[0].ToString(fmt).PadLeft(4) + " " + drhosez[1].ToString(fmt).PadLeft(4) + " " + drhosez[2].ToString(fmt).PadLeft(4));
+            strbuild.AppendLine("rv rhosez  " + rhosez[0].ToString(fmt).PadLeft(4) + " " + rhosez[1].ToString(fmt).PadLeft(4) + " " + rhosez[2].ToString(fmt).PadLeft(4) + " " +
+                             "  " + drhosez[0].ToString(fmt).PadLeft(4) + " " + drhosez[1].ToString(fmt).PadLeft(4) + " " + drhosez[2].ToString(fmt).PadLeft(4));
             strbuild.AppendLine("rhosez " + rho.ToString(fmt).PadLeft(4) + " " + az.ToString(fmt).PadLeft(4) + " " + el.ToString(fmt).PadLeft(4) + " " +
                                 "  " + drho.ToString(fmt).PadLeft(4) + " " + daz.ToString(fmt).PadLeft(4) + " " + del.ToString(fmt).PadLeft(4));
 
             AstroLibr.rvsez_razel(ref rhosez, ref drhosez, MathTimeLib.Edirection.efrom, ref rho, ref az, ref el, ref drho, ref daz, ref del);
-            strbuild.AppendLine("r  " + rhosez[0].ToString(fmt).PadLeft(4) + " " + rhosez[1].ToString(fmt).PadLeft(4) + " " + rhosez[2].ToString(fmt).PadLeft(4) + " " +
-                             "v  " + drhosez[0].ToString(fmt).PadLeft(4) + " " + drhosez[1].ToString(fmt).PadLeft(4) + " " + drhosez[2].ToString(fmt).PadLeft(4));
+
+            strbuild.AppendLine("rv rhosez  " + rhosez[0].ToString(fmt).PadLeft(4) + " " + rhosez[1].ToString(fmt).PadLeft(4) + " " + rhosez[2].ToString(fmt).PadLeft(4) + " " +
+                             "  " + drhosez[0].ToString(fmt).PadLeft(4) + " " + drhosez[1].ToString(fmt).PadLeft(4) + " " + drhosez[2].ToString(fmt).PadLeft(4));
         }
         public void testrv2rsw()
         {
@@ -1298,7 +1738,11 @@ namespace TestAll
             v = new double[] { -1.56825429, -3.70234891, -6.47948395 };
 
             tm = AstroLibr.rv2rsw(r, v, out rrsw, out vrsw);
+
+            strbuild.AppendLine("rv2rsw " + rrsw[0].ToString(fmt) + " " + rrsw[1].ToString(fmt) + " " + rrsw[2].ToString(fmt) + " " +
+                      vrsw[0].ToString(fmt) + " " + vrsw[1].ToString(fmt) + " " + vrsw[2].ToString(fmt));
         }
+
         public void testrv2pqw()
         {
             double[] r = new double[3];
@@ -1309,7 +1753,10 @@ namespace TestAll
             r = new double[] { -605.79221660, -5870.22951108, 3493.05319896 };
             v = new double[] { -1.56825429, -3.70234891, -6.47948395 };
 
-            AstroLibr.rv2pqw(r, v, MathTimeLib.globals.mu, out rpqw, out vpqw);
+            AstroLibr.rv2pqw(r, v, out rpqw, out vpqw);
+
+            strbuild.AppendLine("rv2pqw " + rpqw[0].ToString(fmt) + " " + rpqw[1].ToString(fmt) + " " + rpqw[2].ToString(fmt) + " " +
+                  vpqw[0].ToString(fmt) + " " + vpqw[1].ToString(fmt) + " " + vpqw[2].ToString(fmt));
         }
 
         public void testrv2coe()
@@ -1319,8 +1766,6 @@ namespace TestAll
             double[] v = new double[3];
             double[] r1 = new double[3];
             double[] v1 = new double[3];
-            double re = 6378.137;
-            double vkmps = 7.905366149846;
             double rad = 180.0 / Math.PI;
             double p, a, ecc, incl, raan, argp, nu, m, arglat, truelon, lonper;
 
@@ -1342,28 +1787,28 @@ namespace TestAll
                 if (i == 3)
                 {
                     strbuild.AppendLine(" coe test elliptical ----------------------------");
-                    r = new double[] { 1.1372844 * re, -1.0534274 * re, -0.8550194 * re };
-                    v = new double[] { 0.6510489 * vkmps, 0.4521008 * vkmps, 0.0381088 * vkmps };
+                    r = new double[] { 1.1372844 * AstroLibr.gravConst.re, -1.0534274 * AstroLibr.gravConst.re, -0.8550194 * AstroLibr.gravConst.re };
+                    v = new double[] { 0.6510489 * AstroLibr.gravConst.velkmps, 0.4521008 * AstroLibr.gravConst.velkmps, 0.0381088 * AstroLibr.gravConst.velkmps };
                 }
                 if (i == 4)
                 {
                     strbuild.AppendLine(" coe test elliptical ----------------------------");
-                    r = new double[] { 1.056194 * re, -0.8950922 * re, -0.0823703 * re };
-                    v = new double[] { -0.5981066 * vkmps, -0.6293575 * vkmps, 0.1468194 * vkmps };
+                    r = new double[] { 1.056194 * AstroLibr.gravConst.re, -0.8950922 * AstroLibr.gravConst.re, -0.0823703 * AstroLibr.gravConst.re };
+                    v = new double[] { -0.5981066 * AstroLibr.gravConst.velkmps, -0.6293575 * AstroLibr.gravConst.velkmps, 0.1468194 * AstroLibr.gravConst.velkmps };
                 }
 
                 // ------- circular inclined orbit tests -------------------
                 if (i == 5)
                 {
                     strbuild.AppendLine(" coe test near circular inclined ----------------------------");
-                    r = new double[] { -0.422277 * re, 1.0078857 * re, 0.7041832 * re };
-                    v = new double[] { -0.5002738 * vkmps, -0.5415267 * vkmps, 0.4750788 * vkmps };
+                    r = new double[] { -0.422277 * AstroLibr.gravConst.re, 1.0078857 * AstroLibr.gravConst.re, 0.7041832 * AstroLibr.gravConst.re };
+                    v = new double[] { -0.5002738 * AstroLibr.gravConst.velkmps, -0.5415267 * AstroLibr.gravConst.velkmps, 0.4750788 * AstroLibr.gravConst.velkmps };
                 }
                 if (i == 6)
                 {
                     strbuild.AppendLine(" coe test near circular inclined ----------------------------");
-                    r = new double[] { -0.7309361 * re, -0.6794646 * re, -0.8331183 * re };
-                    v = new double[] { -0.6724131 * vkmps, 0.0341802 * vkmps, 0.5620652 * vkmps };
+                    r = new double[] { -0.7309361 * AstroLibr.gravConst.re, -0.6794646 * AstroLibr.gravConst.re, -0.8331183 * AstroLibr.gravConst.re };
+                    v = new double[] { -0.6724131 * AstroLibr.gravConst.velkmps, 0.0341802 * AstroLibr.gravConst.velkmps, 0.5620652 * AstroLibr.gravConst.velkmps };
                 }
 
                 if (i == 7) // -- CI u = 45 deg
@@ -1437,44 +1882,44 @@ namespace TestAll
                 if (i == 17)
                 {
                     strbuild.AppendLine(" coe test parabolic ----------------------------");
-                    r = new double[] { 0.5916109 * re, -1.2889359 * re, -0.3738343 * re };
-                    v = new double[] { 1.1486347 * vkmps, -0.0808249 * vkmps, -0.1942733 * vkmps };
+                    r = new double[] { 0.5916109 * AstroLibr.gravConst.re, -1.2889359 * AstroLibr.gravConst.re, -0.3738343 * AstroLibr.gravConst.re };
+                    v = new double[] { 1.1486347 * AstroLibr.gravConst.velkmps, -0.0808249 * AstroLibr.gravConst.velkmps, -0.1942733 * AstroLibr.gravConst.velkmps };
                 }
 
                 if (i == 18)
                 {
                     strbuild.AppendLine(" coe test parabolic ----------------------------");
-                    r = new double[] { -1.0343646 * re, -0.4814891 * re, 0.1735524 * re };
-                    v = new double[] { 0.1322278 * vkmps, 0.7785322 * vkmps, 1.0532856 * vkmps };
+                    r = new double[] { -1.0343646 * AstroLibr.gravConst.re, -0.4814891 * AstroLibr.gravConst.re, 0.1735524 * AstroLibr.gravConst.re };
+                    v = new double[] { 0.1322278 * AstroLibr.gravConst.velkmps, 0.7785322 * AstroLibr.gravConst.velkmps, 1.0532856 * AstroLibr.gravConst.velkmps };
                 }
 
                 if (i == 19)
                 {
                     strbuild.AppendLine(" coe test hyperbolic ---------------------------");
-                    r = new double[] { 0.9163903 * re, 0.7005747 * re, -1.3909623 * re };
-                    v = new double[] { 0.1712704 * vkmps, 1.1036199 * vkmps, -0.3810377 * vkmps };
+                    r = new double[] { 0.9163903 * AstroLibr.gravConst.re, 0.7005747 * AstroLibr.gravConst.re, -1.3909623 * AstroLibr.gravConst.re };
+                    v = new double[] { 0.1712704 * AstroLibr.gravConst.velkmps, 1.1036199 * AstroLibr.gravConst.velkmps, -0.3810377 * AstroLibr.gravConst.velkmps };
                 }
 
                 if (i == 20)
                 {
                     strbuild.AppendLine(" coe test hyperbolic ---------------------------");
-                    r = new double[] { 12.3160223 * re, -7.0604653 * re, -3.7883759 * re };
-                    v = new double[] { -0.5902725 * vkmps, 0.2165037 * vkmps, 0.1628339 * vkmps };
+                    r = new double[] { 12.3160223 * AstroLibr.gravConst.re, -7.0604653 * AstroLibr.gravConst.re, -3.7883759 * AstroLibr.gravConst.re };
+                    v = new double[] { -0.5902725 * AstroLibr.gravConst.velkmps, 0.2165037 * AstroLibr.gravConst.velkmps, 0.1628339 * AstroLibr.gravConst.velkmps };
                 }
 
-                strbuild.AppendLine(" start r " + r[0].ToString() + " " + r[1].ToString() + " " + r[2].ToString() + " " +
-                "v " + v[0].ToString() + " " + v[1].ToString() + " " + v[2].ToString());
+                strbuild.AppendLine(" start r " + r[0].ToString(fmt) + " " + r[1].ToString(fmt) + " " + r[2].ToString(fmt) + " " +
+                "v " + v[0].ToString(fmt) + " " + v[1].ToString(fmt) + " " + v[2].ToString(fmt));
                 // --------  coe2rv       - classical elements to posisiotn and velocity
                 // --------  rv2coe       - position and velocity vectors to classical elements
-                AstroLibr.rv2coe(r, v, MathTimeLib.globals.mu, out p, out a, out ecc, out incl, out raan, out argp, out nu, out m, out arglat, out truelon, out lonper);
+                AstroLibr.rv2coe(r, v, out p, out a, out ecc, out incl, out raan, out argp, out nu, out m, out arglat, out truelon, out lonper);
                 strbuild.AppendLine("           p km       a km      ecc      incl deg     raan deg     argp deg      nu deg      m deg      arglat   truelon    lonper");
-                strbuild.AppendLine("ans coes " + a.ToString("0.000000").PadLeft(17) + " " + ecc.ToString("0.000000") + " " + (incl * rad).ToString("0.00000") + " " +
-                          (raan * rad).ToString("0.00000") + " " + (argp * rad).ToString("0.00000") + " " + (nu * rad).ToString("0.00000") + " " + (m * rad).ToString("0.00000") + " " +
-                          (arglat * rad).ToString("0.00000") + " " + (truelon * rad).ToString("0.00000") + " " + (lonper * rad).ToString("0.00000"));
+                strbuild.AppendLine("ans coes " + a.ToString(fmt).PadLeft(17) + " " + ecc.ToString("0.000000000") + " " + (incl * rad).ToString(fmt) + " " +
+                          (raan * rad).ToString(fmt) + " " + (argp * rad).ToString(fmt) + " " + (nu * rad).ToString(fmt) + " " + (m * rad).ToString(fmt) + " " +
+                          (arglat * rad).ToString(fmt) + " " + (truelon * rad).ToString(fmt) + " " + (lonper * rad).ToString(fmt));
 
                 AstroLibr.coe2rv(p, ecc, incl, raan, argp, nu, arglat, truelon, lonper, out r1, out v1);
-                strbuild.AppendLine(" end  r " + r1[0].ToString() + " " + r1[1].ToString() + " " + r1[2].ToString() + " " +
-                "v " + v1[0].ToString() + " " + v1[1].ToString() + " " + v1[2].ToString());
+                strbuild.AppendLine(" end  r " + r1[0].ToString(fmt) + " " + r1[1].ToString(fmt) + " " + r1[2].ToString(fmt) + " " +
+                "v " + v1[0].ToString(fmt) + " " + v1[1].ToString(fmt) + " " + v1[2].ToString(fmt));
             }  // through for
         }
 
@@ -1485,19 +1930,19 @@ namespace TestAll
             // --------  findc2c3     - find c2 c3 parameters for f and g battins method
             znew = -39.47842;
             AstroLibr.findc2c3(znew, out c2new, out c3new);
-            strbuild.AppendLine("z " + znew.ToString() + " findc2c3 " + c2new.ToString() + " " + c3new.ToString());
+            strbuild.AppendLine("findc2c3 z " + znew.ToString(fmt) + " " + c2new.ToString(fmt) + " " + c3new.ToString(fmt));
 
             znew = 0.0;
             AstroLibr.findc2c3(znew, out c2new, out c3new);
-            strbuild.AppendLine("z " + znew.ToString() + " findc2c3 " + c2new.ToString() + " " + c3new.ToString());
+            strbuild.AppendLine("findc2c3 z " + znew.ToString(fmt) + " " + c2new.ToString(fmt) + " " + c3new.ToString(fmt));
 
             znew = 0.57483;
             AstroLibr.findc2c3(znew, out c2new, out c3new);
-            strbuild.AppendLine("z " + znew.ToString() + " findc2c3 " + c2new.ToString() + " " + c3new.ToString());
+            strbuild.AppendLine("findc2c3 z " + znew.ToString(fmt) + " " + c2new.ToString(fmt) + " " + c3new.ToString(fmt));
 
             znew = 39.47842;
             AstroLibr.findc2c3(znew, out c2new, out c3new);
-            strbuild.AppendLine("z " + znew.ToString() + " findc2c3 " + c2new.ToString() + " " + c3new.ToString());
+            strbuild.AppendLine("findc2c3 z " + znew.ToString(fmt) + " " + c2new.ToString(fmt) + " " + c3new.ToString(fmt));
         }
 
 
@@ -1509,11 +1954,12 @@ namespace TestAll
 
             r = new double[] { -605.79221660, -5870.22951108, 3493.05319896 };
             v = new double[] { -1.56825429, -3.70234891, -6.47948395 };
-            AstroLibr.rv2coe(r, v, MathTimeLib.globals.mu, out p, out a, out ecc, out incl, out raan, out argp, out nu, out m, out arglat, out truelon, out lonper);
+            AstroLibr.rv2coe(r, v, out p, out a, out ecc, out incl, out raan, out argp, out nu, out m, out arglat, out truelon, out lonper);
 
             AstroLibr.coe2rv(p, ecc, incl, raan, argp, nu, arglat, truelon, lonper, out r, out v);
-            strbuild.AppendLine(" r " + r[0].ToString() + " " + r[1].ToString() + " " + r[2].ToString() + " " +
-                "v " + v[0].ToString() + " " + v[1].ToString() + " " + v[2].ToString());
+
+            strbuild.AppendLine("coe2rv r " + r[0].ToString(fmt) + " " + r[1].ToString(fmt) + " " + r[2].ToString(fmt) + " " +
+                "v " + v[0].ToString(fmt) + " " + v[1].ToString(fmt) + " " + v[2].ToString(fmt));
         }
 
         public void testlon2nu()
@@ -1535,34 +1981,33 @@ namespace TestAll
         public void testnewtonmx()
         {
             double rad = 180.0 / Math.PI;
-            double ecc, e0, m, nu;
+            double ecc, eccanom, m, nu;
             ecc = 0.4;
             m = 334.566986 / rad;
 
-            AstroLibr.newtonmx(ecc, m, out e0, out nu);
+            AstroLibr.newtonmx(ecc, m, out eccanom, out nu);
+
             strbuild.AppendLine(" newtonmx " + ecc.ToString() + " m " + (m * rad).ToString() +
-                " E " + (e0 * rad).ToString() + " nu " + (nu * rad).ToString());
+                " eccanom " + (eccanom * rad).ToString() + " nu " + (nu * rad).ToString());
         }
 
         // --------  newtonm      - find eccentric and true anomaly given ecc and mean anomaly
         public void testnewtonm()
         {
             double rad = 180.0 / Math.PI;
-            double ecc, e0, m, nu;
+            double ecc, eccanom, m, nu;
             ecc = 0.4;
-            e0 = 334.566986 / rad;
-            strbuild.AppendLine("               m             nu           e           e0  ");
-            strbuild.AppendLine(" newe  ");
-            AstroLibr.newtone(ecc, e0, out m, out nu);
-            strbuild.AppendLine(" newtone  " + ecc.ToString() + " e0 " + (e0 * rad).ToString() +
-                " m " + (m * rad).ToString() + " nu " + (nu * rad).ToString());
+            eccanom = 334.566986 / rad;
+            AstroLibr.newtone(ecc, eccanom, out m, out nu);
+
+            strbuild.AppendLine(" newtone ecc " + ecc.ToString(fmt) + " eccanom " + (eccanom * rad).ToString(fmt) +
+                " m " + (m * rad).ToString(fmt) + " nu " + (nu * rad).ToString(fmt));
 
             ecc = 0.34;
             m = 235.4 / rad;
-            strbuild.AppendLine("              e0             nu           e           m   ");
-            AstroLibr.newtonm(ecc, m, out e0, out nu);
-            strbuild.AppendLine(" newtonm  " + ecc.ToString() + " m " + (m * rad).ToString() +
-                " E " + (e0 * rad).ToString() + " nu " + (nu * rad).ToString());
+            AstroLibr.newtonm(ecc, m, out eccanom, out nu);
+            strbuild.AppendLine(" newtonm ecc " + ecc.ToString(fmt) + " m " + (m * rad).ToString(fmt) +
+                " eccanom " + (eccanom * rad).ToString(fmt) + " nu " + (nu * rad).ToString(fmt));
         }
 
 
@@ -1570,33 +2015,33 @@ namespace TestAll
         public void testnewtone()
         {
             double rad = 180.0 / Math.PI;
-            double ecc, e0, m, nu;
+            double ecc, eccanom, m, nu;
             ecc = 0.34;
-            e0 = 334.566986 / rad;
-            strbuild.AppendLine("              ecc             e0          nu           m   ");
-            AstroLibr.newtone(ecc, e0, out m, out nu);
-            strbuild.AppendLine(" newtone  " + ecc.ToString() + " e0 " + (e0 * rad).ToString() +
-                " m " + (m * rad).ToString() + " nu " + (nu * rad).ToString());
+            eccanom = 334.566986 / rad;
+            AstroLibr.newtone(ecc, eccanom, out m, out nu);
+
+            strbuild.AppendLine(" newtone ecc " + ecc.ToString(fmt) + " eccanom " + (eccanom * rad).ToString(fmt) +
+                " m " + (m * rad).ToString(fmt) + " nu " + (nu * rad).ToString(fmt));
         }
 
         // --------  newtonnu     - find eccentric and mean anomaly given ecc and true anomaly
         public void testnewtonnu()
         {
             double rad = 180.0 / Math.PI;
-            double ecc, e0, m, nu;
+            double ecc, eccanom, m, nu;
             ecc = 0.34;
             nu = 134.567001 / rad;
 
-            strbuild.AppendLine("              e0             nu            e           m  ");
-            AstroLibr.newtonnu(ecc, nu, out e0, out m);
-            strbuild.AppendLine(" newtonnu  " + ecc.ToString() + " nu " + (nu * rad).ToString() +
-                " E " + (e0 * rad).ToString() + " m " + (m * rad).ToString());
+            AstroLibr.newtonnu(ecc, nu, out eccanom, out m);
+
+            strbuild.AppendLine(" newtonnu ecc " + ecc.ToString(fmt) + " nu " + (nu * rad).ToString(fmt) +
+                " eccanom " + (eccanom * rad).ToString(fmt) + " m " + (m * rad).ToString(fmt));
         }
 
 
         public void keplerc2c3
         (
-            double[] r1, double[] vo, double dtseco, out double[] r2, out double[] v,
+            double[] r1, double[] v1, double dtseco, out double[] r2, out double[] v2,
             out double c2new, out double c3new, out double xnew, out double znew
         )
         {
@@ -1620,7 +2065,7 @@ namespace TestAll
                 vx[ii] = 0.0;
             }
             r2 = rx;  // seems to be the only way to get these variables out
-            v = vx;
+            v2 = vx;
             xnew = 0.0;
             c2new = 0.0;
             c3new = 0.0;
@@ -1635,7 +2080,7 @@ namespace TestAll
 
             if (show == 'y')
             {
-                //            printf(" r1 %16.8f %16.8f %16.8f ER \n",r1[0]/re,r1[1]/re,r1[2]/re );
+                //            printf(" r1 %16.8f %16.8f %16.8f ER \n",r1[0]/AstroLibr.gravConst.re,r1[1]/AstroLibr.gravConst.re,r1[2]/AstroLibr.gravConst. );
                 //            printf(" vo %16.8f %16.8f %16.8f ER/TU \n",vo[0]/velkmps, vo[1]/velkmps, vo[2]/velkmps );
             }
 
@@ -1650,15 +2095,15 @@ namespace TestAll
             if (Math.Abs(dtseco) > small)
             {
                 magro = MathTimeLibr.mag(r1);
-                magvo = MathTimeLibr.mag(vo);
-                rdotv = MathTimeLibr.dot(r1, vo);
+                magvo = MathTimeLibr.mag(v1);
+                rdotv = MathTimeLibr.dot(r1, v1);
 
                 // -------------  find sme, alpha, and a  ------------------
-                sme = ((magvo * magvo) * 0.5) - (MathTimeLib.globals.mu / magro);
-                alpha = -sme * 2.0 / MathTimeLib.globals.mu;
+                sme = ((magvo * magvo) * 0.5) - (AstroLibr.gravConst.mu / magro);
+                alpha = -sme * 2.0 / AstroLibr.gravConst.mu;
 
                 if (Math.Abs(sme) > small)
-                    a = -MathTimeLib.globals.mu / (2.0 * sme);
+                    a = -AstroLibr.gravConst.mu / (2.0 * sme);
                 else
                     a = 999999.9;
                 if (Math.Abs(alpha) < small)   // parabola
@@ -1666,7 +2111,7 @@ namespace TestAll
 
                 if (show == 'y')
                 {
-                    //           printf(" sme %16.8f  a %16.8f alp  %16.8f ER \n",sme/(MathTimeLib.globals.mu/re), a/re, alpha * re );
+                    //           printf(" sme %16.8f  a %16.8f alp  %16.8f ER \n",sme/(AstroLibr.gravConst.mu/AstroLibr.gravConst.), a/AstroLibr.gravConst.re, alpha * AstroLibr.gravConst. );
                     //           printf(" sme %16.8f  a %16.8f alp  %16.8f km \n",sme, a, alpha );
                     //           printf(" ktr      xn        psi           r2          xn+1        dtn \n" );
                 }
@@ -1675,7 +2120,7 @@ namespace TestAll
                 // -----------------  circle and ellipse -------------------
                 if (alpha >= small)
                 {
-                    period = twopi * Math.Sqrt(Math.Abs(a * a * a) / MathTimeLib.globals.mu);
+                    period = twopi * Math.Sqrt(Math.Abs(a * a * a) / AstroLibr.gravConst.mu);
                     // ------- next if needed for 2body multi-rev ----------
                     if (Math.Abs(dtseco) > Math.Abs(period))
                         // including the truncation will produce vertical lines that are parallel
@@ -1683,20 +2128,20 @@ namespace TestAll
                         //                    dtsec = rem( dtseco,period );
                         mulrev = Convert.ToInt16(dtseco / period);
                     if (Math.Abs(alpha - 1.0) > small)
-                        xold = Math.Sqrt(MathTimeLib.globals.mu) * dtsec * alpha;
+                        xold = Math.Sqrt(AstroLibr.gravConst.mu) * dtsec * alpha;
                     else
                         // - first guess can't be too close. ie a circle, r2=a
-                        xold = Math.Sqrt(MathTimeLib.globals.mu) * dtsec * alpha * 0.97;
+                        xold = Math.Sqrt(AstroLibr.gravConst.mu) * dtsec * alpha * 0.97;
                 }
                 else
                 {
                     // --------------------  parabola  ---------------------
                     if (Math.Abs(alpha) < small)
                     {
-                        MathTimeLibr.cross(r1, vo, out h);
+                        MathTimeLibr.cross(r1, v1, out h);
                         magh = MathTimeLibr.mag(h);
-                        p = magh * magh / MathTimeLib.globals.mu;
-                        s = 0.5 * (halfpi - Math.Atan(3.0 * Math.Sqrt(MathTimeLib.globals.mu / (p * p * p)) * dtsec));
+                        p = magh * magh / AstroLibr.gravConst.mu;
+                        s = 0.5 * (halfpi - Math.Atan(3.0 * Math.Sqrt(AstroLibr.gravConst.mu / (p * p * p)) * dtsec));
                         w = Math.Atan(Math.Pow(Math.Tan(s), (1.0 / 3.0)));
                         xold = Math.Sqrt(p) * (2.0 * MathTimeLibr.cot(2.0 * w));
                         alpha = 0.0;
@@ -1704,8 +2149,8 @@ namespace TestAll
                     else
                     {
                         // ------------------  hyperbola  ------------------
-                        temp = -2.0 * MathTimeLib.globals.mu * dtsec /
-                              (a * (rdotv + Math.Sign(dtsec) * Math.Sqrt(-MathTimeLib.globals.mu * a) *
+                        temp = -2.0 * AstroLibr.gravConst.mu * dtsec /
+                              (a * (rdotv + Math.Sign(dtsec) * Math.Sqrt(-AstroLibr.gravConst.mu * a) *
                               (1.0 - magro * alpha)));
                         xold = Math.Sign(dtsec) * Math.Sqrt(-a) * Math.Log(temp);
                     }
@@ -1713,7 +2158,7 @@ namespace TestAll
 
                 ktr = 1;
                 dtnew = -10.0;
-                double tmp = 1.0 / Math.Sqrt(MathTimeLib.globals.mu);
+                double tmp = 1.0 / Math.Sqrt(AstroLibr.gravConst.mu);
                 while ((Math.Abs(dtnew * tmp - dtsec) >= small) && (ktr < numiter))
                 {
                     xoldsqrd = xold * xold;
@@ -1729,7 +2174,7 @@ namespace TestAll
                              magro * xold * (1.0 - znew * c3new);
 
                     // ------------- calculate new value for x -------------
-                    xnew = xold + (dtsec * Math.Sqrt(MathTimeLib.globals.mu) - dtnew) / rval;
+                    xnew = xold + (dtsec * Math.Sqrt(AstroLibr.gravConst.mu) - dtnew) / rval;
 
                     // ----- check if the univ param goes negative. if so, use bissection
                     if (xnew < 0.0)
@@ -1738,7 +2183,7 @@ namespace TestAll
                     if (show == 'y')
                     {
                         //  printf("%3i %11.7f %11.7f %11.7f %11.7f %11.7f \n", ktr,xold,znew,rval,xnew,dtnew);
-                        //  printf("%3i %11.7f %11.7f %11.7f %11.7f %11.7f \n", ktr,xold/sqrt(re),znew,rval/re,xnew/sqrt(re),dtnew/sqrt(mu));
+                        //  printf("%3i %11.7f %11.7f %11.7f %11.7f %11.7f \n", ktr,xold/sqrt(AstroLibr.gravConst.),znew,rval/AstroLibr.gravConst.re,xnew/sqrt(AstroLibr.gravConst.),dtnew/sqrt(mu));
                     }
 
                     ktr = ktr + 1;
@@ -1751,8 +2196,8 @@ namespace TestAll
                     //           printf("not converged in %2i iterations \n",numiter );
                     for (i = 0; i < 3; i++)
                     {
-                        v[i] = 0.0;
-                        r2[i] = v[i];
+                        v2[i] = 0.0;
+                        r2[i] = v2[i];
                     }
                 }
                 else
@@ -1760,16 +2205,16 @@ namespace TestAll
                     // --- find position and velocity vectors at new time --
                     xnewsqrd = xnew * xnew;
                     f = 1.0 - (xnewsqrd * c2new / magro);
-                    g = dtsec - xnewsqrd * xnew * c3new / Math.Sqrt(MathTimeLib.globals.mu);
+                    g = dtsec - xnewsqrd * xnew * c3new / Math.Sqrt(AstroLibr.gravConst.mu);
 
                     for (i = 0; i < 3; i++)
-                        r2[i] = f * r1[i] + g * vo[i];
+                        r2[i] = f * r1[i] + g * v1[i];
                     magr = MathTimeLibr.mag(r2);
                     gdot = 1.0 - (xnewsqrd * c2new / magr);
-                    fdot = (Math.Sqrt(MathTimeLib.globals.mu) * xnew / (magro * magr)) * (znew * c3new - 1.0);
+                    fdot = (Math.Sqrt(AstroLibr.gravConst.mu) * xnew / (magro * magr)) * (znew * c3new - 1.0);
                     for (i = 0; i < 3; i++)
-                        v[i] = fdot * r1[i] + gdot * vo[i];
-                    magv = MathTimeLibr.mag(v);
+                        v2[i] = fdot * r1[i] + gdot * v1[i];
+                    magv = MathTimeLibr.mag(v2);
                     temp = f * gdot - fdot * g;
                     //if (Math.Abs(temp - 1.0) > 0.00001)
                     //    errork = "fandg";
@@ -1778,7 +2223,7 @@ namespace TestAll
                     {
                         //           printf("f %16.8f g %16.8f fdot %16.8f gdot %16.8f \n",f, g, fdot, gdot );
                         //           printf("f %16.8f g %16.8f fdot %16.8f gdot %16.8f \n",f, g, fdot, gdot );
-                        //           printf("r1 %16.8f %16.8f %16.8f ER \n",r2[0]/re,r2[1]/re,r2[2]/re );
+                        //           printf("r1 %16.8f %16.8f %16.8f ER \n",r2[0]/AstroLibr.gravConst.re,r2[1]/AstroLibr.gravConst.re,r2[2]/AstroLibr.gravConst. );
                         //           printf("v1 %16.8f %16.8f %16.8f ER/TU \n",v[0]/velkmps, v[1]/velkmps, v[2]/velkmps );
                     }
                 }
@@ -1788,7 +2233,7 @@ namespace TestAll
                 for (i = 0; i < 3; i++)
                 {
                     r2[i] = r1[i];
-                    v[i] = vo[i];
+                    v2[i] = v1[i];
                 }
 
             //       fprintf( fid,"%11.5f  %11.5f %11.5f  %5i %3i ",znew, dtseco/60.0, xold/(rad), ktr, mulrev );
@@ -1811,18 +2256,22 @@ namespace TestAll
             dtsec = 6372.69272563561; // 1ld
             dtsec = 60.0; // must be small step sizes!!
 
-            // dan hyperbolic test
-            r1 = new double[] { 4070.5942270000000, 3786.8271570000002, 4697.0576309999997 };
-            //v1 = new double[] { -32553.559100851671, -37563.543526937596, -37563.543526937596 };
-            // exact opposite from r velocity
-            v1 = new double[] { -34845.69531184976, -32416.55098811211, -40208.43885307875 };
-            r2 = new double[] { -1105.78023519582, 2373.16130661458, 6713.89444816503 };
-            v2 = new double[] { 5.4720951867079, -4.39299050886976, 2.45681739563752 };
-            dtsec = 0.25; // must be small step sizes!!
+            //// dan hyperbolic test
+            //r1 = new double[] { 4070.5942270000000, 3786.8271570000002, 4697.0576309999997 };
+            ////v1 = new double[] { -32553.559100851671, -37563.543526937596, -37563.543526937596 };
+            //// exact opposite from r velocity
+            //v1 = new double[] { -34845.69531184976, -32416.55098811211, -40208.43885307875 };
+            //r2 = new double[] { -1105.78023519582, 2373.16130661458, 6713.89444816503 };
+            //v2 = new double[] { 5.4720951867079, -4.39299050886976, 2.45681739563752 };
+            //dtsec = 0.25; // must be small step sizes!!
 
+            strbuild.AppendLine(" r1 " + r1[0].ToString(fmt) + " " + r1[1].ToString(fmt) + " " + r1[2].ToString(fmt) + " " +
+               "v1 " + v1[0].ToString(fmt) + " " + v1[1].ToString(fmt) + " " + v1[2].ToString(fmt));
 
-            for (int i = 1; i <= 5; i++)
+            for (int i = 0; i <= 5; i++)
             {
+                if (i == 0)
+                    dtsec = 60.0;
                 if (i == 1)
                     dtsec = 0.1;
                 if (i == 2)
@@ -1835,32 +2284,30 @@ namespace TestAll
                     dtsec = 500.0;
 
                 keplerc2c3(r1, v1, dtsec, out r2, out v2, out c2, out c3, out x, out z);
+                strbuild.AppendLine(" r2 " + r2[0].ToString(fmt) + " " + r2[1].ToString(fmt) + " " + r2[2].ToString(fmt) + " " +
+                    "v2 " + v2[0].ToString(fmt) + " " + v2[1].ToString(fmt) + " " + v2[2].ToString(fmt));
 
-                strbuild.AppendLine("");
-                strbuild.AppendLine(" r1 " + r1[0].ToString() + " " + r1[1].ToString() + " " + r1[2].ToString() + " " +
-                    "v1 " + v1[0].ToString() + " " + v1[1].ToString() + " " + v1[2].ToString());
-                strbuild.AppendLine(" r2 " + r2[0].ToString() + " " + r2[1].ToString() + " " + r2[2].ToString() + " " +
-                    "v2 " + v2[0].ToString() + " " + v2[1].ToString() + " " + v2[2].ToString());
-                strbuild.AppendLine("c2 " + c2.ToString() + " c3 " + c3.ToString() + " x " +
-                    x.ToString() + " z " + z.ToString() + " dtsec " + dtsec.ToString());
-                strbuild.AppendLine("");
+                strbuild.AppendLine("c2 " + c2.ToString(fmt) + " c3 " + c3.ToString(fmt) + " x " +
+                    x.ToString(fmt) + " z " + z.ToString(fmt) + " dtsec " + dtsec.ToString(fmt));
 
+                opt = "pqw";
                 AstroLibr.findfandg(r1, v1, r2, v2, dtsec, x, c2, c3, z, opt, out f, out g, out fdot, out gdot);
                 double ans = f * gdot - g * fdot;
-                strbuild.AppendLine("f and g pqw    " + f.ToString() + " " + g.ToString() + " " +
-                    fdot.ToString() + " " + gdot.ToString() + " " + ans.ToString());
+                strbuild.AppendLine("f and g pqw    " + f.ToString(fmt) + " " + g.ToString(fmt) + " " +
+                    fdot.ToString(fmt) + " " + gdot.ToString(fmt) + " " + ans.ToString(fmt));
 
                 opt = "series";  //  pqw, series, c2c3
                 AstroLibr.findfandg(r1, v1, r2, v2, dtsec, x, c2, c3, z, opt, out f, out g, out fdot, out gdot);
                 ans = f * gdot - g * fdot;
-                strbuild.AppendLine("f and g series " + f.ToString() + " " + g.ToString() + " " +
-                    fdot.ToString() + " " + gdot.ToString() + " " + ans.ToString());
+                strbuild.AppendLine("f and g series " + f.ToString(fmt) + " " + g.ToString(fmt) + " " +
+                    fdot.ToString(fmt) + " " + gdot.ToString(fmt) + " " + ans.ToString(fmt));
 
                 opt = "c2c3";  //  pqw, series, c2c3
                 AstroLibr.findfandg(r1, v1, r2, v2, dtsec, x, c2, c3, z, opt, out f, out g, out fdot, out gdot);
                 ans = f * gdot - g * fdot;
-                strbuild.AppendLine("f and g c2c3   " + f.ToString() + " " + g.ToString() + " " +
-                    fdot.ToString() + " " + gdot.ToString() + " " + ans.ToString());
+
+                strbuild.AppendLine("f and g c2c3   " + f.ToString(fmt) + " " + g.ToString(fmt) + " " +
+                    fdot.ToString(fmt) + " " + gdot.ToString(fmt) + " " + ans.ToString(fmt) + "\n");
             }
 
         }
@@ -1877,21 +2324,21 @@ namespace TestAll
             char hitearth;
 
             nrev = 0;
-            r1 = new double[] { 2.500000 * 6378.137, 0.000000, 0.000000 };
-            r2 = new double[] { 1.9151111 * 6378.137, 1.6069690 * 6378.137, 0.000000 };
+            r1 = new double[] { 2.500000 * AstroLibr.gravConst.re, 0.000000, 0.000000 };
+            r2 = new double[] { 1.9151111 * AstroLibr.gravConst.re, 1.6069690 * AstroLibr.gravConst.re, 0.000000 };
             // assume circular initial orbit for vel calcs
-            v1t = new double[] { 0.0, Math.Sqrt(MathTimeLib.globals.mu / r1[0]), 0.0 };
+            v1t = new double[] { 0.0, Math.Sqrt(AstroLibr.gravConst.mu / r1[0]), 0.0 };
             ang = Math.Atan(r2[1] / r2[0]);
-            v2t = new double[] { -Math.Sqrt(MathTimeLib.globals.mu / r2[1]) * Math.Cos(ang), Math.Sqrt(MathTimeLib.globals.mu / r2[0]) * Math.Sin(ang), 0.0 };
+            v2t = new double[] { -Math.Sqrt(AstroLibr.gravConst.mu / r2[1]) * Math.Cos(ang), Math.Sqrt(AstroLibr.gravConst.mu / r2[0]) * Math.Sin(ang), 0.0 };
             altpad = 100.0; // km
 
             magr1 = MathTimeLibr.mag(r1);
             magr2 = MathTimeLibr.mag(r2);
             cosdeltanu = MathTimeLibr.dot(r1, r2) / (magr1 * magr2);
 
-            AstroLibr.checkhitearthc(altpad, r1, v1t, r2, v2t, nrev, out hitearth, out hitearthstr, out rp, out a);
-            strbuild.Append("hitearth? " + hitearthstr + " " + (Math.Acos(cosdeltanu) * 180.0 / Math.PI).ToString("0.00000") + " ");
+            AstroLibr.checkhitearth(altpad, r1, v1t, r2, v2t, nrev, out hitearth, out hitearthstr, out rp, out a);
 
+            strbuild.AppendLine("hitearth? " + hitearthstr + " " + (Math.Acos(cosdeltanu) * 180.0 / Math.PI).ToString(fmt) + " ");
         }
 
         public void testcheckhitearthc()
@@ -1912,15 +2359,697 @@ namespace TestAll
             v1tc = new double[] { 0.0, Math.Sqrt(1.0 / r1c[0]), 0.0 };
             ang = Math.Atan(r2c[1] / r2c[0]);
             v2tc = new double[] { -Math.Sqrt(1.0 / r2c[1]) * Math.Cos(ang), Math.Sqrt(1.0 / r2c[0]) * Math.Sin(ang), 0.0 };
-            altpadc = 100.0 / MathTimeLib.globals.re; // er
+            altpadc = 100.0 / AstroLibr.gravConst.re; // er
 
             magr1c = MathTimeLibr.mag(r1c);
             magr2c = MathTimeLibr.mag(r2c);
             cosdeltanu = MathTimeLibr.dot(r1c, r2c) / (magr1c * magr2c);
             AstroLibr.checkhitearthc(altpadc, r1c, v1tc, r2c, v2tc, nrev, out hitearth, out hitearthstr, out rp, out a);
-            strbuild.Append("hitearth? " + hitearthstr + " " + (Math.Acos(cosdeltanu) * 180.0 / Math.PI).ToString("0.00000") + " ");
 
+            strbuild.AppendLine("hitearth? " + hitearthstr + " " + (Math.Acos(cosdeltanu) * 180.0 / Math.PI).ToString(fmt) + " ");
         }
+
+
+        public void testgibbs()
+        {
+            double[] r1 = new double[3];
+            double[] r2 = new double[3];
+            double[] r3 = new double[3];
+            double[] v2 = new double[3];
+            double copa, theta, theta1, rad;
+            string errorstr;
+
+            rad = 180.0 / Math.PI;
+
+            r1 = new double[] { 0.0000000, 0.000000, AstroLibr.gravConst.re };
+            r2 = new double[] { 0.0000000, -4464.696, -5102.509 };
+            r3 = new double[] { 0.0000000, 5740.323, 3189.068 };
+
+            AstroLibr.gibbs(r1, r2, r3, out v2, out theta, out theta1, out copa, out errorstr);
+
+            strbuild.AppendLine("testgibbs " + v2[0].ToString(fmt) + " " + v2[1].ToString(fmt) + " " + v2[2].ToString(fmt));
+            strbuild.AppendLine("testgibbs " + (theta * rad).ToString(fmt) + " " + (theta1 * rad).ToString(fmt) + " " + (copa * rad).ToString(fmt));
+        }
+
+
+        public void testhgibbs()
+        {
+            double[] r1 = new double[3];
+            double[] r2 = new double[3];
+            double[] r3 = new double[3];
+            double[] v2 = new double[3];
+            double copa, theta, theta1, rad, jd1, jd2, jd3;
+            string errorstr;
+
+            rad = 180.0 / Math.PI;
+
+            r1 = new double[] { 0.0000000, 0.000000, AstroLibr.gravConst.re };
+            r2 = new double[] { 0.0000000, -4464.696, -5102.509 };
+            r3 = new double[] { 0.0000000, 5740.323, 3189.068 };
+            jd1 = 2451849.5;
+            jd2 = jd1 + 1.0 / 1440.0 + 16.48 / 86400.0;
+            jd3 = jd1 + 2.0 / 1440.0 + 33.04 / 86400.0;
+            AstroLibr.herrgibbs(r1, r2, r3, jd1, jd2, jd3, out v2, out theta, out theta1, out copa, out errorstr);
+
+            strbuild.AppendLine("testherrgibbs " + v2[0].ToString(fmt) + " " + v2[1].ToString(fmt) + " " + v2[2].ToString(fmt));
+            strbuild.AppendLine("testherrgibbs " + (theta * rad).ToString(fmt) + " " + (theta1 * rad).ToString(fmt) + " " + (copa * rad).ToString(fmt));
+        }
+
+
+
+        public void testgeo()
+        {
+            StringBuilder strbuildObs = new StringBuilder();
+            double rad = 180.0 / Math.PI;
+
+            // misc test
+            double lona, londot, lons, lonp, z, j22, c22, s22, omegaearth, dt;
+            dt = 86400.0;  // 1 day in sec
+            c22 = 1.57461532572292E-06;
+            s22 = -9.03872789196567E-07;
+            j22 = Math.Sqrt(c22 * c22 + s22 * s22);
+            // stable longitude point
+            lons = 0.5 * Math.Atan2(s22, c22);
+            omegaearth = 0.000072921158553;   // rad /s
+            z = 6.6017;  // rad
+            // initial longitude with 0 initial drift
+            lonp = 12.0 / rad;
+            lonp = lons;
+
+            lona = lonp - 1.0 / rad;
+            lona = lons;
+            londot = 0.0;
+            for (int jj = 0; jj < 400; jj++)
+            {
+                lona = lona + londot * dt;
+                londot = 3.0 * omegaearth / z * Math.Sqrt(2.0 * j22) *
+                    Math.Sqrt(Math.Cos(2.0 * (lona - lons)) - Math.Cos(2.0 * (lonp - lons)));
+                strbuildObs.AppendLine(jj + " " + lona * rad + " " + (lonp - lons) * rad + " " + londot * rad / 86400.0);
+            } // for through all the tracks testing rtasc/decl rates
+            File.WriteAllText(@"D:\faabook\current\excel\testgeo.out", strbuildObs.ToString());
+        }
+
+
+
+       
+
+
+
+
+        // test angles-only routines
+        // output these results separately to the testall directory
+        public void testangles()
+        {
+            double[] rseci1 = new double[3];
+            double[] vseci1 = new double[3];
+            double[] rseci2 = new double[3];
+            double[] vseci2 = new double[3];
+            double[] rseci3 = new double[3];
+            double[] vseci3 = new double[3];
+            double[] rsecef1 = new double[3];
+            double[] rsecef2 = new double[3];
+            double[] rsecef3 = new double[3];
+            double[] vsecef1 = new double[3];
+            double[] vsecef2 = new double[3];
+            double[] vsecef3 = new double[3];
+            double[] r2 = new double[3];
+            double[] v2 = new double[3];
+            double rad, lod;
+            double[] latgd = new double[15];
+            double[] lon = new double[15];
+            double[] alt = new double[15];
+            double[] trtasc = new double[15];
+            double[] tdecl = new double[15];
+            double[] initguess = new double[30];
+            string errstr;
+            Int32[] year = new int[15];
+            Int32[] mon = new int[15];
+            Int32[] day = new int[15];
+            Int32[] hr = new int[15];
+            Int32[] minute = new int[15];
+            double[] second = new double[15];
+            double p, a, ecc, incl, raan, argp, nu, m, arglat, truelon, lonper;
+
+            int dat;
+            double[] jd = new double[100];
+            double[] jdf = new double[100];
+            double jdut1, dut1, jdtt, jdftt, ttt, xp, yp, ddx, ddy, ddpsi, ddeps;
+            double rng1, rng2, rng3;
+            Int32 iyear1, imon1, iday1, ihr1, iminute1;
+            Int32 iyear2, imon2, iday2, ihr2, iminute2;
+            Int32 iyear3, imon3, iday3, ihr3, iminute3;
+            double isecond1, isecond2, isecond3, bigr2x;
+            Int32 numhalfrev;
+            //conv = Math.PI / (180.0 * 3600.0);
+            rad = 180.0 / Math.PI;
+            errstr = "";
+            char diffsites = 'n';
+            StringBuilder strbuildall = new StringBuilder();
+            StringBuilder strbuildallsum = new StringBuilder();
+            
+            this.opsStatus.Text = "Test Angles ";
+            Refresh();
+
+            string nutLoc;
+            string ans;
+            Int32 ktrActObs;
+            string EOPupdate;
+            Int32 mjdeopstart;
+            EOPSPWLib.iau80Class iau80arr;
+            EOPSPWLib.iau00Class iau00arr;
+            nutLoc = @"D:\Codes\LIBRARY\DataLib\nut80.dat";
+            EOPSPWLibr.iau80in(nutLoc, out iau80arr);
+            nutLoc = @"D:\Codes\LIBRARY\DataLib\";
+            EOPSPWLibr.iau00in(nutLoc, out iau00arr);
+
+            string eopFileName = @"D:\Codes\LIBRARY\DataLib\EOP-All-v1.1_2020-02-12.txt";
+            EOPSPWLibr.readeop(ref EOPSPWLibr.eopdata, eopFileName, out mjdeopstart, out ktrActObs, out EOPupdate);
+
+            // now read it in
+            double jdxysstart, jdfxysstart;
+            AstroLib.xysdataClass[] xysarr = AstroLibr.xysarr;
+            AstroLibr.initXYS(ref xysarr, nutLoc, "xysdata.dat", out jdxysstart, out jdfxysstart);
+
+            // gooding tests cases from Gooding paper (1997 CMDA)
+            double[] los1;
+            double[] los2;
+            double[] los3;
+
+            // read input data
+            // note the input data has a # line between each case
+            string infilename = @"D:\Codes\LIBRARY\DataLib\anglestest.dat";
+            string[] fileData = File.ReadAllLines(infilename);
+
+            // --- read obs data in
+            //int caseopt = 0;  // set this for whichever case to run
+
+            // find mins
+            // orbits only need to be close
+            //double rtol = 500.0; // km
+            //double vtol = 0.1;   // km/s
+            //double atol = 500.0; // km
+            //double ptol = 500.0; // km
+            //double etol = 0.1;  // 
+            double itol = 5.0 / rad;   // rad
+
+            for (int caseopt = 0; caseopt <= 24; caseopt++)  // 0  23
+            {
+                strbuildall.AppendLine("caseopt " + caseopt.ToString());
+                int ktr = 1;     // skip header, go to next # comment line
+
+                string line = fileData[ktr];
+                line.Replace(@"\s+", " ");
+                string[] linesplt = line.Split(' ');
+                int tmpcase = Convert.ToInt32(linesplt[1]);
+                while (tmpcase != caseopt)
+                {
+                    line = fileData[ktr];
+                    line.Replace(@"\s+", " ");
+                    linesplt = line.Split(' ');
+                    if (line[0].Equals('#'))
+                        tmpcase = Convert.ToInt32(linesplt[1]);
+
+                    ktr = ktr + 1;
+                }
+
+                // get all the data for caseopt
+                int obsktr = 0;
+                // set the first case only
+                if (caseopt == 0)
+                {
+                    ans = fileData[ktr];
+                    ktr = 2;
+                }
+                else
+                    ans = fileData[ktr - 1];
+                while (ktr < fileData.Count() && !fileData[ktr][0].Equals('#'))
+                {
+                    line = fileData[ktr];
+                    linesplt = line.Split(',');
+                    mon[obsktr] = Convert.ToInt32(linesplt[1]);
+                    day[obsktr] = Convert.ToInt32(linesplt[0]);
+                    year[obsktr] = Convert.ToInt32(linesplt[2]);
+                    hr[obsktr] = Convert.ToInt32(linesplt[3]);
+                    minute[obsktr] = Convert.ToInt32(linesplt[4]);
+                    second[obsktr] = Convert.ToDouble(linesplt[5]);
+                    MathTimeLibr.jday(year[obsktr], mon[obsktr], day[obsktr], hr[obsktr], minute[obsktr], second[obsktr],
+                        out jd[obsktr], out jdf[obsktr]);
+
+                    latgd[obsktr] = Convert.ToDouble(linesplt[6]) / rad;
+                    lon[obsktr] = Convert.ToDouble(linesplt[7]) / rad;
+                    alt[obsktr] = Convert.ToDouble(linesplt[8]) / rad;
+
+                    trtasc[obsktr] = Convert.ToDouble(linesplt[9]) / rad;
+                    tdecl[obsktr] = Convert.ToDouble(linesplt[10]) / rad;
+                    if (obsktr == 0)
+                        initguess[tmpcase] = Convert.ToDouble(linesplt[11]);  // initial guess in km
+
+                    obsktr = obsktr + 1;
+                    ktr = ktr + 1;
+                }
+
+                int idx1, idx2, idx3;
+                idx1 = 0;
+                idx2 = 1;
+                idx3 = 2;
+                strbuildallsum.AppendLine("/n/n ================================ case number " + caseopt.ToString() + " ================================");
+                strbuildall.AppendLine("/n/n ================================ case number " + caseopt.ToString() + " ================================");
+                switch (caseopt)
+                {
+                    case 0:
+                        idx1 = 2;
+                        idx2 = 4;
+                        idx3 = 5;
+
+                        break;
+                    case 1:
+                        // book example
+                        //dut1 = -0.609641;      // sec
+                        //dat = 35;              // sec
+                        //lod = 0.0;
+                        //xp = 0.137495 * conv;  // " to rad
+                        //yp = 0.342416 * conv;
+                        //ddpsi = 0.0;  // " to rad
+                        //ddeps = 0.0;
+                        //ddx = 0.0;    // " to rad
+                        //ddy = 0.0;
+                        //latgd = 40.0 / rad;
+                        //lon = -110.0 / rad;
+                        //alt = 2.0;  // km
+                        // ---- select points to use
+                        idx1 = 2;
+                        idx2 = 4;
+                        idx3 = 5;
+
+                        idx1 = 5;
+                        idx2 = 9;
+                        idx3 = 13;
+
+                        break;
+                    case int n when (n >= 2 && n <= 12):
+                        idx1 = 0;
+                        idx2 = 1;
+                        idx3 = 2;
+                        break;
+                }  // end switch
+
+                //    // herrick interplantetary Herrick pp 384-5 & 418 (gibbs)
+                //    // units of days in 1910 (?) and au
+                //    // says mu = 1.0
+                //    // k = 0, rho = 5.9 and 5.9 au?
+                //    // some initi rho of 1000000 still works
+                //    // days 7.8205, 26.7480, 48.6262 (in 1910 Nov)
+                //    //rtasc = 3-50-24.3, decl = 25-11-10.5
+                //    //rtasc = 3-13-3.0  decl = 22-29-31.3
+                //    //rtasc = 4-54-19.5  decl = 20-14-51.9
+                //    double tau12 = 0.325593;
+                //    double tau13 = 0.701944;
+                //    rseci1 = new double[] { 0.7000687 * AstroLibr.astroConsts.au,
+                //        0.6429399 * AstroLibr.astroConsts.au, 0.2789211 * AstroLibr.astroConsts.au };
+                //    rseci2 = new double[] { 0.4306907, 0.8143496, 0.3532745 };
+                //    rseci3 = new double[] { 0.0628371, 0.9007098, 0.3907417 };
+                //    los1 = new double[] { 0.9028975, 0.0606048, 0.4255621 };
+                //    los2 = new double[] { 0.9224764, 0.0518570, 0.3825549 };
+                //    los3 = new double[] { 0.9347684, 0.0802269, 0.3460802 };
+                //    //(light-corrected times not used but aze 0.325578 and 0.701903)
+                //    break;
+                //case 2:
+                //    // extreme case Lane ex 2
+                //    tau12 = 1.570796327;
+                //    tau13 = 3.141592654;
+                //    rseci1 = new double[] { 0.0, -1.0, 0.0 };
+                //    rseci2 = new double[] { 1.0, 0.0, 0.0 };
+                //    rseci3 = new double[] { 0.0, 1.0, 0.0 };
+                //    los1 = new double[] { 0.0, 1.0, 0.0 };
+                //    los2 = new double[] { 0.0, 0.0, 1.0 };
+                //    los3 = new double[] { 0.0, -1.0, 0.0 };
+
+                //    break;
+                //case 3:
+                //    // rectilinear case
+                //    tau12 = 1.047197552;
+                //    tau13 = 2.960420507;
+                //    rseci1 = new double[] { 1.0, 0.0, 0.0 };
+                //    rseci2 = new double[] { 0.0, 1.0, 0.0 };
+                //    rseci3 = new double[] { 0.0, 0.0, 0.0 };
+                //    los1 = new double[] { -1.0, 0.0, 0.5 };
+                //    los2 = new double[] { 0.0, -1.0, 1.5 };
+                //    los3 = new double[] { 0.0, 0.0, 2.0 };
+                //    break;
+                //case 5:
+                //    // revised escobal example 
+                //    tau12 = 0.0381533;
+                //    tau13 = 0.0399364;
+                //    rseci1 = new double[] { 0.16606957, 0.84119785, -0.51291356 };
+                //    rseci2 = new double[] { -0.73815134, -0.41528280, 0.53035336 };
+                //    rseci3 = new double[] { -0.73343987, -0.42352540, 0.53037164 };
+                //    los1 = new double[] { -0.92475472, -0.37382824, -0.07128226 };
+                //    los2 = new double[] { 0.80904274, -0.55953385, 0.17992142 };
+                //    los3 = new double[] { 0.85044131, -0.49106628, 0.18868888 };
+                //    break;
+                //case 7:
+                //    // example from Lane
+                //    tau12 = 2.2;
+                //    tau13 = 0.35225232;
+                //    rseci2 = new double[] { 0.89263524, 0.28086002, 0.35277012 };
+                //    rseci3 = new double[] { -0.02703285, 0.93585748, 0.35152067 };
+                //    los1 = new double[] { 0.76526944, 0.12314580, 0.63182102 };
+                //    los2 = new double[] { -0.21266402, -0.54295751, 0.81238609 };
+                //    los3 = new double[] { 0.52029946, -0.39083440, 0.75930030 };
+                //    break;
+
+
+                // state already exists use that period
+                // TLE exists use that period
+                // otherwise options, 95 min, 108 min, 150 min, 250 min, 7.2 hr, 12 hr, and 24 hr 
+
+                //                for (int z = 0; z <= -10; z++)
+                //{
+                //    switch (z)
+                //    {
+                //        case 0:
+                //            idx1 = 2;
+                //            idx2 = 4;
+                //            idx3 = 5;
+                //            break;
+                //        case 1:
+                //            idx1 = 0;
+                //            idx2 = 2;
+                //            idx3 = 3;
+                //            break;
+                //        case 2:
+                //            idx1 = 0;
+                //            idx2 = 2;
+                //            idx3 = 9;
+                //            break;
+                //        case 3:
+                //            idx1 = 0;
+                //            idx2 = 2;
+                //            idx3 = 6;
+                //            break;
+                //        case 4:
+                //            idx1 = 0;
+                //            idx2 = 2;
+                //            idx3 = 7;
+                //            break;
+                //        case 5:
+                //            idx1 = 0;
+                //            idx2 = 2;
+                //            idx3 = 12;
+                //            break;
+                //        case 6:
+                //            idx1 = 2;
+                //            idx2 = 4;
+                //            idx3 = 14;
+                //            break;
+                //        case 7:
+                //            idx1 = 2;
+                //            idx2 = 4;
+                //            idx3 = 7;
+                //            break;
+                //        case 8:
+                //            idx1 = 0;
+                //            idx2 = 13;
+                //            idx3 = 14;
+                //            break;
+                //        case 9:
+                //            idx1 = 2;
+                //            idx2 = 4;
+                //            idx3 = 10;
+                //            break;
+                //        case 10:
+                //            idx1 = 10;
+                //            idx2 = 11;
+                //            idx3 = 12;
+                //            break;
+                //    }
+                //    strbuild.AppendLine("\nz " + z.ToString());
+
+                //jd1 = jd[idx1] + jdf[idx1];
+                //jd2 = jd[idx2] + jdf[idx2];
+                //jd3 = jd[idx3] + jdf[idx3];
+                AstroLibr.site(latgd[idx1], lon[idx1], alt[idx1], out rsecef1, out vsecef1);
+                EOPSPWLibr.findeopparam(jd[idx1], jdf[idx1], 's', EOPSPWLibr.eopdata, mjdeopstart + 2400000.5,
+                    out dut1, out dat, out lod, out xp, out yp, out ddpsi, out ddeps, out ddx, out ddy);
+                //MathTimeLibr.convtime(year[idx1], mon[idx1], day[idx1], hr[idx1], minute[idx1], second[idx1], 0, dut1, dat,
+                //    out ut1, out tut1, out jdut1, out jdut1frac, out utc, out tai,
+                //    out tt, out ttt, out jdtt, out jdttfrac, out tdb, out ttdb, out jdtdb, out jdtdbfrac);
+                jdtt = jd[idx1];
+                jdftt = jdf[idx1] + (dat + 32.184) / 86400.0;
+                ttt = (jdtt + jdftt - 2451545.0) / 36525.0;
+                // note you have to use tdb for time of ineterst AND j2000 (when dat = 32)
+                //  ttt = (jd + jdFrac + (dat + 32.184) / 86400.0 - 2451545.0 - (32 + 32.184) / 86400.0) / 36525.0;
+                jdut1 = jd[idx1] + jdf[idx1] + dut1 / 86400.0;
+                AstroLibr.eci_ecef(ref rseci1, ref vseci1, MathTimeLib.Edirection.efrom, ref rsecef1, ref vsecef1,
+                     AstroLib.EOpt.e80, iau80arr, iau00arr,
+                     jdtt, jdftt, jdut1, jdxysstart, lod, xp, yp, ddpsi, ddeps, ddx, ddy);
+
+                AstroLibr.site(latgd[idx2], lon[idx2], alt[idx2], out rsecef2, out vsecef2);
+                EOPSPWLibr.findeopparam(jd[idx2], jdf[idx2], 's', EOPSPWLibr.eopdata, mjdeopstart + 2400000.5,
+                    out dut1, out dat, out lod, out xp, out yp, out ddpsi, out ddeps, out ddx, out ddy);
+                //MathTimeLibr.convtime(year[idx2], mon[idx2], day[idx2], hr[idx2], minute[idx2], second[idx2], 0, dut1, dat,
+                //    out ut1, out tut1, out jdut1, out jdut1frac, out utc, out tai,
+                //    out tt, out ttt, out jdtt, out jdttfrac, out tdb, out ttdb, out jdtdb, out jdtdbfrac);
+                jdtt = jd[idx2];
+                jdftt = jdf[idx2] + (dat + 32.184) / 86400.0;
+                ttt = (jdtt + jdftt - 2451545.0) / 36525.0;
+                jdut1 = jd[idx2] + jdf[idx2] + dut1 / 86400.0;
+                AstroLibr.eci_ecef(ref rseci2, ref vseci2, MathTimeLib.Edirection.efrom, ref rsecef2, ref vsecef2,
+                     AstroLib.EOpt.e80, iau80arr, iau00arr,
+                     jdtt, jdftt, jdut1, jdxysstart, lod, xp, yp, ddpsi, ddeps, ddx, ddy);
+                double gst, lst;
+                AstroLibr.lstime(lon[idx2], jdut1, out lst, out gst);
+                strbuildall.AppendLine("\nlst " + lst.ToString() + " " + (lst * rad).ToString());
+
+
+                AstroLibr.site(latgd[idx3], lon[idx3], alt[idx3], out rsecef3, out vsecef3);
+                EOPSPWLibr.findeopparam(jd[idx3], jdf[idx3], 's', EOPSPWLibr.eopdata, mjdeopstart + 2400000.5,
+                    out dut1, out dat, out lod, out xp, out yp, out ddpsi, out ddeps, out ddx, out ddy);
+                jdtt = jd[idx3];
+                jdftt = jdf[idx3] + (dat + 32.184) / 86400.0;
+                ttt = (jdtt + jdftt - 2451545.0) / 36525.0;
+                jdut1 = jd[idx3] + jdf[idx3] + dut1 / 86400.0;
+                AstroLibr.eci_ecef(ref rseci3, ref vseci3, MathTimeLib.Edirection.efrom, ref rsecef3, ref vsecef3,
+                     AstroLib.EOpt.e80, iau80arr, iau00arr,
+                     jdtt, jdftt, jdut1, jdxysstart, lod, xp, yp, ddpsi, ddeps, ddx, ddy);
+
+                if (Math.Abs(latgd[idx1] - latgd[idx2]) < 0.001 && Math.Abs(latgd[idx1] - latgd[idx3]) < 0.001
+                    && Math.Abs(lon[idx1] - lon[idx2]) < 0.001 && Math.Abs(lon[idx1] - lon[idx3]) < 0.001)
+                    diffsites = 'n';
+                else
+                    diffsites = 'y';
+
+
+                // write output
+                strbuildall.AppendLine("rseci1 " + rseci1[0].ToString("0.000000") + " " +
+                rseci1[1].ToString("0.000000") + " " + rseci1[2].ToString("0.000000"));
+                strbuildall.AppendLine("rseci2 " + rseci2[0].ToString("0.000000") + " " +
+                    rseci2[1].ToString("0.000000") + " " + rseci2[2].ToString("0.000000"));
+                strbuildall.AppendLine("rseci3 " + rseci3[0].ToString("0.000000") + " " +
+                    rseci3[1].ToString("0.000000") + " " + rseci3[2].ToString("0.000000"));
+                
+                los1 = new double[3];
+                los2 = new double[3];
+                los3 = new double[3];
+                los1[0] = Math.Cos(tdecl[idx1]) * Math.Cos(trtasc[idx1]);
+                los1[1] = Math.Cos(tdecl[idx1]) * Math.Sin(trtasc[idx1]);
+                los1[2] = Math.Sin(tdecl[idx1]);
+
+                los2[0] = Math.Cos(tdecl[idx2]) * Math.Cos(trtasc[idx2]);
+                los2[1] = Math.Cos(tdecl[idx2]) * Math.Sin(trtasc[idx2]);
+                los2[2] = Math.Sin(tdecl[idx2]);
+
+                los3[0] = Math.Cos(tdecl[idx3]) * Math.Cos(trtasc[idx3]);
+                los3[1] = Math.Cos(tdecl[idx3]) * Math.Sin(trtasc[idx3]);
+                los3[2] = Math.Sin(tdecl[idx3]);
+
+                strbuildall.AppendLine("los1 " + los1[0].ToString("0.00000000") + " " +
+                    los1[1].ToString("0.00000000") + " " + los1[2].ToString("0.00000000") +
+                    " " + MathTimeLibr.mag(los1).ToString("0.00000000"));
+                strbuildall.AppendLine("los2 " + los2[0].ToString("0.00000000") + " " +
+                    los2[1].ToString("0.00000000") + " " + los2[2].ToString("0.00000000") +
+                    " " + MathTimeLibr.mag(los2).ToString("0.00000000"));
+                strbuildall.AppendLine("los3 " + los3[0].ToString("0.00000000") + " " +
+                    los3[1].ToString("0.00000000") + " " + los3[2].ToString("0.000000") +
+                    " " + MathTimeLibr.mag(los3).ToString("0.00000000"));
+                
+                // to get initial guess, take measurments (1/2 and 2/3), assume circular orbit
+                // find velocity and compare - just distinguish between LEO, GPS and GEO for now
+                double dtrtasc1, dtdecl1, dtrtasc2, dtdecl2, dt1, dt2;
+                dt1 = (jd[idx2] - jd[idx1]) * 86400.0 + (jdf[idx2] - jdf[idx1]) * 86400.0;
+                dt2 = (jd[idx3] - jd[idx2]) * 86400.0 + (jdf[idx3] - jdf[idx2]) * 86400.0;
+                dtrtasc1 = (trtasc[idx2] - trtasc[idx1]) / dt1;
+                dtrtasc2 = (trtasc[idx3] - trtasc[idx2]) / dt2;
+                dtdecl1 = (tdecl[idx2] - tdecl[idx1]) / dt1;
+                dtdecl2 = (tdecl[idx3] - tdecl[idx2]) / dt2;
+
+                strbuildall.AppendLine("rtasc " + (trtasc[idx1] * rad).ToString() + " " + (trtasc[idx2] * rad).ToString()
+                    + " " + (trtasc[idx3] * rad).ToString());
+                strbuildall.AppendLine("decl " + (tdecl[idx1] * rad).ToString() + " " + (tdecl[idx2] * rad).ToString()
+                    + " " + (tdecl[idx3] * rad).ToString());
+
+
+                strbuildall.AppendLine("");
+                strbuildallsum.AppendLine("Laplace -----------------------------------");
+                strbuildall.AppendLine("Laplace -----------------------------------");
+
+                strbuildall.AppendLine("\n\ninputs: \n");
+                strbuildall.AppendLine("Site obs1 "
+                    + rseci1[0].ToString() + " " + rseci1[1].ToString() + " " + rseci1[2].ToString()
+                    + " km  lat " + (latgd[idx1] * rad).ToString() + " lon " + (lon[idx1] * rad).ToString() + " "
+                    + alt[idx1].ToString());
+                strbuildall.AppendLine("Site obs2 "
+                    + rseci2[0].ToString() + " " + rseci2[1].ToString() + " " + rseci2[2].ToString()
+                    + " km  lat " + (latgd[idx2] * rad).ToString() + " lon " + (lon[idx2] * rad).ToString() + " "
+                    + alt[idx2].ToString());
+                strbuildall.AppendLine("Site obs3 "
+                    + rseci3[0].ToString() + " " + rseci3[1].ToString() + " " + rseci3[2].ToString()
+                    + " km  lat " + (latgd[idx3] * rad).ToString() + " lon " + (lon[idx3] * rad).ToString() + " "
+                    + alt[idx3].ToString());
+                MathTimeLibr.invjday(jd[idx1], jdf[idx1], out iyear1, out imon1, out iday1, out ihr1, out iminute1, out isecond1);
+                strbuildall.AppendLine("obs#1 " + iyear1.ToString() + " " + imon1.ToString() + " " + iday1.ToString()
+                    + " " + ihr1.ToString("00") + " " + iminute1.ToString("00") + " " + isecond1.ToString("0.000")
+                    + " " + (trtasc[idx1] * rad).ToString() + " " + (tdecl[idx1] * rad).ToString().ToString());
+                MathTimeLibr.invjday(jd[idx2], jdf[idx2], out iyear2, out imon2, out iday2, out ihr2, out iminute2, out isecond2);
+                strbuildall.AppendLine("obs#2 " + iyear2.ToString() + " " + imon2.ToString() + " " + iday2.ToString()
+                    + " " + ihr2.ToString("00") + " " + iminute2.ToString("00") + " " + isecond2.ToString("0.000")
+                    + " " + (trtasc[idx2] * rad).ToString() + " " + (tdecl[idx2] * rad).ToString().ToString());
+                MathTimeLibr.invjday(jd[idx3], jdf[idx3], out iyear3, out imon3, out iday3, out ihr3, out iminute3, out isecond3);
+                strbuildall.AppendLine("obs#3 " + iyear3.ToString() + " " + imon3.ToString() + " " + iday3.ToString()
+                    + " " + ihr3.ToString("00") + " " + iminute3.ToString("00") + " " + isecond3.ToString("0.000")
+                    + " " + (trtasc[idx3] * rad).ToString() + " " + (tdecl[idx3] * rad).ToString().ToString());
+                //if (caseopt == 2)
+                //    diffsites = 'y';
+                //else 
+                //diffsites = 'n';
+
+                AstroLibr.angleslaplace(tdecl[idx1], tdecl[idx2], tdecl[idx3], trtasc[idx1], trtasc[idx2], trtasc[idx3],
+                            jd[idx1], jdf[idx1], jd[idx2], jdf[idx2], jd[idx3], jdf[idx3],
+                            diffsites, rseci1, rseci2, rseci3, out r2, out v2, out bigr2x, out errstr);
+                strbuildall.AppendLine(errstr);
+                strbuildall.AppendLine("r2 " + r2[0].ToString("0.000000") + " " +
+                    r2[1].ToString("0.000000") + " " + r2[2].ToString("0.000000")
+                    + "v2 " + v2[0].ToString("0.000000") + " " +
+                    v2[1].ToString("0.000000") + " " + v2[2].ToString("0.000000"));
+                AstroLibr.rv2coe(r2, v2, out p, out a, out ecc, out incl, out raan, out argp, out nu, out m, out arglat, out truelon, out lonper);
+                strbuildall.AppendLine("\nlaplace coes a= " + a.ToString("0.0000") + " e= " + ecc.ToString("0.000000000") + " i= " + (incl * rad).ToString("0.0000") + " " +
+                    (raan * rad).ToString("0.0000") + " " + (argp * rad).ToString("0.0000") + " " + (nu * rad).ToString("0.0000") + " " + (m * rad).ToString("0.0000") + " " +
+                    (arglat * rad).ToString("0.0000")); // + " " + (truelon * rad).ToString("0.0000") + " " + (lonper * rad).ToString("0.0000"));
+                strbuildall.AppendLine(ans);
+                strbuildallsum.AppendLine("laplace coes a= " + a.ToString("0.0000") + " e= " + ecc.ToString("0.000000000") + " i= " + (incl * rad).ToString("0.0000") + " " +
+                    (raan * rad).ToString("0.0000") + " " + (argp * rad).ToString("0.0000") + " " + (nu * rad).ToString("0.0000") + " " + (m * rad).ToString("0.0000") + " " +
+                    (arglat * rad).ToString("0.0000")); // + " " + (truelon * rad).ToString("0.0000") + " " + (lonper * rad).ToString("0.0000"));
+                strbuildallsum.AppendLine(ans);
+
+                strbuildallsum.AppendLine("Gauss  -----------------------------------");
+                strbuildall.AppendLine("Gauss  -----------------------------------");
+                if (caseopt == 23)
+                {  // curtis example -many mistakes!
+                    rseci1 = new double[] { 3489.8, 3430.2, 4078.5 };
+                    rseci2 = new double[] { 3460.1, 3460.1, 4078.5 };
+                    rseci3 = new double[] { 3429.9, 3490.1, 4078.5 };
+                }
+                AstroLibr.anglesgauss(tdecl[idx1], tdecl[idx2], tdecl[idx3], trtasc[idx1], trtasc[idx2], trtasc[idx3],
+                     jd[idx1], jdf[idx1], jd[idx2], jdf[idx2], jd[idx3], jdf[idx3],
+                     rseci1, rseci2, rseci3, out r2, out v2, out errstr);
+                strbuildall.AppendLine(errstr);
+                strbuildall.AppendLine("r2 " + r2[0].ToString("0.000000") + " " +
+                     r2[1].ToString("0.000000") + " " + r2[2].ToString("0.000000")
+                     + "v2 " + v2[0].ToString("0.000000") + " " +
+                     v2[1].ToString("0.000000") + " " + v2[2].ToString("0.000000"));
+                AstroLibr.rv2coe(r2, v2, out p, out a, out ecc, out incl, out raan, out argp, out nu, out m, out arglat, out truelon, out lonper);
+                strbuildall.AppendLine("gauss coes a= " + a.ToString("0.0000") + " e= " + ecc.ToString("0.000000000") + " i= " + (incl * rad).ToString("0.0000") + " " +
+                     (raan * rad).ToString("0.0000") + " " + (argp * rad).ToString("0.0000") + " " + (nu * rad).ToString("0.0000") + " " + (m * rad).ToString("0.0000") + " " +
+                     (arglat * rad).ToString("0.0000")); // + " " + (truelon * rad).ToString("0.0000") + " " + (lonper * rad).ToString("0.0000"));
+                strbuildall.AppendLine(ans);
+                strbuildallsum.AppendLine("gauss coes a= " + a.ToString("0.0000") + " e= " + ecc.ToString("0.000000000") + " i= " + (incl * rad).ToString("0.0000") + " " +
+                     (raan * rad).ToString("0.0000") + " " + (argp * rad).ToString("0.0000") + " " + (nu * rad).ToString("0.0000") + " " + (m * rad).ToString("0.0000") + " " +
+                     (arglat * rad).ToString("0.0000")); // + " " + (truelon * rad).ToString("0.0000") + " " + (lonper * rad).ToString("0.0000"));
+                strbuildallsum.AppendLine(ans);
+
+                double pctchg = 0.05;
+                    strbuildallsum.AppendLine("Double-r -----------------------------------" );
+                    strbuildall.AppendLine("Double-r -----------------------------------" );
+                    // initial guesses needed for double-r and Gooding
+                    // use result from Gauss as it's usually pretty good
+                    // this seems to really help Gooding!!
+                    AstroLibr.getGaussRoot(tdecl[idx1], tdecl[idx2], tdecl[idx3], trtasc[idx1], trtasc[idx2], trtasc[idx3],
+                         jd[idx1], jdf[idx1], jd[idx2], jdf[idx2], jd[idx3], jdf[idx3],
+                         rseci1, rseci2, rseci3, out bigr2x);
+                    initguess[caseopt] = bigr2x;
+
+                    rng1 = initguess[caseopt];  // old 12500 needs to be in km!! seems to do better when all the same? if too far off (*2) NAN
+                    rng2 = initguess[caseopt] * 1.02;  // 1.02 might be better? make the initial guess a bit different
+                    rng3 = initguess[caseopt] * 1.08;
+                    AstroLibr.anglesdoubler(tdecl[idx1], tdecl[idx2], tdecl[idx3], trtasc[idx1], trtasc[idx2], trtasc[idx3],
+                         jd[idx1], jdf[idx1], jd[idx2], jdf[idx2], jd[idx3], jdf[idx3],
+                         rseci1, rseci2, rseci3, rng1, rng2, out r2, out v2, out errstr, pctchg);
+                    strbuildall.AppendLine(errstr);
+                    strbuildall.AppendLine("r2 " + r2[0].ToString("0.000000") + " " +
+         r2[1].ToString("0.000000") + " " + r2[2].ToString("0.000000")
+         + "v2 " + v2[0].ToString("0.000000") + " " +
+         v2[1].ToString("0.000000") + " " + v2[2].ToString("0.000000"));
+                    AstroLibr.rv2coe(r2, v2, out p, out a, out ecc, out incl, out raan, out argp, out nu, out m, out arglat, out truelon, out lonper);
+                    strbuildall.AppendLine("doubler coes a= " + a.ToString("0.0000") + " e= " + ecc.ToString("0.000000000") + " i= " + (incl * rad).ToString("0.0000") + " " +
+                        (raan * rad).ToString("0.0000") + " " + (argp * rad).ToString("0.0000") + " " + (nu * rad).ToString("0.0000") + " " + (m * rad).ToString("0.0000") + " " +
+                        (arglat * rad).ToString("0.0000")); // + " " + (truelon * rad).ToString("0.0000") + " " + (lonper * rad).ToString("0.0000"));
+                    strbuildall.AppendLine(ans);
+                    strbuildallsum.AppendLine("doubler coes a= " + a.ToString("0.0000") + " e= " + ecc.ToString("0.000000000") + " i= " + (incl * rad).ToString("0.0000") + " " +
+                        (raan * rad).ToString("0.0000") + " " + (argp * rad).ToString("0.0000") + " " + (nu * rad).ToString("0.0000") + " " + (m * rad).ToString("0.0000") + " " +
+                        (arglat * rad).ToString("0.0000")); // + " " + (truelon * rad).ToString("0.0000") + " " + (lonper * rad).ToString("0.0000"));
+                    strbuildallsum.AppendLine(ans);
+
+
+                strbuildallsum.AppendLine("Gooding -----------------------------------");
+                strbuildall.AppendLine("Gooding -----------------------------------");
+                numhalfrev = 0;
+
+                AstroLibr.getGaussRoot(tdecl[idx1], tdecl[idx2], tdecl[idx3], trtasc[idx1], trtasc[idx2], trtasc[idx3],
+                     jd[idx1], jdf[idx1], jd[idx2], jdf[idx2], jd[idx3], jdf[idx3],
+                     rseci1, rseci2, rseci3, out bigr2x);
+                initguess[caseopt] = bigr2x;
+
+                rng1 = initguess[caseopt];  // old 12500 needs to be in km!! seems to do better when all the same? if too far off (*2) NAN
+                rng2 = initguess[caseopt] * 1.02;  // 1.02 might be better? make the initial guess a bit different
+                rng3 = initguess[caseopt] * 1.08;
+
+                AstroLibr.anglesgooding(tdecl[idx1], tdecl[idx2], tdecl[idx3], trtasc[idx1], trtasc[idx2], trtasc[idx3],
+                    jd[idx1], jdf[idx1], jd[idx2], jdf[idx2], jd[idx3], jdf[idx3],
+                    rseci1, rseci2, rseci3, numhalfrev, rng1, rng2, rng3, out r2, out v2, out errstr);
+                strbuildall.AppendLine(errstr);
+                strbuildall.AppendLine("r2 " + r2[0].ToString("0.000000") + " " +
+     r2[1].ToString("0.000000") + " " + r2[2].ToString("0.000000")
+     + "v2 " + v2[0].ToString("0.000000") + " " +
+     v2[1].ToString("0.000000") + " " + v2[2].ToString("0.000000"));
+                AstroLibr.rv2coe(r2, v2, out p, out a, out ecc, out incl, out raan, out argp, out nu, out m, out arglat, out truelon, out lonper);
+                strbuildall.AppendLine("gooding coes  a= " + a.ToString("0.0000") + " e= " + ecc.ToString("0.000000000") + " i= " + (incl * rad).ToString("0.0000") + " " +
+                    (raan * rad).ToString("0.0000") + " " + (argp * rad).ToString("0.0000") + " " + (nu * rad).ToString("0.0000") + " " + (m * rad).ToString("0.0000") + " " +
+                    (arglat * rad).ToString("0.0000")); // + " " + (truelon * rad).ToString("0.0000") + " " + (lonper * rad).ToString("0.0000"));
+                strbuildall.AppendLine(ans);
+                strbuildallsum.AppendLine("gooding coes  a= " + a.ToString("0.0000") + " e= " + ecc.ToString("0.000000000") + " i= " + (incl * rad).ToString("0.0000") + " " +
+                    (raan * rad).ToString("0.0000") + " " + (argp * rad).ToString("0.0000") + " " + (nu * rad).ToString("0.0000") + " " + (m * rad).ToString("0.0000") + " " +
+                    (arglat * rad).ToString("0.0000")); // + " " + (truelon * rad).ToString("0.0000") + " " + (lonper * rad).ToString("0.0000"));
+                strbuildallsum.AppendLine(ans);
+
+                //                }  // loop through cases of caseopt = 0
+
+            } // caseopt
+
+            string directory = @"D:\Codes\LIBRARY\cs\TestAll\";
+            strbuild.AppendLine("angles only tests case results written to " + directory + "testall-Angles.out ");
+            strbuild.AppendLine(@"geo data for chap 9 plot written to D:\faabook\current\excel\testgeo.out for ch9 plot ");
+            
+            File.WriteAllText(directory + "testall-Angles.out", strbuildall.ToString());
+            File.WriteAllText(directory + "testall-Anglessum.out", strbuildallsum.ToString());
+
+            this.opsStatus.Text = "Test Angles - Done";
+            Refresh();
+
+        }   // testangles
+
+
+
+  
 
         public void testlambertumins()
         {
@@ -1931,10 +3060,10 @@ namespace TestAll
             double tmin, tminp, tminenergy;
             int i;
 
-            r1 = new double[] { 2.500000 * 6378.137, 0.000000, 0.000000 };
-            r2 = new double[] { 1.9151111 * 6378.137, 1.6069690 * 6378.137, 0.000000 };
+            r1 = new double[] { 2.500000 * AstroLibr.gravConst.re, 0.000000, 0.000000 };
+            r2 = new double[] { 1.9151111 * AstroLibr.gravConst.re, 1.6069690 * AstroLibr.gravConst.re, 0.000000 };
             char dm = 'S';
-            char de = 'L';
+            //char de = 'L';
             Int32 nrev = 0;
 
             // timing of routines
@@ -2004,37 +3133,38 @@ namespace TestAll
             double s, tau;
             AstroLambertkLibr.lambertkmins1st(r1, r2, out s, out tau);
 
+            // for general cases, use 'x' for dm to get the tof/kbi values
             for (i = 0; i < 1000; i++)
             {
-                AstroLambertkLibr.lambertkmins(s, tau, 1, 'L', out kbi, out tof);
+                AstroLambertkLibr.lambertkmins(s, tau, 1, 'x', 'L', out kbi, out tof);
                 tbidk[1, 1] = kbi;
                 tbidk[1, 2] = tof * ootusec;
-                AstroLambertkLibr.lambertkmins(s, tau, 2, 'L', out kbi, out tof);
+                AstroLambertkLibr.lambertkmins(s, tau, 2, 'x', 'L', out kbi, out tof);
                 tbidk[2, 1] = kbi;
                 tbidk[2, 2] = tof * ootusec;
-                AstroLambertkLibr.lambertkmins(s, tau, 3, 'L', out kbi, out tof);
+                AstroLambertkLibr.lambertkmins(s, tau, 3, 'x', 'L', out kbi, out tof);
                 tbidk[3, 1] = kbi;
                 tbidk[3, 2] = tof * ootusec;
-                AstroLambertkLibr.lambertkmins(s, tau, 4, 'L', out kbi, out tof);
+                AstroLambertkLibr.lambertkmins(s, tau, 4, 'x', 'L', out kbi, out tof);
                 tbidk[4, 1] = kbi;
                 tbidk[4, 2] = tof * ootusec;
-                AstroLambertkLibr.lambertkmins(s, tau, 5, 'L', out kbi, out tof);
+                AstroLambertkLibr.lambertkmins(s, tau, 5, 'x', 'L', out kbi, out tof);
                 tbidk[5, 1] = kbi;
                 tbidk[5, 2] = tof * ootusec;
 
-                AstroLambertkLibr.lambertkmins(s, tau, 1, 'H', out kbi, out tof);
+                AstroLambertkLibr.lambertkmins(s, tau, 1, 'x', 'H', out kbi, out tof);
                 tbirk[1, 1] = kbi;
                 tbirk[1, 2] = tof * ootusec;
-                AstroLambertkLibr.lambertkmins(s, tau, 2, 'H', out kbi, out tof);
+                AstroLambertkLibr.lambertkmins(s, tau, 2, 'x', 'H', out kbi, out tof);
                 tbirk[2, 1] = kbi;
                 tbirk[2, 2] = tof * ootusec;
-                AstroLambertkLibr.lambertkmins(s, tau, 3, 'H', out kbi, out tof);
+                AstroLambertkLibr.lambertkmins(s, tau, 3, 'x', 'H', out kbi, out tof);
                 tbirk[3, 1] = kbi;
                 tbirk[3, 2] = tof * ootusec;
-                AstroLambertkLibr.lambertkmins(s, tau, 4, 'H', out kbi, out tof);
+                AstroLambertkLibr.lambertkmins(s, tau, 4, 'x', 'H', out kbi, out tof);
                 tbirk[4, 1] = kbi;
-                tbirk[4, 2] = tof * ootusec;
-                AstroLambertkLibr.lambertkmins(s, tau, 5, 'H', out kbi, out tof);
+                tbirk[4, 2] = tof * ootusec; 
+                AstroLambertkLibr.lambertkmins(s, tau, 5, 'x', 'H', out kbi, out tof);
                 tbirk[5, 1] = kbi;
                 tbirk[5, 2] = tof * ootusec;
             }
@@ -2051,16 +3181,19 @@ namespace TestAll
             char dm, de;
             Int32 nrev;
             double tmin, tminp, tminenergy;
-            r1 = new double[] { 2.500000 * 6378.137, 0.000000, 0.000000 };
-            r2 = new double[] { 1.9151111 * 6378.137, 1.6069690 * 6378.137, 0.000000 };
+            r1 = new double[] { 2.500000 * AstroLibr.gravConst.re, 0.000000, 0.000000 };
+            r2 = new double[] { 1.9151111 * AstroLibr.gravConst.re, 1.6069690 * AstroLibr.gravConst.re, 0.000000 };
             dm = 'S';
             de = 'L';
             nrev = 0;
 
             AstroLibr.lambertminT(r1, r2, dm, de, nrev, out tmin, out tminp, out tminenergy);
+            strbuild.AppendLine("lambertminT tmin  s " + tmin.ToString(fmt) + " minp " + tminp.ToString(fmt) + 
+                " minener " + tminenergy.ToString(fmt));
 
-            strbuild.AppendLine("mint s " + tmin.ToString("0.0000") + " minp " + tminp.ToString("0.0000") + " minener " + tminenergy.ToString("0.0000"));
-
+            AstroLibr.lambertminT(r1, r2, dm, 'H', nrev, out tmin, out tminp, out tminenergy);
+            strbuild.AppendLine("lambertminT tmin  s " + tmin.ToString(fmt) + " minp " + tminp.ToString(fmt) +
+                " minener " + tminenergy.ToString(fmt));
         }
 
         public void testlambhodograph()
@@ -2072,10 +3205,10 @@ namespace TestAll
             double p, ecc, dnu, dtsec;
             double[] v1t;
             double[] v2t;
-            r1 = new double[] { 2.500000 * 6378.137, 0.000000, 0.000000 };
-            r2 = new double[] { 1.9151111 * 6378.137, 1.6069690 * 6378.137, 0.000000 };
+            r1 = new double[] { 2.500000 * AstroLibr.gravConst.re, 0.000000, 0.000000 };
+            r2 = new double[] { 1.9151111 * AstroLibr.gravConst.re, 1.6069690 * AstroLibr.gravConst.re, 0.000000 };
             // assume circular initial orbit for vel calcs
-            v1 = new double[] { 0.0, Math.Sqrt(MathTimeLib.globals.mu / r1[0]), 0.0 };
+            v1 = new double[] { 0.0, Math.Sqrt(AstroLibr.gravConst.mu / r1[0]), 0.0 };
             p = 12345.235;  // km
             ecc = 0.023487;
             dnu = 34.349128 / rad;
@@ -2084,6 +3217,8 @@ namespace TestAll
 
             AstroLibr.lambhodograph(r1, r2, v1, p, ecc, dnu, dtsec, out v1t, out v2t);
 
+            strbuild.AppendLine("lamb hod " + v1t[0].ToString(fmt) + " " + v1t[1].ToString(fmt) + " " + v1t[2].ToString(fmt) + " \nlamb hod" +
+                   v2t[0].ToString(fmt) + " " + v2t[1].ToString(fmt) + " " + v2t[2].ToString(fmt));
         }
 
         public void testlambertbattin()
@@ -2099,17 +3234,19 @@ namespace TestAll
             char hitearth, dm, de;
             Int32 nrev;
 
-            r1 = new double[] { 2.500000 * MathTimeLib.globals.re, 0.000000, 0.000000 };
-            r2 = new double[] { 1.9151111 * MathTimeLib.globals.re, 1.6069690 * MathTimeLib.globals.re, 0.000000 };
+            r1 = new double[] { 2.500000 * AstroLibr.gravConst.re, 0.000000, 0.000000 };
+            r2 = new double[] { 1.9151111 * AstroLibr.gravConst.re, 1.6069690 * AstroLibr.gravConst.re, 0.000000 };
             dm = 'S';
             de = 'L';
             nrev = 0;
             dtsec = 76.0 * 60.0;
-            altpadc = 100.0 / MathTimeLib.globals.re;  //er
+            altpadc = 100.0 / AstroLibr.gravConst.re;  //er
             dtwait = 0.0;
 
-            AstroLibr.lambertbattin(r1, r2, v1, dm, de, nrev, dtsec, dtwait, altpadc, 'y', out v1t, out v2t, out hitearth, out errorsum, out errorout);
+            AstroLibr.lambertbattin(r1, r2, v1, dm, de, nrev, dtwait, dtsec, altpadc, 'y', out v1t, out v2t, out hitearth, out errorsum, out errorout);
 
+            strbuild.AppendLine("lambertbattin " + v1t[0].ToString(fmt) + " " + v1t[1].ToString(fmt) + " " + v1t[2].ToString(fmt) + " \nlambertbattin " +
+                v2t[0].ToString(fmt) + " " + v2t[1].ToString(fmt) + " " + v2t[2].ToString(fmt));
         }
 
         public void testeq2rv()
@@ -2127,6 +3264,9 @@ namespace TestAll
             fr = 1;
 
             AstroLibr.eq2rv(a, af, ag, chi, psi, meanlon, fr, out r, out v);
+
+            strbuild.AppendLine("eq2rv " + r[0].ToString(fmt) + " " + r[1].ToString(fmt) + " " + r[2].ToString(fmt) + " " +
+                 v[0].ToString(fmt) + " " + v[1].ToString(fmt) + " " + v[2].ToString(fmt));
         }
 
         public void testrv2eq()
@@ -2135,13 +3275,1226 @@ namespace TestAll
             double a, n, af, ag, chi, psi, meanlonM, meanlonNu;
             Int16 fr;
 
-            r = new double[] { 2.500000 * 6378.137, 0.000000, 0.000000 };
+            r = new double[] { 2.500000 * AstroLibr.gravConst.re, 0.000000, 0.000000 };
             // assume circular initial orbit for vel calcs
-            v = new double[] { 0.0, Math.Sqrt(MathTimeLib.globals.mu / r[0]), 0.0 };
+            v = new double[] { 0.0, Math.Sqrt(AstroLibr.gravConst.mu / r[0]), 0.0 };
 
             AstroLibr.rv2eq(r, v, out a, out n, out af, out ag, out chi, out psi, out meanlonM, out meanlonNu, out fr);
 
+            strbuild.AppendLine("rv2eq   a " + a.ToString(fmt) + " n " + n.ToString(fmt) + " af " + af.ToString(fmt) + " ag " 
+                + ag.ToString(fmt) + " chi " + chi.ToString(fmt) + " psi " + psi.ToString(fmt) + " mm " + 
+                meanlonM.ToString(fmt) + " mnu " + meanlonNu);
         }
+
+
+
+        // test building the lambert envelope
+        private void testAll()
+        {
+            double mu, dtwait, dtsec, dtseco;
+            string detailSum, detailAll, errorout;
+            char dm, de, hitearth, whichcase;
+            Int32 ktr, ktr1, ktr2, ktr3, ktr4, i, iktr, nrev, numiter;
+            double f, g, gdot;
+            double tofu1, tofu2, kbiu1, kbiu2, tof, kbi;
+            double[] v1t = new double[3];
+            double[] v2t = new double[3];
+            double[] r1 = new double[3];
+            double[] r2 = new double[3];
+            double[] v1 = new double[3];
+            double[] v2 = new double[3];
+            double s, tau;
+            string outstr;
+            StringBuilder strbuild = new StringBuilder();
+            detailSum = "";
+            detailAll = "";
+            //char show = 'n';     // for test180, show = n, show180 = y
+            //char show180 = 'n';  // for testlamb known show = y, show180 = n, n/n for envelope
+
+            whichcase = 'k';  // k
+            // whichcase = 'u'; //  universal
+            // whichcase = 'b';  // battin
+
+            dm = 's';
+            de = 'r';
+            double altpadc = 200.0 / 6378.137;  // set 200 km for altitude you set as the over limit. 
+            ktr1 = 0;
+            ktr2 = 0;
+            ktr3 = 0;
+            ktr4 = 0;
+            tofu1 = 0.0;
+            tofu2 = 0.0;
+            kbiu1 = 0.0;
+            kbiu2 = 0.0;
+
+            mu = 3.986004415e5;
+            //tusec = 806.8111238242922;
+            numiter = 17;
+            dtwait = 0.0;
+            tof = 0.0;
+            kbi = 0.0;
+
+            this.opsStatus.Text = "working on all cases ";
+            Refresh();
+
+            // book fig
+            r1 = new double[] { 2.500000 * 6378.137, 0.000000, 0.000000 };
+            r2 = new double[] { 1.9151111 * 6378.137, 1.6069690 * 6378.137, 0.000000 };
+            // assume circular initial orbit for vel calcs
+            v1 = new double[] { 0.0, Math.Sqrt(mu / r1[0]), 0.0 };
+            double ang = Math.Atan(r2[1] / r2[0]);
+            v2 = new double[] { -Math.Sqrt(mu / r2[1]) * Math.Cos(ang), Math.Sqrt(mu / r2[0]) * Math.Sin(ang), 0.0 };
+
+            //// test case
+            //double[] r2 = new double[] { -1105.78023519582, 2373.16130661458, 6713.89444816503 };
+            //double[] v2 = new double[] { 5.4720951867079, -4.39299050886976, 2.45681739563752 };
+            //double[] r1 = new double[] { 4938.49830042171, -1922.24810472241, 4384.68293292613 };
+            //double[] v1 = new double[] { 0.738204644165659, 7.20989453238397, 2.32877392066299 };
+
+            // more normal figure
+            //double[] r2 = new double[] { -10000.0, 3750.0, 0.00 };
+            //double[] v2 = new double[] { 5.4720951867079, -4.39299050886976, 2.45681739563752 };
+            //double[] r1 = new double[] {7278.0,  0.00, 0.00};
+            //double[] v1 = new double[] { 0.738204644165659, 7.20989453238397, 2.32877392066299 };
+
+            // case 71 ld1 this is a 360/0 deg case
+            //nrev = 1;
+            //r1 = new double[] { -1467.02165038667, 1586.15766686882, 6812.89290230288 };
+            //v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+            //r2 = new double[] { -1467.02165038667, 1586.15766686882, 6812.89290230288 };
+            //v2 = new double[] { -0.631836782875836, 1.40386453042887, 2.14318960051298 };  // xx
+            //dtsec = 6325.0;
+
+            //double[] r2 = new double[] { 12214.84096602,  10249.46843675,      0.00000000};
+            //double[] v2 = new double[] {-4.77718638,      3.67191377,      0.00000000 };
+            //double[] r1 = new double[] { 15945.34250000,      0.00000000,      0.00000000 };
+            //double[] v1 = new double[] {  0.00000000,      4.99979228,      0.00000000 };
+
+            //// 179.9999972 test
+            //r1 = new double[] { 5690.21923, 3309.62377, 1311.30504 };
+            //v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+            //r2 = new double[] { -5691.9147514, -3310.6095425, -1311.695711 };
+            //v2 = new double[] { -2.65211231086955, 1.55584941166386, -5.96175008776875E-07 };
+
+            // near 0 180 deg test
+            //r1 = new double[] { -1467.0216503866718, 1586.1576668688224, 6812.892902302875 };
+            //v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+            //r2 = new double[] { 1482.87003576258, -1557.63131212973, -6827.43044367934 };
+            //v2 = new double[] { -2.65211231086955, 1.55584941166386, -5.96175008776875E-07 };
+
+
+            //r1 = new double[] { -1567.0216503866718, 1686.1576668688224, 6812.892902302875 };
+            //v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+            //r2 = new double[] { 1482.87003576258, -1557.63131212973, -6827.43044367934 };
+            //v2 = new double[] { -2.65211231086955, 1.55584941166386, -5.96175008776875E-07 };
+
+            // case 25
+            //nrev = 1;
+            //r1 = new double[] { -1467.0216503866718, 1586.1576668688224, 6812.892902302875 };
+            //v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+            //r2 = new double[] { -1271.900616, 2703.476434, 6306.177922 };
+            //v2 = new double[] { 2.65211231086955, -1.55584941166386, 5.96175008776875E-07 };
+            //dtsec = 5000.0; // 1sr
+
+            // case 78 Nathaniel test case
+            //nrev = 1;
+            //r1 = new double[] { 7117.5156243154161, -4257.1942597683246, -583.88210887807986 };
+            //v1 = new double[] { -7.0417929290503141, -2.8681303717265290, 1.2224374606557487 };
+            //r2 = new double[] { 7172.3074180808417, -4123.2685183007470, -560.47505356742181 };
+            //v2 = new double[] { 5.9109725501309471, 2.0990367313315055, -1.1164901518784618 };  // xx
+
+            //case 82: // Dan dread
+            nrev = 0;
+            r1 = new double[] { -1984.0302332256897, 1525.2723537058205, 6364.7695528344739 };
+            v1 = new double[] { 3.659783, -6.176723, 2.606056 };
+            r2 = new double[] { -5123.56515285304, -1168.59526837238, -4876.40096908065 };
+            v2 = new double[] { 5.9109725501309471, 2.0990367313315055, -1.1164901518784618 };  // xx
+            dtsec = 1130.0;
+
+            //// case 83: // Dan dread
+            //nrev = 0;
+            //r1 = new double[] { -1984.0302332256897, 1525.2723537058205, 6364.7695528344739 };
+            //v1 = new double[] { 3.659783, -6.176723, 2.606056 };
+            //r2 = new double[] { -2038.89153433683, 1538.41986781477, 6419.63247439258 };
+            //v2 = new double[] { 5.9109725501309471, 2.0990367313315055, -1.1164901518784618 };  // xx
+            //dtsec = 2580;
+
+            // ----------------------------- put min values etc points on plot ---------------------------------
+            double ktemp = -Math.Sqrt(2);
+            hitearth = '-';
+
+            // ----------------------------- put min values etc points on plot ---------------------------------
+            double tmin, tminp, tminenergy;
+            AstroLibr.lambertminT(r1, r2, 'S', 'L', 1, out tmin, out tminp, out tminenergy);
+            detailSum = "S   L   1  0.000 " + tmin.ToString("0.#######").PadLeft(15) + " mint " + ktemp.ToString("0.#######").PadLeft(15) + " - 0";
+            strbuild.AppendLine(detailSum);
+            detailSum = "S   L   1  0.000 " + tmin.ToString("0.#######").PadLeft(15) + " mint " + (-ktemp).ToString("0.#######").PadLeft(15) + " - 0\n";
+            strbuild.AppendLine(detailSum);
+            AstroLibr.lambertminT(r1, r2, 'S', 'L', 2, out tmin, out tminp, out tminenergy);
+            detailSum = "S   L   2  0.000 " + tmin.ToString("0.#######").PadLeft(15) + " mint " + ktemp.ToString("0.#######").PadLeft(15) + " - 0";
+            strbuild.AppendLine(detailSum);
+            detailSum = "S   L   2  0.000 " + tmin.ToString("0.#######").PadLeft(15) + " mint " + (-ktemp).ToString("0.#######").PadLeft(15) + " - 0\n";
+            strbuild.AppendLine(detailSum);
+            AstroLibr.lambertminT(r1, r2, 'S', 'L', 3, out tmin, out tminp, out tminenergy);
+            detailSum = "S   L   3  0.000 " + tmin.ToString("0.#######").PadLeft(15) + " mint " + ktemp.ToString("0.#######").PadLeft(15) + " - 0";
+            strbuild.AppendLine(detailSum);
+            detailSum = "S   L   3  0.000 " + tmin.ToString("0.#######").PadLeft(15) + " mint " + (-ktemp).ToString("0.#######").PadLeft(15) + " - 0\n";
+            strbuild.AppendLine(detailSum);
+
+            AstroLibr.lambertminT(r1, r2, 'S', 'H', 1, out tmin, out tminp, out tminenergy);
+            detailSum = "S   H   1  0.000 " + tmin.ToString("0.#######").PadLeft(15) + " mint " + ktemp.ToString("0.#######").PadLeft(15) + " - 0";
+            strbuild.AppendLine(detailSum);
+            detailSum = "S   H   1  0.000 " + tmin.ToString("0.#######").PadLeft(15) + " mint " + (-ktemp).ToString("0.#######").PadLeft(15) + " - 0\n";
+            strbuild.AppendLine(detailSum);
+            AstroLibr.lambertminT(r1, r2, 'S', 'H', 2, out tmin, out tminp, out tminenergy);
+            detailSum = "S   H   2  0.000 " + tmin.ToString("0.#######").PadLeft(15) + " mint " + ktemp.ToString("0.#######").PadLeft(15) + " - 0";
+            strbuild.AppendLine(detailSum);
+            detailSum = "S   H   2  0.000 " + tmin.ToString("0.#######").PadLeft(15) + " mint " + (-ktemp).ToString("0.#######").PadLeft(15) + " - 0\n";
+            strbuild.AppendLine(detailSum);
+            AstroLibr.lambertminT(r1, r2, 'S', 'H', 3, out tmin, out tminp, out tminenergy);
+            detailSum = "S   H   3  0.000 " + tmin.ToString("0.#######").PadLeft(15) + " mint " + ktemp.ToString("0.#######").PadLeft(15) + " - 0";
+            strbuild.AppendLine(detailSum);
+            detailSum = "S   H   3  0.000 " + tmin.ToString("0.#######").PadLeft(15) + " mint " + (-ktemp).ToString("0.#######").PadLeft(15) + " - 0\n";
+            strbuild.AppendLine(detailSum);
+
+
+
+
+            // do 0 rev cases first
+            nrev = 0;
+            ktr = 0;  // overall ktr
+            for (iktr = 1; iktr <= 2; iktr++)
+            {
+                if (iktr == 1)
+                {
+                    dm = 'S';
+                    de = 'L';   // or 'H'
+                }
+                if (iktr == 2)
+                {
+                    dm = 'L';
+                    de = 'H';    // or 'L'
+                }
+
+                dtseco = 0.0;
+                // calc the actual lambert values
+                for (i = 1; i <= 500; i++)
+                {
+                    if (i < 60)
+                        dtsec = dtseco + i * 1.0;
+                    else
+                    {
+                        if (i < 200)
+                            dtsec = dtseco + (i - 59) * 60.0;
+                        else
+                            dtsec = dtseco + (i - 185) * 600.0;
+                    }
+                    if (de == 'L')
+                    {
+                        if (whichcase == 'k')
+                        {
+                            AstroLambertkLibr.lambertK(r1, v1, r2, dm, de, nrev, dtwait, dtsec, 0.0, 0.0, numiter, altpadc, 'n', 'y',
+                                 out v1t, out v2t, out f, out g, out gdot, out hitearth, out errorout, out detailSum, out detailAll);
+                            if (detailAll.Contains("gnot"))
+                            {
+                                AstroLambertkLibr.lambertK(r1, v1, r2, dm, de, nrev, dtwait, dtsec, 0.0, 0.0, numiter, altpadc, 'n', 'y',
+                                     out v1t, out v2t, out f, out g, out gdot, out hitearth, out errorout, out detailSum, out detailAll);
+                            }
+                        }
+                        if (whichcase == 'b')
+                            AstroLibr.lambertbattin(r1, r2, v1, dm, de, nrev, 0.0, dtsec, altpadc, 'n', out v1t, out v2t, out hitearth, out detailSum, out detailAll);
+                        if (whichcase == 'u')
+                            AstroLibr.lambertuniv(r1, r2, v1, dm, de, nrev, 0.0, dtsec, 0.0, altpadc, 'n', out v1t, out v2t, out hitearth, out detailSum, out detailAll);
+                    }
+                    else
+                    {
+                        if (whichcase == 'k')
+                        {
+                            AstroLambertkLibr.lambertK(r1, v1, r2, dm, de, nrev, dtwait, dtsec, 0.0, 0.0, numiter, altpadc, 'n', 'y',
+                                 out v1t, out v2t, out f, out g, out gdot, out hitearth, out errorout, out detailSum, out detailAll);
+                            if (detailAll.Contains("gnot"))
+                            {
+                                AstroLambertkLibr.lambertK(r1, v1, r2, dm, de, nrev, dtwait, dtsec, 0.0, 0.0, numiter, altpadc, 'n', 'y',
+                                     out v1t, out v2t, out f, out g, out gdot, out hitearth, out errorout, out detailSum, out detailAll);
+                            }
+                        }
+                        if (whichcase == 'b')
+                            AstroLibr.lambertbattin(r1, r2, v1, dm, de, nrev, 0.0, dtsec, altpadc, 'n', out v1t, out v2t, out hitearth, out detailSum, out detailAll);
+                        if (whichcase == 'u')
+                            AstroLibr.lambertuniv(r1, r2, v1, dm, de, nrev, 0.0, dtsec, 0.0, altpadc, 'n', out v1t, out v2t, out hitearth, out detailSum, out detailAll);
+                    }
+                    ktr = ktr + 1;
+                    if (whichcase == 'k' || whichcase == 'u')
+                        strbuild.AppendLine(detailSum);
+                    // if (detailAll.Contains("All"))
+                    if (whichcase == 'b')
+                        strbuild.AppendLine(detailSum);  // for battin tests
+                }  // for i through all the times
+
+                strbuild.AppendLine(" ");
+                if (iktr == 1)
+                    ktr1 = ktr;
+                if (iktr == 2)
+                    ktr2 = ktr;
+            } // for iktr through cases
+
+            strbuild.AppendLine(" ");
+
+            AstroLambertkLibr.lambertkmins1st(r1, r2, out s, out tau);
+
+            for (iktr = 1; iktr <= 4; iktr++)
+            {
+                if (iktr == 1)
+                {
+                    dm = 'S';
+                    de = 'L';
+                }
+                if (iktr == 2)
+                {
+                    dm = 'S';
+                    de = 'H';
+                }
+                if (iktr == 3)
+                {
+                    dm = 'L';
+                    de = 'L';
+                }
+                if (iktr == 4)
+                {
+                    dm = 'L';
+                    de = 'H';
+                }
+
+                for (nrev = 1; nrev <= 4; nrev++)
+                {
+                    dtseco = 0.0;
+                    if (nrev > 0)
+                    {
+                        // secs
+                        getmins(1, 'u', nrev, r1, r2, 0.0, 0.0, dm, de, out tofu1, out kbiu1, out tofu2, out kbiu2, out outstr);
+                        // secs fix SH and LL cases
+                        //if (dm == 'S' && de == 'H')
+                        //    AstroLambertkLibr.lambertkmins(s, tau, nrev, dm, 'L', out kbi, out tof);
+                        //else
+                        //if (dm == 'L' && de == 'L')
+                        //    AstroLambertkLibr.lambertkmins(s, tau, nrev, dm, 'H', out kbi, out tof);
+                        //else
+                            AstroLambertkLibr.lambertkmins(s, tau, nrev, dm, de, out kbi, out tof);
+
+
+                        //getmins(1, 'k', nrev, r1, r2, s, tau, dm, de, out tofk1, out kbik1, out tofk2, out kbik2, out outstr);
+
+                        if (de == 'H')
+                        {
+                            if (whichcase == 'k')
+                                dtseco = tof;  // in sec
+                            if (whichcase == 'u')
+                                dtseco = tofu2;
+                            if (whichcase == 'b')
+                                dtseco = tofu2;  // use the univ var value
+                        }
+                        else
+                        {
+                            if (whichcase == 'k')
+                                dtseco = tof;
+                            if (whichcase == 'u')
+                                dtseco = tofu1;
+                            if (whichcase == 'b')
+                                dtseco = tofu1;  // use the univ var value
+                        }
+                    }
+
+                    // calc the actual lambert values
+                    for (i = 1; i <= 500; i++)
+                    {
+                        if (i < 60)
+                            dtsec = dtseco + i * 1.0;
+                        else
+                        {
+                            if (i < 200)
+                                dtsec = dtseco + (i - 59) * 60.0;
+                            else
+                                dtsec = dtseco + (i - 185) * 600.0;
+                        }
+                        if (de == 'L')
+                        {
+                            if (whichcase == 'k')
+                            {
+                                AstroLambertkLibr.lambertK(r1, v1, r2, dm, de, nrev, dtwait, dtsec, tof, kbi, numiter, altpadc, 'n', 'y',
+                                     out v1t, out v2t, out f, out g, out gdot, out hitearth, out errorout, out detailSum, out detailAll);
+                                //if (detailAll.Contains("gnot"))
+                                //{
+                                //    AstroLambertkLibr.lambertK(r1, v1, r2, dm, de, nrev, dtwait, dtsec, tbi, kbi, numiter, altpadc, 'n', 'y',
+                                //         out v1t, out v2t, out f, out g, out gdot, out hitearth, out errorout, out detailSum, out detailAll, 'y', show180);
+                                //}
+                            }
+                            if (whichcase == 'b')
+                                AstroLibr.lambertbattin(r1, r2, v1, dm, de, nrev, 0.0, dtsec, altpadc, 'n', out v1t, out v2t, out hitearth, out detailSum, out detailAll);
+                            if (whichcase == 'u')
+                                AstroLibr.lambertuniv(r1, r2, v1, dm, de, nrev, 0.0, dtsec, tofu1, altpadc, 'n', out v1t, out v2t, out hitearth, out detailSum, out detailAll);
+                        }
+                        else
+                        {
+                            if (whichcase == 'k')
+                            {
+                                AstroLambertkLibr.lambertK(r1, v1, r2, dm, de, nrev, dtwait, dtsec, tof, kbi, numiter, altpadc, 'n', 'y',
+                                     out v1t, out v2t, out f, out g, out gdot, out hitearth, out errorout, out detailSum, out detailAll);
+                                //if (detailAll.Contains("gnot"))
+                                //{
+                                //    AstroLambertkLibr.lambertK(r1, v1, r2, dm, de, nrev, dtwait, dtsec, tbi, kbi, numiter, altpadc, 'n', 'y',
+                                //         out v1t, out v2t, out f, out g, out gdot, out hitearth, out errorout, out detailSum, out detailAll, 'y', show180);
+                                //}
+                            }
+                            if (whichcase == 'b')
+                                AstroLibr.lambertbattin(r1, r2, v1, dm, de, nrev, 0.0, dtsec, altpadc, 'n', out v1t, out v2t, out hitearth, out detailSum, out detailAll);
+                            if (whichcase == 'u')
+                                AstroLibr.lambertuniv(r1, r2, v1, dm, de, nrev, 0.0, dtsec, tofu2, altpadc, 'n', out v1t, out v2t, out hitearth, out detailSum, out detailAll);
+                        }
+                        ktr = ktr + 1;
+                        if (whichcase == 'k' || whichcase == 'u')
+                            strbuild.AppendLine(detailSum);
+                        // if (detailAll.Contains("All"))
+                        if (whichcase == 'b')
+                            strbuild.AppendLine(detailSum);  // for battin tests
+                    }  // for i through all the times
+
+                    strbuild.AppendLine(" ");
+                }  // if nrev > 0
+
+                strbuild.AppendLine(" ");
+                if (iktr == 2)
+                    ktr3 = ktr;
+                if (iktr == 4)
+                    ktr4 = ktr;
+            } // for iktr through cases
+
+            strbuild.AppendLine("ktrs " + ktr1.ToString() + " " + ktr2.ToString() + " " + ktr3.ToString() + " " + ktr4.ToString() + " ");
+
+            string directory = @"d:\codes\library\matlab\";
+            File.WriteAllText(directory + "tlambertAll.out", strbuild.ToString());
+
+            this.opsStatus.Text = "Done ";
+            Refresh();
+        }  // testAll
+
+
+        /* ------------------------------------------------------------------------------
+   *                                 testAllMoving 
+   *                                    
+   * calc the values needed to graph the whole envelope response. this is the most 
+   * generic construction for the lambert solutions.
+   *  you need to entere which lambert technique to use
+   *      output these results separately to the matlab directory
+   * 
+   *  author        : david vallado             davallado@gmail.com  10 oct 2019
+   *
+   *  inputs        description                                   range / units
+   *
+   *  outputs       :
+   *    
+   *  locals        :
+   *    r1          - ijk position vector 1                km
+   *    r2          - ijk position vector 2                km
+   *    v1          - ijk velocity vector 1 if avail       km/s
+   *    dm          - direction of motion                  'L', 'S'
+   *    de          - orbital energy                       'L', 'H'
+   *    dtsec       - time between r1 and r2               sec
+   *    dtwait      - time to wait before starting         sec
+   *    nrev        - number of revs to complete           0, 1, 2, 3,  
+   *    tbi         - array of times for nrev              [,] 
+   *    altpad      - altitude pad for hitearth calc       km
+   *    v1t         - ijk transfer velocity vector         km/s
+   *    v2t         - ijk transfer velocity vector         km/s
+   *    hitearth    - flag if hit or not                   'y', 'n'
+   *    error       - error flag                           1, 2, 3,   use numbers since c++ is so horrible at strings
+   *  
+     ------------------------------------------------------------------------------*/
+
+        public void testAllMoving()
+        {
+            double dtwait, dtsec, dtseco;
+            string detailSum, detailAll, errorout;
+            char dm, de, hitearth, whichcase;
+            Int32 ktr, ktr1, ktr2, ktr3, ktr4, i, iktr, nrev, numiter;
+            double f, g, gdot;
+            double[] v1t = new double[3];
+            double[] v2t = new double[3];
+            double tofsh, kbish, toflg, kbilg, toflo, kbilo, tofhi, kbihi;
+            string outstr;
+            double[] r1 = new double[3];
+            double[] r2 = new double[3];
+            double[] v1 = new double[3];
+            double[] v2 = new double[3];
+            double[] r1o = new double[3];
+            double[] r2o = new double[3];
+            double[] v1o = new double[3];
+            double[] v2o = new double[3];
+            double[] dv1 = new double[3];
+            double[] dv2 = new double[3];
+            StringBuilder strbuild = new StringBuilder();
+            StringBuilder strbuildDV = new StringBuilder();
+
+            // initialize variables
+            detailSum = "";
+            detailAll = "";
+            outstr = "";
+            char show = 'y';     // for test180, show = n, show180 = y
+            //char show180 = 'n';  // for testlamb known show = y, show180 = n, n/n for envelope
+            tofsh = 0.0;
+            kbish = 0.0;
+            toflg = 0.0;
+            kbilg = 0.0;
+            toflo = 0.0;
+            kbilo = 0.0;
+            tofhi = 0.0;
+            kbihi = 0.0;
+
+            whichcase = 'k';
+        //    whichcase = 'u';
+        //    whichcase = 'b';
+
+            dm = 'S';
+            de = 'H';
+            double altpadc = 200.0 / 6378.137;  // set 200 km for altitude you set as the over limit. 
+            ktr1 = 0;
+            ktr2 = 0;
+            ktr3 = 0;
+            ktr4 = 0;
+
+            //mu = 3.986004415e5;
+            //tusec = 806.8111238242922;
+            numiter = 17;
+            dtwait = 0.0;
+
+            this.opsStatus.Text = "working on all cases ";
+            Refresh();
+
+            // book fig
+            //   r1o = new double[] { 2.500000 * 6378.137, 0.000000, 0.000000 };
+            //   r2o = new double[] { 1.9151111 * 6378.137, 1.6069690 * 6378.137, 0.000000 };
+
+            // do reverse case to check retro direct!
+            //r2 = new double[] { 2.500000 * 6378.137, 0.000000, 0.000000 };
+            //r1 = new double[] { 1.9151111 * 6378.137, 1.6069690 * 6378.137, 0.000000 };
+
+            // assume circular initial orbit for vel calcs
+            //    v1o = new double[] { 0.0, Math.Sqrt(mu / r1o[0]), 0.0 };
+            //    double ang = Math.Atan(r2o[1] / r2o[0]);
+            //    v2o = new double[] { -Math.Sqrt(mu / r2o[1]) * Math.Cos(ang), Math.Sqrt(mu / r2o[0]) * Math.Sin(ang), 0.0 };
+
+            // book fig 7-17 case tgt/int fixed
+            r1o = new double[] { -6518.1083, -2403.8479, -22.1722 };
+            v1o = new double[] { 2.604057, -7.105717, -0.263218 };
+            r2o = new double[] { 6697.4756, 1794.5832, 0.000 };
+            v2o = new double[] { -1.962373, 7.323674, 0.000 };
+
+            // book fig 7-18 case tgt/int moving
+            r1o = new double[] { -6175.1034, 2757.0706, 1626.6556 };
+            v1o = new double[] { 2.376641, 1.139677, 7.078097 };
+            r2o = new double[] { -1078.007289, 8796.641859, 1890.7135 };
+            v2o = new double[] { 2.654700, 1.018600, 7.015400 };
+
+
+            // nathaniel test case (1 rev)
+            r1o = new double[] { 7117.5156243154161, -4257.1942597683246, -583.88210887807986 };
+            v1o = new double[] { -7.0417929290503141, -2.8681303717265290, 1.2224374606557487 };
+            r2o = new double[] { 7172.3074180808417, -4123.2685183007470, -560.47505356742181 };
+            v2o = new double[] { 5.9109725501309471, 2.0990367313315055, -1.1164901518784618 };  // xx
+
+            //double tmin, tminp, tminenergy;
+            //AstroLibr.lambertminT(r1o, r2o, 'S', 'L', 0, out tmin, out tminp, out tminenergy);
+            //AstroLibr.lambertminT(r1o, r2o, 'S', 'L', 1, out tmin, out tminp, out tminenergy);
+
+            //double tmaxrp;
+            //AstroLibr.lambertTmaxrp(r1o, r2o, 'S', 0, out tmaxrp, out v1t);
+            //AstroLibr.lambertTmaxrp(r1o, r2o, 'S', 2, out tmaxrp, out v1t);
+
+            //char opt = 'f';  // fixed target through dtsec
+            char opt = 'm';  // moving target through dtsec
+
+            // be sure to set the correct S/L, L/H below as needed
+
+            // dtwait
+            int lktr1 = 250;  // 250
+            double step1 = 120.0;  // 120
+            // dtsec
+            int lktr2 = 100;  // 100
+            double step2 = 120.0;  // 120
+
+            // do a loop for dtwait
+            for (int loopktr = 0; loopktr < lktr1; loopktr++)  // 0
+            {
+                dtwait = loopktr * step1;   // secs
+
+                this.opsStatus.Text = "working dtwait = " + dtwait.ToString();
+                Refresh();
+
+                // propagate through dtwait
+                AstroLibr.kepler(r1o, v1o, dtwait, out r1, out v1);
+
+                hitearth = '-';
+
+                // -------------- do 0 rev cases first
+                nrev = 0;
+                ktr = 0;  // overall ktr
+                for (iktr = 1; iktr <= 1; iktr++)   // 1    2
+                {
+                    if (iktr == 1)
+                    {
+                        dm = 'S';
+                        de = 'L';   // or 'H'
+                    }
+                    if (iktr == 2)
+                    {
+                        dm = 'L';
+                        de = 'H';    // or 'L'
+                    }
+
+                    dtseco = 0.0;
+                    // calc the actual lambert values
+                    for (i = 1; i <= lktr2; i++)
+                    {
+                        dtsec = dtseco + i * step2;
+
+                        // propagate through dtsec and dtwait
+                        if (opt.Equals('m'))
+                            AstroLibr.kepler(r2o, v2o, dtwait + dtsec, out r2, out v2);
+                        else
+                            AstroLibr.kepler(r2o, v2o, dtwait, out r2, out v2);
+
+                        if (nrev > 0)
+                            getmins(1, 'u', nrev, r1, r2, 0.0, 0.0, dm, de, out tofsh, out kbish, out toflg, out kbilg, out outstr);
+                        // strbuild.AppendLine(outstr);
+                        hitearth = '-';
+
+                        if (de == 'L')
+                        {
+                            if (whichcase == 'k')
+                            {
+                                AstroLambertkLibr.lambertK(r1, v1, r2, dm, de, nrev, dtwait, dtsec, toflo, kbilo, numiter, altpadc, 'n', show,
+                                     out v1t, out v2t, out f, out g, out gdot, out hitearth, out errorout, out detailSum, out detailAll);
+                                // writeout details if there's a problem...probably not needed
+                                //if (detailAll.Contains("gnot"))
+                                //{
+                                //    AstroLambertkLibr.lambertK(r1, v1, r2, dm, de, nrev, dtwait, dtsec, tbilk, numiter, altpadc,
+                                //         out v1t, out v2t, out f, out g, out gdot, out hitearth, out errorout, out detailSum, out detailAll, 'y', show180);
+                                //}
+                            }
+                            if (whichcase == 'b')
+                                AstroLibr.lambertbattin(r1, r2, v1, dm, de, nrev, dtsec, dtwait, altpadc, 'y', out v1t, out v2t, out hitearth, out detailSum, out detailAll);
+                            if (whichcase == 'u')
+                            {
+                                if (dm == 'S')
+                                    AstroLibr.lambertuniv(r1, r2, v1, dm, de, nrev, dtwait, dtsec, kbish, altpadc, 'y', out v1t, out v2t, out hitearth, out detailSum, out detailAll);
+                                else
+                                    AstroLibr.lambertuniv(r1, r2, v1, dm, de, nrev, dtwait, dtsec, kbilg, altpadc, 'y', out v1t, out v2t, out hitearth, out detailSum, out detailAll);
+                            }
+                        }
+                        else
+                        {
+                            if (whichcase == 'k')
+                            {
+                                AstroLambertkLibr.lambertK(r1, v1, r2, dm, de, nrev, dtwait, dtsec, tofhi, kbihi, numiter, altpadc, 'n', show,
+                                     out v1t, out v2t, out f, out g, out gdot, out hitearth, out errorout, out detailSum, out detailAll);
+                                //if (detailAll.Contains("gnot"))
+                                //{
+                                //    AstroLambertkLibr.lambertK(r1, v1, r2, dm, de, nrev, dtwait, dtsec, tbihk, numiter, altpadc,
+                                //         out v1t, out v2t, out f, out g, out gdot, out hitearth, out errorout, out detailSum, out detailAll, 'y', show180);
+                                //}
+                            }
+                            if (whichcase == 'b')
+                                AstroLibr.lambertbattin(r1, r2, v1, dm, de, nrev, dtsec, dtwait, altpadc, 'y', out v1t, out v2t, out hitearth, out detailSum, out detailAll);
+                            if (whichcase == 'u')
+                            {
+                                if (dm == 'S')
+                                    AstroLibr.lambertuniv(r1, r2, v1, dm, de, nrev, dtwait, dtsec, kbish, altpadc, 'y', out v1t, out v2t, out hitearth, out detailSum, out detailAll);
+                                else
+                                    AstroLibr.lambertuniv(r1, r2, v1, dm, de, nrev, dtwait, dtsec, kbilg, altpadc, 'y', out v1t, out v2t, out hitearth, out detailSum, out detailAll);
+                            }
+                        }
+                        ktr = ktr + 1;
+                        //strbuild.AppendLine(detailSum);
+                        dv1 = new double[] { 0.0, 0.0, 0.0 };
+                        dv2 = new double[] { 0.0, 0.0, 0.0 };
+                        if (MathTimeLibr.mag(v1t) > 0.0000001)
+                        {
+                            for (int ii = 0; ii < 3; ii++)
+                            {
+                                dv1[ii] = v1t[ii] - v1[ii];
+                                dv2[ii] = v2t[ii] - v2[ii];
+                            }
+                        }
+                        strbuild.AppendLine(detailSum + " " + MathTimeLibr.mag(dv1).ToString() + " " + MathTimeLibr.mag(dv2).ToString());
+                        double magdv1 = MathTimeLibr.mag(dv1);
+                        double magdv2 = MathTimeLibr.mag(dv2);
+                        strbuildDV.AppendLine(dtwait.ToString("0.0000000").PadLeft(12) + " " +
+                              dtsec.ToString("0.0000000").PadLeft(15) + " " +
+                              magdv1.ToString() + " " + magdv2.ToString());  // + " " + dm + "  " + de);
+                                                                             //   strbuild.AppendLine(detailAll);
+                    }  // for i through all the times
+
+                    strbuild.AppendLine(" ");
+                    strbuildDV.AppendLine(" ");
+                    if (iktr == 1)
+                        ktr1 = ktr;
+                    if (iktr == 2)
+                        ktr2 = ktr;
+                } // for iktr through cases
+
+                //strbuild.AppendLine(" ");
+                this.opsStatus.Text = "working dtwait = " + dtwait.ToString() + " now the 4 cases";
+                Refresh();
+
+                // set this for doing just the nrev cases
+                getmins(1, 'u', nrev, r1, r2, 0.0, 0.0, dm, de, out tofsh, out kbish, out toflg, out kbilg, out outstr);
+
+                for (iktr = 5; iktr <= 1; iktr++)  //4
+                {
+                    if (iktr == 1)
+                    {
+                        dm = 'S';
+                        de = 'L';
+                    }
+                    if (iktr == 2)
+                    {
+                        dm = 'S';
+                        de = 'H';
+                    }
+                    if (iktr == 3)
+                    {
+                        dm = 'L';
+                        de = 'L';
+                    }
+                    if (iktr == 4)
+                    {
+                        dm = 'L';
+                        de = 'H';
+                    }
+
+                    for (nrev = 1; nrev <= 1; nrev++)   // 1  4
+                    {
+                        dtseco = 0.0;
+                        if (nrev > 0)
+                        {
+                            // probably need to use kmins...
+                            if (whichcase == 'k')
+                            {
+                                if (de == 'H')
+                                    dtseco = toflo;// * tusec; // use univ for test
+                                else
+                                    dtseco = tofhi;// * tusec;  // use univ for test
+                            }
+                            else
+                            {
+                                // use univ for all these cases (univ and battin)
+                                if (dm == 'L')
+                                    dtseco = toflg;
+                                else
+                                    dtseco = tofsh;
+                            }
+                        }
+
+                        // calc the actual lambert values
+                        for (i = 1; i <= lktr2; i++)
+                        {
+                            dtsec = dtseco + i * step2;
+
+                            // propagate through dtsec and dtwait
+                            if (opt.Equals('m'))
+                                AstroLibr.kepler(r2o, v2o, dtwait + dtsec, out r2, out v2);
+                            else
+                                AstroLibr.kepler(r2o, v2o, dtwait, out r2, out v2);
+
+                            getmins(1, 'u', nrev, r1, r2, 0.0, 0.0, dm, de, out tofsh, out kbish, out toflg, out kbilg, out outstr);
+                            // strbuild.AppendLine(outstr);
+                            hitearth = '-';
+
+                            if (de == 'L')
+                            {
+                                if (whichcase == 'k')
+                                {
+                                    AstroLambertkLibr.lambertK(r1, v1, r2, dm, de, nrev, dtwait, dtsec, toflo, kbilo, numiter, altpadc, 'n', show,
+                                         out v1t, out v2t, out f, out g, out gdot, out hitearth, out errorout, out detailSum, out detailAll);
+                                    //if (detailAll.Contains("gnot"))
+                                    //{
+                                    //    AstroLambertkLibr.lambertK(r1, v1, r2, dm, de, nrev, dtwait, dtsec, tbilk, numiter, altpadc,
+                                    //         out v1t, out v2t, out f, out g, out gdot, out hitearth, out errorout, out detailSum, out detailAll, 'y', show180);
+                                    //}
+                                }
+                                if (whichcase == 'b')
+                                    AstroLibr.lambertbattin(r1, r2, v1, dm, de, nrev, dtsec, dtwait, altpadc, 'y', out v1t, out v2t, out hitearth, out detailSum, out detailAll);
+                                if (whichcase == 'u')
+                                {
+                                    if (dm == 'S')
+                                        AstroLibr.lambertuniv(r1, r2, v1, dm, de, nrev, dtwait, dtsec, kbish, altpadc, 'y', out v1t, out v2t, out hitearth, out detailSum, out detailAll);
+                                    else
+                                        AstroLibr.lambertuniv(r1, r2, v1, dm, de, nrev, dtwait, dtsec, kbilg, altpadc, 'y', out v1t, out v2t, out hitearth, out detailSum, out detailAll);
+                                }
+                            }
+                            else
+                            {
+                                if (whichcase == 'k')
+                                {
+                                    AstroLambertkLibr.lambertK(r1, v1, r2, dm, de, nrev, dtwait, dtsec, tofhi, kbihi, numiter, altpadc, 'n', show,
+                                         out v1t, out v2t, out f, out g, out gdot, out hitearth, out errorout, out detailSum, out detailAll);
+                                    //if (detailAll.Contains("gnot"))
+                                    //{
+                                    //    AstroLambertkLibr.lambertK(r1, v1, r2, dm, de, nrev, dtwait, dtsec, tbihk, numiter, altpadc,
+                                    //         out v1t, out v2t, out f, out g, out gdot, out hitearth, out errorout, out detailSum, out detailAll, 'y', show180);
+                                    //}
+                                }
+                                if (whichcase == 'b')
+                                    AstroLibr.lambertbattin(r1, r2, v1, dm, de, nrev, dtsec, dtwait, altpadc, 'y', out v1t, out v2t, out hitearth, out detailSum, out detailAll);
+                                if (whichcase == 'u')
+                                {
+                                    if (dm == 'S')
+                                        AstroLibr.lambertuniv(r1, r2, v1, dm, de, nrev, dtwait, dtsec, kbish, altpadc, 'y', out v1t, out v2t, out hitearth, out detailSum, out detailAll);
+                                    else
+                                        AstroLibr.lambertuniv(r1, r2, v1, dm, de, nrev, dtwait, dtsec, kbilg, altpadc, 'y', out v1t, out v2t, out hitearth, out detailSum, out detailAll);
+                                }
+                            }
+                            ktr = ktr + 1;
+                            //strbuild.AppendLine(detailSum);
+                            dv1 = new double[] { 0.0, 0.0, 0.0 };
+                            dv2 = new double[] { 0.0, 0.0, 0.0 };
+                            if (MathTimeLibr.mag(v1t) > 0.0000001)
+                            {
+                                for (int ii = 0; ii < 3; ii++)
+                                {
+                                    dv1[ii] = v1t[ii] - v1[ii];
+                                    dv2[ii] = v2t[ii] - v2[ii];
+                                }
+                            }
+                            strbuild.AppendLine(detailSum + " " + MathTimeLibr.mag(dv1).ToString() + " " + MathTimeLibr.mag(dv2).ToString());
+                            double magdv1 = MathTimeLibr.mag(dv1);
+                            double magdv2 = MathTimeLibr.mag(dv2);
+                            strbuildDV.AppendLine(dtwait.ToString("0.0000000").PadLeft(12) + " " +
+                                  dtsec.ToString("0.0000000").PadLeft(15) + " " +
+                                  magdv1.ToString() + " " + magdv2.ToString());  // + " " + dm + "  " + de);
+                        }  // for i through all the times
+
+                        strbuild.AppendLine(" ");
+                        strbuildDV.AppendLine(" ");
+                    }  // if nrev > 0
+
+                    //                    strbuild.AppendLine(" ");
+                    if (iktr == 2)
+                        ktr3 = ktr;
+                    if (iktr == 4)
+                        ktr4 = ktr;
+                } // for iktr through cases
+
+
+            } // loop through dtwait
+
+            strbuild.AppendLine("ktrs " + ktr1.ToString() + " " + ktr2.ToString() + " " + ktr3.ToString() + " " + ktr4.ToString() + " ");
+
+            string directory = @"d:\codes\library\matlab\";
+            File.WriteAllText(directory + "tlambertAllx.out", strbuild.ToString());
+            File.WriteAllText(directory + "tlamb3dx.out", strbuildDV.ToString());
+
+            this.opsStatus.Text = "Done ";
+            Refresh();
+        }  // testAllMoving
+
+
+        /* ------------------------------------------------------------------------------
+        *                                    getmins 
+        *                                    
+        * find tbi mins for k, lambert, etc. does either universal and k approach.
+        *   universal seems to find them better though... could store in an array, but 
+        *   faster to do 1 at a time. also note that the k lambert needs SH - LL, and LL - SH 
+        *   reversal and it is done here. 
+        *                                    
+        *  author        : david vallado             davallado@gmail.com  10 oct 2019
+        *
+        *  inputs        description                                   range / units
+        *    loopktr     - ktr for whether or not to write output           0 (writes)   
+        *    app         - which approach to use                           'u', 'k'
+        *    nrev        - number of revolultions 
+        *    r1          - first position vector                            km
+        *    r2          - second position vector                           km
+        *    s           - parameter for k only, not needed for univ
+        *    tau         - parameter for k only, not needed for univ
+        *    dm          - parameter for k only, not needed for univ        'S', 'L'
+        *    de          - parameter for k only, not needed for univ        'L', 'H'
+        *    
+        *  outputs       :
+        *    tof         - min tof for the specified nrev                    s
+        *    kbi         - min psi/k/etc for the given nrev 
+        *    outstr      - output string if case 0
+        *
+        *  locals :
+        *
+        *  coupling      :
+        *
+         ------------------------------------------------------------------------------*/
+
+        private void getmins
+            (
+                int loopktr, char app, int nrev, double[] r1, double[] r2, double s, double tau, char dm, char de,
+                out double tof1, out double kbi1, out double tof2, out double kbi2, out string outstr
+            )
+        {
+            StringBuilder strbuild = new StringBuilder();
+            string detailSum;
+            double tofsh, toflg, kbish, kbilg;
+            double[] v1t = new double[3];
+            double temp;
+            tof1 = 0.0;
+            kbi1 = 0.0;
+            tof2 = 0.0;
+            kbi2 = 0.0;
+
+            //tusec = 806.8111238242922;
+            if (nrev > 0)
+            {
+
+                if (app == 'u')
+                {
+                    // universal variable approach 
+                    AstroLibr.lambertumins(r1, r2, nrev, 'S', out kbi1, out tof1);
+                    AstroLibr.lambertumins(r1, r2, nrev, 'L', out kbi2, out tof2);
+                }
+                else
+                {
+                    // -----------do these calcs one time to save time
+                    // call this outside getmins
+                    // AstroLambertkLibr.lambertkmins1st(r1, r2, out s, out tau);
+
+                    // k value approaches
+                    AstroLambertkLibr.lambertkmins(s, tau, nrev, 'x', 'L', out kbi1, out tof1);
+                    //tof1 = tof1 / tusec;  // in tu, tof is in secs
+                    AstroLambertkLibr.lambertkmins(s, tau, nrev, 'x', 'H', out kbi2, out tof2);
+                    //tof2 = tof2 / tusec;
+                    // switch these here so it's not needed elsewhere
+                    // no, switch in kmins
+                    //if ((dm == 'S' && de == 'H') || ((dm == 'L' && de == 'L')))
+                    //{
+                    //    temp = kbi1;
+                    //    kbi1 = kbi2;
+                    //    kbi2 = temp;
+                    //    temp = tof1;
+                    //    tof1 = tof2;
+                    //    tof2 = temp;
+                    //}
+                }
+
+                // -----------------------------put min values etc points on plot ---------------------------------
+                // writeout just one time
+                if (loopktr == 0)
+                {
+                    strbuild.AppendLine("Lambertumin");
+                    detailSum = "S   L   1  0.000 " + tof1.ToString("0.#######").PadLeft(15) + " psimin " + kbi1.ToString("0.#######").PadLeft(15) + " -0\n";
+                    strbuild.AppendLine(detailSum);
+
+                    strbuild.AppendLine("Lambertkmin");
+                    detailSum = "S   L   1  0.000 " + (tof1).ToString("0.#######").PadLeft(15) + " kmin " + kbi1.ToString("0.#######").PadLeft(15) + " -0\n";
+                    strbuild.AppendLine(detailSum);
+
+                    // -----------------------------put min values etc points on plot ---------------------------------
+                    double tmin, tminp, tminenergy;
+                    strbuild.AppendLine("Lamberttmin");
+                    AstroLibr.lambertminT(r1, r2, 'S', 'L', 1, out tmin, out tminp, out tminenergy);
+                    detailSum = "S   L   tminp  0.000 " + tminp.ToString("0.#######").PadLeft(15) + "5.0000000".PadLeft(15) + " -0";
+                    strbuild.AppendLine(detailSum);
+                    detailSum = "S   L   tminp  0.000 " + tminp.ToString("0.#######").PadLeft(15) + "-5.0000000".PadLeft(15) + " -0\n";
+                    strbuild.AppendLine(detailSum);
+
+                    detailSum = "S   L   tminenergy  0.000 " + tminenergy.ToString("0.#######").PadLeft(15) + "5.0000000".PadLeft(15) + " -0";
+                    strbuild.AppendLine(detailSum);
+                    detailSum = "S   L   tminenergy  0.000 " + tminenergy.ToString("0.#######").PadLeft(15) + "-5.0000000".PadLeft(15) + " -0\n";
+                    strbuild.AppendLine(detailSum);
+
+                    AstroLibr.lambertumins(r1, r2, 1, 'S', out kbish, out tofsh);
+                    detailSum = "S   L   1  0.000 " + tmin.ToString("0.#######").PadLeft(15) + (tofsh - 5).ToString("0.#######").PadLeft(15) + " -0";
+                    strbuild.AppendLine(detailSum);
+                    detailSum = "S   L   1  0.000 " + tmin.ToString("0.#######").PadLeft(15) + (tofsh + 5).ToString("0.#######").PadLeft(15) + " -0\n";
+                    strbuild.AppendLine(detailSum);
+                    AstroLibr.lambertumins(r1, r2, 2, 'S', out kbish, out tofsh);
+                    AstroLibr.lambertminT(r1, r2, 'S', 'L', 2, out tmin, out tminp, out tminenergy);
+                    detailSum = "S   L   2  0.000 " + tmin.ToString("0.#######").PadLeft(15) + (tofsh - 5).ToString("0.#######").PadLeft(15) + " -0";
+                    strbuild.AppendLine(detailSum);
+                    detailSum = "S   L   2  0.000 " + tmin.ToString("0.#######").PadLeft(15) + (tofsh + 5).ToString("0.#######").PadLeft(15) + " -0\n";
+                    strbuild.AppendLine(detailSum);
+                    AstroLibr.lambertumins(r1, r2, 3, 'S', out kbish, out tofsh);
+                    AstroLibr.lambertminT(r1, r2, 'S', 'L', 3, out tmin, out tminp, out tminenergy);
+                    detailSum = "S   L   3  0.000 " + tmin.ToString("0.#######").PadLeft(15) + (tofsh - 5).ToString("0.#######").PadLeft(15) + " -0";
+                    strbuild.AppendLine(detailSum);
+                    detailSum = "S   L   3  0.000 " + tmin.ToString("0.#######").PadLeft(15) + (tofsh + 5).ToString("0.#######").PadLeft(15) + " -0\n";
+                    strbuild.AppendLine(detailSum);
+
+                    AstroLibr.lambertminT(r1, r2, 'L', 'H', 1, out tmin, out tminp, out tminenergy);
+                    detailSum = "L   H   tminp  0.000 " + tminp.ToString("0.#######").PadLeft(15) + "5.0000000".PadLeft(15) + " -0";
+                    strbuild.AppendLine(detailSum);
+                    detailSum = "L   H   tminp  0.000 " + tminp.ToString("0.#######").PadLeft(15) + "-5.0000000".PadLeft(15) + " -0\n";
+                    strbuild.AppendLine(detailSum);
+
+                    detailSum = "L   H   tminenergy  0.000 " + tminenergy.ToString("0.#######").PadLeft(15) + "5.0000000".PadLeft(15) + " -0";
+                    strbuild.AppendLine(detailSum);
+                    detailSum = "L   H   tminenergy  0.000 " + tminenergy.ToString("0.#######").PadLeft(15) + "-5.0000000".PadLeft(15) + " -0\n";
+                    strbuild.AppendLine(detailSum);
+
+                    AstroLibr.lambertumins(r1, r2, 1, 'L', out kbilg, out toflg);
+                    detailSum = "L   H   1  0.000 " + tmin.ToString("0.#######").PadLeft(15) + (toflg - 5).ToString("0.#######").PadLeft(15) + " -0";
+                    strbuild.AppendLine(detailSum);
+                    detailSum = "L   H   1  0.000 " + tmin.ToString("0.#######").PadLeft(15) + (toflg + 5).ToString("0.#######").PadLeft(15) + " -0\n";
+                    strbuild.AppendLine(detailSum);
+                    AstroLibr.lambertumins(r1, r2, 2, 'L', out kbilg, out toflg);
+                    AstroLibr.lambertminT(r1, r2, 'S', 'H', 2, out tmin, out tminp, out tminenergy);
+                    detailSum = "L   H   2  0.000 " + tmin.ToString("0.#######").PadLeft(15) + (toflg - 5).ToString("0.#######").PadLeft(15) + " -0";
+                    strbuild.AppendLine(detailSum);
+                    detailSum = "L   H   2  0.000 " + tmin.ToString("0.#######").PadLeft(15) + (toflg + 5).ToString("0.#######").PadLeft(15) + " -0\n";
+                    strbuild.AppendLine(detailSum);
+                    AstroLibr.lambertumins(r1, r2, 3, 'L', out kbilg, out toflg);
+                    AstroLibr.lambertminT(r1, r2, 'S', 'H', 3, out tmin, out tminp, out tminenergy);
+                    detailSum = "L   H   3  0.000 " + tmin.ToString("0.#######").PadLeft(15) + (toflg - 5).ToString("0.#######").PadLeft(15) + " -0";
+                    strbuild.AppendLine(detailSum);
+                    detailSum = "L   H   3  0.000 " + tmin.ToString("0.#######").PadLeft(15) + (toflg + 5).ToString("0.#######").PadLeft(15) + " -0\n";
+                    strbuild.AppendLine(detailSum);
+
+                    // find max rp values for each nrev
+                    double tmaxrp;
+                    AstroLibr.lambertTmaxrp(r1, r2, 'S', 0, out tmaxrp, out v1t);
+                    strbuild.AppendLine("x   x   0  0.000 " + tmaxrp.ToString() + " " +
+                        v1t[0].ToString("0.0000000").PadLeft(15) + v1t[1].ToString("0.0000000").PadLeft(15) + v1t[2].ToString("0.0000000").PadLeft(15));
+                    strbuild.AppendLine("x   x   0  0.000 " + tmaxrp.ToString() + " " +
+                        v1t[0].ToString("0.0000000").PadLeft(15) + v1t[1].ToString("0.0000000").PadLeft(15) + v1t[2].ToString("0.0000000").PadLeft(15) + "\n");
+                    AstroLibr.lambertTmaxrp(r1, r2, 'S', 1, out tmaxrp, out v1t);
+                    strbuild.AppendLine("x   x   1  0.000 " + tmaxrp.ToString() + " " +
+                        v1t[0].ToString("0.0000000").PadLeft(15) + v1t[1].ToString("0.0000000").PadLeft(15) + v1t[2].ToString("0.0000000").PadLeft(15));
+                    strbuild.AppendLine("x   x   1  0.000 " + tmaxrp.ToString() + " " +
+                        v1t[0].ToString("0.0000000").PadLeft(15) + v1t[1].ToString("0.0000000").PadLeft(15) + v1t[2].ToString("0.0000000").PadLeft(15) + "\n");
+                    AstroLibr.lambertTmaxrp(r1, r2, 'S', 2, out tmaxrp, out v1t);
+                    strbuild.AppendLine("x   x   2  0.000 " + tmaxrp.ToString() + " " +
+                        v1t[0].ToString("0.0000000").PadLeft(15) + v1t[1].ToString("0.0000000").PadLeft(15) + v1t[2].ToString("0.0000000").PadLeft(15));
+                    strbuild.AppendLine("x   x   2  0.000 " + tmaxrp.ToString() + " " +
+                        v1t[0].ToString("0.0000000").PadLeft(15) + v1t[1].ToString("0.0000000").PadLeft(15) + v1t[2].ToString("0.0000000").PadLeft(15) + "\n");
+                }
+            }  // if nrev > 0
+
+            outstr = strbuild.ToString();
+        }   // getmins
+
+
+        /* ------------------------------------------------------------------------------
+        *                                      makesurf 
+        *                                    
+        *  make a surface from a fixdat result with numbers takes a text file of number of points, 
+        *  then all the points, and cross-hatches it to get a surface. you run fixdat first 
+        *  in most cases.
+        *                                    
+        *  author        : david vallado             davallado@gmail.com  10 oct 2019
+        *
+        *  inputs        description                                   range / units
+        *    infilename  - in filename  
+        *    outfilename - out filename  
+        *    
+        *  outputs       :
+        *
+        *  locals :
+        *
+        *  coupling      :
+        *
+          ------------------------------------------------------------------------------*/
+
+        private void makesurf
+            (
+        string infilename,
+        string outfilename
+            )
+        {
+            Int32 ktr, numPerLine, NumLines, i, j;
+            string line, line1, Restoflgine;
+            string[] linesplt;
+            StringBuilder strbuild = new StringBuilder();
+            Restoflgine = "";
+
+            string[] fileData = File.ReadAllLines(infilename);
+
+            // process all the x lines 
+            numPerLine = 0;
+            ktr = 0;     // reset the file
+            NumLines = 0;
+            while (ktr < fileData.Count() - 1)  // not eof
+            {
+                line = fileData[ktr];
+                linesplt = line.Split(' ');
+                numPerLine = Convert.ToInt32(linesplt[0]);
+                // matlab uses Inf or Nan to start a new line
+                // needs to be in each col as well
+                strbuild.AppendLine(" Nan Nan NaN NaN NaN NaN");  // numPerLine.ToString() +
+                ktr = ktr + 1;
+                NumLines = NumLines + 1;
+
+                for (i = 1; i <= numPerLine; i++)
+                {
+                    line = fileData[ktr];
+                    line1 = Regex.Replace(line, @"\s+", " ");
+                    linesplt = line1.Split(' ');
+                    //int posrest = line1.IndexOf(linesplt[2], 15); // start at position 3
+                    //Restoflgine = line1.Substring(posrest -1, line1.Length -posrest);
+                    Restoflgine = linesplt[2].ToString() + " " + linesplt[3].ToString() + " " +
+                                 linesplt[4].ToString() + " " + linesplt[5].ToString();
+                    strbuild.AppendLine(linesplt[0].ToString() + " " + linesplt[1].ToString() + " " + Restoflgine);
+                    ktr = ktr + 1;
+                }
+            }
+
+            // ------process the y lines-------
+            // 'process y lines ');
+            // the number of lines needs to be constant!! 
+            //numPerLine = 0;
+            int numinrow = 0;  // position of each y line
+            // go through each point in initial line
+            while (numinrow < numPerLine)
+            {
+                this.opsStatus.Text = "Done with line " + numinrow.ToString();
+                Refresh();
+
+                // ---get the nth point from the first row---
+                ktr = 0;  // reset the file
+                //line = fileData[ktr];
+                //linesplt = line.Split(' ');
+                //k = Convert.ToInt32(linesplt[0]);
+                strbuild.AppendLine(" Nan Nan NaN NaN NaN NaN");  // k.ToString() +
+                ktr = ktr + 1 + numinrow;  // get to first point of data
+                line = fileData[ktr];
+                line1 = Regex.Replace(line, @"\s+", " ");
+                linesplt = line1.Split(' ');
+                Restoflgine = linesplt[2].ToString() + " " + linesplt[3].ToString() + " " +
+                             linesplt[4].ToString() + " " + linesplt[5].ToString();
+                strbuild.AppendLine(linesplt[0].ToString() + " " + linesplt[1].ToString() + " " + Restoflgine);
+
+                // ---get nth number from each other segment---
+                // since they are all evenly spaced, simply add the delta until the end of file
+                Int32 ktr0 = ktr + 1;
+                for (j = 1; j < NumLines; j++)
+                {
+                    ktr = ktr0 + j * numPerLine;
+                    line = fileData[ktr];
+                    line1 = Regex.Replace(line, @"\s+", " ");
+                    linesplt = line1.Split(' ');
+                    Restoflgine = linesplt[2].ToString() + " " + linesplt[3].ToString() + " " +
+                                 linesplt[4].ToString() + " " + linesplt[5].ToString();
+                    strbuild.AppendLine(linesplt[0].ToString() + " " + linesplt[1].ToString() + " " + Restoflgine);
+                    ktr0 = ktr0 + 1;
+                }
+
+                numinrow = numinrow + 1;
+            }  // while
+
+            string directory = @"d:\codes\library\matlab\";
+            File.WriteAllText(directory + "surf.out", strbuild.ToString());
+        }  // makesurf
+
+
+
+        /* ------------------------------------------------------------------------------
+        *                                      fixdat 
+        *                                    
+        *  fix the blank lines in a datafile. let 4 values be taken depending on the 
+        *  intindex values inserts the number of points for each segment, then it can be 
+        *  used in makesurf.
+        *                                    
+        *  author        : david vallado             davallado@gmail.com  10 oct 2019
+        *
+        *  inputs        description                                   range / units
+        *    infilename  - in filename  
+        *    outfilename - out filename  
+        *    intindxx    - which indices to use, 1.2.3.4.5, 2.5.7.8 etc
+        *    
+        *  outputs       :
+        *
+        *  locals :
+        *
+          ------------------------------------------------------------------------------*/
+
+        private void fixdat
+            (
+            string infilename,
+            string outfilename,
+            int intindx1, int intindx2, int intindx3, int intindx4, int intindx5, int intindx6
+            )
+        {
+            Int32 ktr, i, j;
+            string LongString;
+            string[] DatArray = new string[2001];
+            StringBuilder strbuild = new StringBuilder();
+            LongString = "";
+
+            string[] fileData = File.ReadAllLines(infilename);
+
+            i = 0;
+            ktr = 0;
+            while (ktr < fileData.Count() - 1)  // not eof
+            {
+                LongString = fileData[ktr];
+
+                if ((LongString.Contains("xx")) || LongString.Length < 10 || (i == 2000))
+                {
+                    this.opsStatus.Text = "Break " + ktr.ToString();
+                    Refresh();
+
+                    // ----Put a mandatory break at 2000----
+                    if ((i == 2000) && (!LongString.Contains("xx")))
+                        strbuild.AppendLine((i + 1).ToString() + " xx broken");
+                    else
+                    {
+                        if (i > 0)
+                            strbuild.AppendLine(i.ToString() + " xx ");
+                    }
+
+                    // ----Write out all the data to this point----
+                    for (j = 1; j <= i; j++)
+                        strbuild.AppendLine(DatArray[j].ToString());
+
+                    // ----Write out crossover point for the mandatory break ---
+                    if ((i == 2000) && ((!LongString.Contains('x')) || LongString.Length > 10))
+                    {
+                        strbuild.AppendLine(LongString);
+                        // write out last one in loop ! 
+                        i = 1;
+                        DatArray[i] = LongString;
+                    }
+                    else
+                    {
+                        i = 0;
+                        ktr = ktr + 1;   // file counter
+                    }
+                }
+                else
+                // ----Add new data ----
+                {
+                    i = i + 1;
+                    string line1 = Regex.Replace(LongString, @"\s+", " ");
+                    string[] linesplt = line1.Split(' ');
+
+                    DatArray[i] = linesplt[intindx1] + " " + linesplt[intindx2] + " " + linesplt[intindx3] + " " + linesplt[intindx4]
+                        + " " + linesplt[intindx5] + " " + linesplt[intindx6];
+                    ktr = ktr + 1;   // file counter
+                }
+
+            }  // while through file
+
+            // ----Write out the last section----
+            if (i > 1)
+            {
+                if ((i == 2000) && (!LongString.Contains('x')) && LongString.Length > 10)
+                    strbuild.AppendLine((i + 1).ToString() + " xx broken");
+                else
+                {
+                    if (i > 0)
+                        strbuild.AppendLine(i.ToString() + " xx ");
+                }
+                for (j = 1; j <= i; j++)
+                    strbuild.AppendLine(DatArray[j]);
+            }
+
+            string directory = @"d:\codes\library\matlab\";
+            File.WriteAllText(directory + "t.out", strbuild.ToString());
+        }  // fixdat
+
 
         public void testlambertuniv()
         {
@@ -2176,20 +4529,19 @@ namespace TestAll
             double[] dv23 = new double[3];
             double[] dv24 = new double[3];
             double kbi, tof, dtwait, altpad, ang, dtsec;
-            Int32 nrev, i, j, k;
+            Int32 nrev, i, j;
             string errorsum = "";
             string errorout = "";
             char show = 'n';     // for test180, show = n, show180 = y
             //char show180 = 'n';  // for testlamb known show = y, show180 = n, n/n for envelope
             char hitearth, dm, de;
             nrev = 0;
-            r1 = new double[] { 2.500000 * 6378.137, 0.000000, 0.000000 };
-            r2 = new double[] { 1.9151111 * 6378.137, 1.6069690 * 6378.137, 0.000000 };
+            r1 = new double[] { 2.500000 * AstroLibr.gravConst.re, 0.000000, 0.000000 };
+            r2 = new double[] { 1.9151111 * AstroLibr.gravConst.re, 1.6069690 * AstroLibr.gravConst.re, 0.000000 };
             // assume circular initial orbit for vel calcs
-            v1 = new double[] { 0.0, Math.Sqrt(MathTimeLib.globals.mu / r1[0]), 0.0 };
+            v1 = new double[] { 0.0, Math.Sqrt(AstroLibr.gravConst.mu / r1[0]), 0.0 };
             ang = Math.Atan(r2[1] / r2[0]);
-            v2 = new double[] { -Math.Sqrt(MathTimeLib.globals.mu / r2[1]) * Math.Cos(ang), Math.Sqrt(MathTimeLib.globals.mu / r2[0]) * Math.Sin(ang), 0.0 };
-            dtsec = 99900.3;
+            v2 = new double[] { -Math.Sqrt(AstroLibr.gravConst.mu / r2[1]) * Math.Cos(ang), Math.Sqrt(AstroLibr.gravConst.mu / r2[0]) * Math.Sin(ang), 0.0 };
             dtsec = 76.0 * 60.0;
             altpad = 100.0;  // 100 km
 
@@ -2239,7 +4591,18 @@ namespace TestAll
             AstroLibr.lambertuniv(r1, r2, v1, dm, de, nrev, dtwait, dtsec, kbi,
                           altpad, 'y', out v1t, out v2t, out hitearth, out errorsum, out errorout);
 
+            AstroLibr.lambertuniv(r1, r2, v1, dm, 'H', nrev, dtwait, dtsec, kbi,
+              altpad, 'y', out v1t, out v2t, out hitearth, out errorsum, out errorout);
 
+            dtsec = 21000.0;
+            AstroLibr.lambertuniv(r1, r2, v1, 'S', 'H', 1, dtwait, dtsec, kbi,
+              altpad, 'y', out v1t, out v2t, out hitearth, out errorsum, out errorout);
+            AstroLibr.lambertuniv(r1, r2, v1, 'S', 'L', 1, dtwait, dtsec, kbi,
+              altpad, 'y', out v1t, out v2t, out hitearth, out errorsum, out errorout);
+            AstroLibr.lambertuniv(r1, r2, v1, 'L', 'H', 1, dtwait, dtsec, kbi,
+              altpad, 'y', out v1t, out v2t, out hitearth, out errorsum, out errorout);
+            AstroLibr.lambertuniv(r1, r2, v1, 'L', 'L', 1, dtwait, dtsec, kbi,
+              altpad, 'y', out v1t, out v2t, out hitearth, out errorsum, out errorout);
 
 
             // test chap 7 fig 7-18 runs
@@ -2259,8 +4622,9 @@ namespace TestAll
             strbuild.AppendLine("dtwait  dtsec       dv1       dv2 ");
             this.opsStatus.Text = "Status:  on case 80a";
             Refresh();
-            for (i = 0; i < 250; i++)
+ //           for (i = 0; i < 250; i++)
             {
+                i = 0;
                 dtsec = i * 60.0;
                 AstroLibr.lambertuniv(r1, r2, v1, 'S', 'L', nrev, dtwait, dtsec, kbi,
                               altpad, 'y', out v1t1, out v2t1, out hitearth, out errorsum, out errorout);
@@ -2302,12 +4666,14 @@ namespace TestAll
 
             this.opsStatus.Text = "Status:  on case 80b";
             Refresh();
-            for (i = 0; i < 250; i++)
+ //           for (i = 0; i < 250; i++)
             {
+                i = 0;
                 dtsec = i * 60.0;
                 AstroLibr.kepler(r2, v2, dtsec, out r3, out v3);
-                for (j = 0; j < 25; j++)
+//                for (j = 0; j < 25; j++)
                 {
+                    j = 0;
                     dtwait = j * 10.0;
                     dtwait = 0.0;  // set to 0 for now
 
@@ -2342,53 +4708,1399 @@ namespace TestAll
 
 
             // fig 7-21
+            StringBuilder strbuildFig = new StringBuilder();
             r1 = new double[] { -6175.1034, 2757.0706, 1626.6556 };
             v1 = new double[] { 2.376641, 1.139677, 7.078097 };
             r2 = new double[] { -6078.007289, 2796.641859, 1890.7135 };
             v2 = new double[] { 2.654700, 1.018600, 7.015400 };
 
-            strbuild.AppendLine("dtwait  dtsec       dv1       dv2 ");
+            strbuildFig.AppendLine("dtwait  dtsec       dv1       dv2 ");
             this.opsStatus.Text = "Status:  on case 80c";
             Refresh();
-            //for (i = 0; i < 250; i++)
-            //{
-            //    dtsec = i * 60.0;
-            //    AstroLibr.kepler(r1, v1, dtsec, out r4, out v4);
-            //    for (j = 0; j < 25; j++)
-            //    {
-            //        dtwait = j * 600.0;
-            //        AstroLibr.kepler(r2, v2, dtsec+dtwait, out r3, out v3);
+            int totaldts = 15000;
+            int totaldtw = 30000;
+            int step1 = 60;   // 60 orig
+            int step2 = 600;  // 600 orig
+            int stop1 = (int) (totaldts/step1);
+            int stop2 = (int) (totaldtw/step2);
+            for (i = 0; i < stop1; i++)  // orig 250, 15000 s total 
+            {
+                dtsec = i * step1;    // orig 60
+                AstroLibr.kepler(r1, v1, dtsec, out r4, out v4);
+                for (j = 0; j < stop2; j++)  // orig 25 600*25 = 15000 s total
+                {
+                    dtwait = j * step2;   // orig 600
+                    AstroLibr.kepler(r2, v2, dtsec + dtwait, out r3, out v3);
 
-            //        AstroLibr.lambertuniv(r4, r3, v4, 's', 'd', nrev, dtwait, dtsec, tbiru,
-            //                      altpad, out v1t1, out v2t1, out hitearth, out errorsum, out errorout);
-            //        AstroLibr.lambertuniv(r4, r3, v4, 's', 'r', nrev, dtwait, dtsec, tbiru,
-            //                      altpad, out v1t2, out v2t2, out hitearth, out errorsum, out errorout);
-            //        AstroLibr.lambertuniv(r4, r3, v4, 'l', 'd', nrev, dtwait, dtsec, tbiru,
-            //                      altpad, out v1t3, out v2t3, out hitearth, out errorsum, out errorout);
-            //        AstroLibr.lambertuniv(r4, r3, v4, 'l', 'r', nrev, dtwait, dtsec, tbiru,
-            //                      altpad, out v1t4, out v2t4, out hitearth, out errorsum, out errorout);
-            //        if (errorout.Contains("ok"))
-            //        {
-            //            MathTimeLibr.addvec(1.0, v1t1, -1.0, v4, out dv11);
-            //            MathTimeLibr.addvec(1.0, v2t1, -1.0, v3, out dv21);
-            //            MathTimeLibr.addvec(1.0, v1t2, -1.0, v4, out dv12);
-            //            MathTimeLibr.addvec(1.0, v2t2, -1.0, v3, out dv22);
-            //            MathTimeLibr.addvec(1.0, v1t3, -1.0, v4, out dv13);
-            //            MathTimeLibr.addvec(1.0, v2t3, -1.0, v3, out dv23);
-            //            MathTimeLibr.addvec(1.0, v1t4, -1.0, v4, out dv14);
-            //            MathTimeLibr.addvec(1.0, v2t4, -1.0, v3, out dv24);
-            //            strbuild.AppendLine(dtwait.ToString() + " " + dtsec.ToString() +
-            //                "  " + MathTimeLibr.mag(dv11).ToString() + "  " + MathTimeLibr.mag(dv21).ToString() +
-            //                "  " + MathTimeLibr.mag(dv12).ToString() + "  " + MathTimeLibr.mag(dv22).ToString() +
-            //                "  " + MathTimeLibr.mag(dv13).ToString() + "  " + MathTimeLibr.mag(dv23).ToString() +
-            //                "  " + MathTimeLibr.mag(dv14).ToString() + "  " + MathTimeLibr.mag(dv24).ToString());
-            //        }
-            //        else
-            //            strbuild.AppendLine(errorsum + " " + errorout);
-            //    }
-            //}
+                    AstroLibr.lambertuniv(r4, r3, v4, 's', 'd', nrev, dtwait, dtsec, kbi,
+                                  altpad, 'y', out v1t1, out v2t1, out hitearth, out errorsum, out errorout);
+                    AstroLibr.lambertuniv(r4, r3, v4, 's', 'r', nrev, dtwait, dtsec, kbi,
+                                  altpad, 'y', out v1t2, out v2t2, out hitearth, out errorsum, out errorout);
+                    AstroLibr.lambertuniv(r4, r3, v4, 'l', 'd', nrev, dtwait, dtsec, kbi,
+                                  altpad, 'y', out v1t3, out v2t3, out hitearth, out errorsum, out errorout);
+                    AstroLibr.lambertuniv(r4, r3, v4, 'l', 'r', nrev, dtwait, dtsec, kbi,
+                                  altpad, 'y', out v1t4, out v2t4, out hitearth, out errorsum, out errorout);
+                    if (errorout.Contains("ok"))
+                    {
+                        MathTimeLibr.addvec(1.0, v1t1, -1.0, v4, out dv11);
+                        MathTimeLibr.addvec(1.0, v2t1, -1.0, v3, out dv21);
+                        MathTimeLibr.addvec(1.0, v1t2, -1.0, v4, out dv12);
+                        MathTimeLibr.addvec(1.0, v2t2, -1.0, v3, out dv22);
+                        MathTimeLibr.addvec(1.0, v1t3, -1.0, v4, out dv13);
+                        MathTimeLibr.addvec(1.0, v2t3, -1.0, v3, out dv23);
+                        MathTimeLibr.addvec(1.0, v1t4, -1.0, v4, out dv14);
+                        MathTimeLibr.addvec(1.0, v2t4, -1.0, v3, out dv24);
+                        strbuildFig.AppendLine(dtwait.ToString() + " " + dtsec.ToString() +
+                            "  " + MathTimeLibr.mag(dv11).ToString() + "  " + MathTimeLibr.mag(dv21).ToString() +
+                            "  " + MathTimeLibr.mag(dv12).ToString() + "  " + MathTimeLibr.mag(dv22).ToString() +
+                            "  " + MathTimeLibr.mag(dv13).ToString() + "  " + MathTimeLibr.mag(dv23).ToString() +
+                            "  " + MathTimeLibr.mag(dv14).ToString() + "  " + MathTimeLibr.mag(dv24).ToString());
+                    }
+                    else
+                        strbuildFig.AppendLine(errorsum + " " + errorout);
+                }
+            }
 
+            // write data out
+            string directory = @"D:\Codes\LIBRARY\Matlab\";
+            File.WriteAllText(directory + "surfMovingSalltest.out", strbuildFig.ToString());
         }
+
+        // test all the known problem cases for lambert
+        // output these results separately to the testall directory
+        private void testknowncases()
+        {
+            //  this file runs all the known problem cases. 
+            double tusec = 806.8111238242922;
+            Int16 numiter = 16;
+            Int32 caseopt, nrev;
+            double dtwait, dtsec;
+            double[] r1 = new double[3];
+            double[] r2 = new double[3];
+            double[] v1 = new double[3];
+            double[] v2 = new double[3];
+            double[] v1tk = new double[3];
+            double[] v2tk = new double[3];
+            double[] v1tu = new double[3];
+            double[] v2tu = new double[3];
+            double[] v1tb = new double[3];
+            double[] v2tb = new double[3];
+            double[] v1tt = new double[3];
+            double[] v2tt = new double[3];
+            string detailSum, detailAll, errorout;
+            double[] dv1 = new double[3];
+            double[] dv2 = new double[3];
+            double[] dv1t = new double[3];
+            double[] dv2t = new double[3];
+            double[] r3h = new double[3];
+            double[] v3h = new double[3];
+            double[] dr = new double[3];
+            double ang, f, g, gdot, s, tau;
+            double tmin, tminp, tminenergy;
+            StringBuilder strbuildAll = new StringBuilder();
+            detailSum = "";
+            detailAll = "";
+            //int i;
+            char dm, de, hitearth;
+            // for test180, show = n, show180 = y
+            // for testlamb, show = y, show180 = n known cases
+            // for envelope, show = n, show180 = n 
+
+            double altpadc = 200.0 / AstroLibr.gravConst.re;  // set 200 km for altitude you set as the over limit. 
+
+            dtsec = 0.0;
+            nrev = 0;
+            for (caseopt = 0; caseopt <= 85; caseopt++) // 74
+            {
+                this.opsStatus.Text = "working on lambert case " + caseopt.ToString();
+                Refresh();
+
+                dtwait = 0.0;
+                // Problem cases during evaluation
+                switch (caseopt)
+                {
+                    case 0:
+                        strbuildAll.AppendLine("\n-------- lambert test book pg 497 short way \n");
+                        nrev = 0;
+                        r1 = new double[] { 2.500000 * AstroLibr.gravConst.re, 0.000000, 0.000000 };
+                        r2 = new double[] { 1.9151111 * AstroLibr.gravConst.re, 1.6069690 * AstroLibr.gravConst.re, 0.000000 };
+                        // assume circular initial orbit for vel calcs
+                        v1 = new double[] { 0.0, Math.Sqrt(AstroLibr.gravConst.mu / r1[0]), 0.0 };
+                        ang = Math.Atan(r2[1] / r2[0]);
+                        v2 = new double[] { -Math.Sqrt(AstroLibr.gravConst.mu / r2[1]) * Math.Cos(ang), Math.Sqrt(AstroLibr.gravConst.mu / r2[0]) * Math.Sin(ang), 0.0 };
+                        dtsec = 99900.3;
+                        dtsec = 76.0 * 60.0;
+                        dtsec = 21000.0;
+
+                        strbuildAll.AppendLine("r1 " + " " + r1[0].ToString("0.00000000000") + " " + r1[1].ToString("0.00000000000") + " " + r1[2].ToString("0.00000000000"));
+                        strbuildAll.AppendLine("r2 " + " " + r2[0].ToString("0.00000000000") + " " + r2[1].ToString("0.00000000000") + " " + r2[2].ToString("0.00000000000"));
+                        strbuildAll.AppendLine("v1 " + " " + v1[0].ToString("0.00000000000") + " " + v1[1].ToString("0.00000000000") + " " + v1[2].ToString("0.00000000000"));
+                        strbuildAll.AppendLine("v2 " + " " + v2[0].ToString("0.00000000000") + " " + v2[1].ToString("0.00000000000") + " " + v2[2].ToString("0.00000000000"));
+                        break;
+                    case 1:
+                        nrev = 1;
+                        r2 = new double[] { -1105.78023519582, 2373.16130661458, 6713.89444816503 };
+                        v2 = new double[] { 5.4720951867079, -4.39299050886976, 2.45681739563752 };
+                        r1 = new double[] { 4938.49830042171, -1922.24810472241, 4384.68293292613 };
+                        v1 = new double[] { 0.738204644165659, 7.20989453238397, 2.32877392066299 };
+                        dtsec = 6372.69272563561; // 1ld
+                        break;
+                    case 2:
+                        // cases where it keeps going into -sqrt2
+                        nrev = 1;
+                        r2 = new double[] { 5389.93493556163, -4804.52588241862, 25.1582783497964 };
+                        v2 = new double[] { -0.727069514249192, -0.859982846655316, -7.342663871411 };
+                        r1 = new double[] { -1522.75287570047, -6087.9994451461, -2815.10297689319 };
+                        v1 = new double[] { 5.24505988961516, -3.34468129213862, 4.39250899043762 };
+                        dtsec = 10221.5467480492; // 1ld
+                        break;
+                    case 3:
+                        // cases where it keeps going into -sqrt2
+                        nrev = 1;
+                        r2 = new double[] { 1116.1162667853, -2378.25911910064, -6722.28853781123 };
+                        v2 = new double[] { -5.47209340870903, 4.37730656506257, -2.45025316846857 };
+                        r1 = new double[] { 1554.48430223507, -6700.43642118198, 57.4227160854669 };
+                        v1 = new double[] { 5.23346411132679, 1.25993062455167, 5.38814398663452 };
+                        dtsec = 10852.5064238547; // 1ld
+                        break;
+                    case 4:
+                        // this case suggested chaging the order in mutli rev p long
+                        nrev = 1;
+                        r2 = new double[] { -4822.158616898, 3455.91484677543, -4098.68288033907 };
+                        v2 = new double[] { -2.57576029510129, 3.53163203241951, 6.01488885299844 };
+                        r1 = new double[] { -4669.11761281366, 3212.49596830797, -3898.12963175177 };
+                        v1 = new double[] { -1.87628239850534, -6.63882509070526, -3.21890799080453 };
+                        dtsec = 2776.22257354422; // 1ld                   
+                        break;
+                    case 5:
+                        // this one requires an additional check, not needeed now?
+                        nrev = 1;
+                        r2 = new double[] { -2641.12487002351, 3531.78400296964, 5698.93227237491 };
+                        v2 = new double[] { 4.88892723175287, -3.4599464651134, 4.40951762424652 };
+                        r1 = new double[] { 4938.49830042171, -1922.24810472241, 4384.68293292613 };
+                        v1 = new double[] { 0.738204644165659, 7.20989453238397, 2.32877392066299 };
+                        dtsec = 12177.5217430462; // 1ld
+                        break;
+                    case 6:
+                        // set to 0.001 with case E4
+                        nrev = 0;
+                        r2 = new double[] { -5057.4585090362, 3809.11827469679, -3450.0477818739 };
+                        r1 = new double[] { -4407.00934446058, 4033.85497867959, -3409.86172213079 };
+                        v2 = new double[] { -2.02465066311744, 3.13212960292945, 6.4339466703018 };
+                        v1 = new double[] { -2.56559926580898, -6.05303910025674, -3.83938365285278 };
+                        dtsec = 8265.57175305213; // sr0
+                        break;
+                    case 7:
+                        //  add check M3plong
+                        nrev = 1;
+                        r2 = new double[] { -1331.61712455282, -269.887149406199, -7085.53489160526 };
+                        v2 = new double[] { -5.42091526234769, 5.00552178527806, 0.834085025435344 };
+                        r1 = new double[] { -1885.20749244741, 6606.0376125118, -379.861779252094 };
+                        v1 = new double[] { -5.10094853369525, -1.76531996825405, -5.37072372683008 };
+                        dtsec = 14070.4007704627; // 1ld
+                        break;
+                    case 8:
+                        // this case showed the need to have real k values...
+                        nrev = 1;
+                        r2 = new double[] { -758.422432200603, 2091.16846174067, 6854.59658477816 };
+                        v2 = new double[] { 5.53448307124667, -4.54239531565604, 2.00157190055228 };
+                        r1 = new double[] { 4938.49830042171, -1922.24810472241, 4384.68293292613 };
+                        v1 = new double[] { 0.738204644165659, 7.20989453238397, 2.32877392066299 };
+                        dtsec = 6435.78869321616; // 1ld
+                        break;
+                    case 9:
+                        // check for cases where k is still less than -sqrt2
+                        // note as the nrevs go up, the result moves less negative from -sqrt2
+                        nrev = 0;  // slope -14, ans -1.407629, 9 iter with 0.001
+                        r2 = new double[] { 4976.15252113442, -3689.5625418661, 3702.49326716728 };
+                        r1 = new double[] { 4554.0066232623, -3634.43274023062, 3655.51495588221 };
+                        v2 = new double[] { 2.23862305685032, -3.29331102465481, -6.27247192272167 };
+                        v1 = new double[] { 2.22128773227645, 6.35746126414215, 3.55208099082447 };
+                        dtsec = 2271.45483289982; // 0sr
+                        break;
+                    case 10:
+                        // another similar to last case, 1/dtdk didn't work for this one
+                        nrev = 0;  // slope -3100
+                        r2 = new double[] { -4919.10396163648, 3603.57554611554, -3848.40171187302 };
+                        v2 = new double[] { -2.35929722680958, 3.38077576872956, 6.18851117355277 };
+                        r1 = new double[] { -4558.02316256308, 3642.41900628984, -3643.58590236029 };
+                        v1 = new double[] { -2.21927554566458, -6.34957798602613, -3.56614347300579 };
+                        dtsec = 8139.37981789103; // 0sr
+                        break;
+                    case 11:
+                        // cases where it keeps going into -sqrt2
+                        nrev = 1;
+                        r2 = new double[] { -4822.15861689805, 3455.9148467755, -4098.68288033895 };
+                        v2 = new double[] { -2.57576029510118, 3.53163203241943, 6.01488885299853 };
+                        r1 = new double[] { -4677.91372255611, 3222.96969164161, -3878.88763811588 };
+                        v1 = new double[] { -1.86920520521555, -6.62702216153142, -3.24731757926936 };
+                        dtsec = 8454.8596557937; // 1sr
+                        break;
+                    case 12:
+                        // if within the tol of sqrt2, use bissection to avoid overshooting
+                        nrev = 1;
+                        r2 = new double[] { 2446.18922274494, -797.812934707937, 6735.54747599021 };
+                        v2 = new double[] { 4.99682827935479, -4.95260674643056, -2.39173249168695 };
+                        r1 = new double[] { 1846.58055111604, 5858.69785273178, 3097.77066306967 };
+                        v1 = new double[] { -5.11856419928947, 3.81079538113064, -4.15161560857017 };
+                        dtsec = 11925.1378727242; // 1ld           
+                        break;
+                    case 13:
+                        // case requires imaginary part of xs too M3Plong
+                        nrev = 1;
+                        r2 = new double[] { -3510.55150355902, 4115.53040858099, 4761.12955817936 };
+                        v2 = new double[] { 4.26806116234577, -2.68813916207364, 5.46786810528871 };
+                        r1 = new double[] { -3597.14246007294, 5385.47909322872, -2320.9741205119 };
+                        v1 = new double[] { -3.81051604568839, -4.58797507705978, -4.73322184068286 };
+                        dtsec = 9716.77900740478; // 1ld
+                        break;
+                    case 14:
+                        nrev = 0;
+                        r2 = new double[] { -2223.24342336674, 3241.02235559901, 6039.79724630885 };
+                        v2 = new double[] { 5.09225965957541, -3.7673082496703, 3.89651751594842 };
+                        r1 = new double[] { 4938.49830042171, -1922.24810472241, 4384.68293292613 };
+                        v1 = new double[] { 0.738204644165659, 7.20989453238397, 2.32877392066299 };
+                        dtsec = 63.095967580550479; // 0ld
+                        break;
+                    case 15:
+                        nrev = 1;
+                        r2 = new double[] { -4974.3696377813, 3671.28381637024, -3710.74798832271 };
+                        v2 = new double[] { -2.24725132040761, 3.29263408780505, 6.2774291914344 };
+                        r1 = new double[] { -4407.00934446058, 4033.85497867959, -3409.86172213079 };
+                        v1 = new double[] { -2.56559926580898, -6.05303910025674, -3.83938365285278 };
+                        dtsec = 14322.7846407849; // 0ld
+                        break;
+                    case 16:// hyperbolic
+                        nrev = 0;
+                        r2 = new double[] { 2955.13131737849, -3763.49652390861, -5406.10786702601 };
+                        v2 = new double[] { -4.68036851378556, 3.21003519509918, -4.78619261107496 };
+                        r1 = new double[] { -1559.02303183983, 6701.22258760379, -40.3381891429746 };
+                        v1 = new double[] { -5.23416635407774, -1.25061571408999, -5.38702212157039 };
+                        dtsec = 1135.72741644991; // 0ld
+                        break;
+                    case 17:
+                        nrev = 1;
+                        r2 = new double[] { -4974.36963778144, 3671.28381637045, -3710.74798832232 };
+                        v2 = new double[] { -2.24725132040728, 3.29263408780481, 6.27742919143465 };
+                        r1 = new double[] { -4677.91372255611, 3222.96969164161, -3878.88763811588 };
+                        v1 = new double[] { -1.86920520521555, -6.62702216153142, -3.24731757926936 };
+                        dtsec = 8517.95562337433; // 0ld
+                        break;
+                    case 18:
+                        nrev = 1;
+                        r2 = new double[] { -21337.5237890659, -36365.1683964209, 2.43003186524166 };
+                        v2 = new double[] { 2.65198086085399, -1.55608104392457, -2.28006813941804E-05 };
+                        r1 = new double[] { -20702.6892300265, -36730.2874492455, 3.07140781569511 };
+                        v1 = new double[] { 2.67862420772792, -1.50975376683806, -0.000107174977829257 };
+                        dtsec = 83292.715003933; // 1ld
+                        break;
+                    case 19:
+                        nrev = 2;
+                        r2 = new double[] { -21335.6734907851, -36366.3155269607, 1.8168603510595 };
+                        v2 = new double[] { 2.65205952295591, -1.55594317639927, -7.58319122309682E-06 };
+                        r1 = new double[] { -20702.6892300265, -36730.2874492455, 3.07140781569511 };
+                        v1 = new double[] { 2.67862420772792, -1.50975376683806, -0.000107174977829257 };
+                        dtsec = 169457.592594209; // 2ld
+                        break;
+                    case 20:   // case requries 16-17 iterations...
+                        nrev = 0;
+                        r2 = new double[] { -21334.4279584025, -36367.1076344499, 1.43164460418315 };
+                        v2 = new double[] { 2.65211231086955, -1.55584941166386, 5.96175008776875E-07 };
+                        r1 = new double[] { -20702.6892300265, -36730.2874492455, 3.07140781569511 };
+                        v1 = new double[] { 2.67862420772792, -1.50975376683806, -0.000107174977829257 };
+                        dtsec = 255622.470184485; // 0sr
+                        break;
+                    case 21:
+                        nrev = 3;
+                        r2 = new double[] { -21334.4279584025, -36367.1076344499, 1.43164460418315 };
+                        v2 = new double[] { 2.65211231086955, -1.55584941166386, 5.96175008776875E-07 };
+                        r1 = new double[] { -20702.6892300265, -36730.2874492455, 3.07140781569511 };
+                        v1 = new double[] { 2.67862420772792, -1.50975376683806, -0.000107174977829257 };
+                        dtsec = 255622.470184485; // 3ld
+                        break;
+                    case 22:  // shows need for a little margin on the tbir values
+                        nrev = 1;
+                        r2 = new double[] { -10000.0, 3750.0, 0.0 };
+                        v2 = new double[] { 2.65211231086955, -1.55584941166386, 5.96175008776875E-07 };
+                        r1 = new double[] { 7278.1363, 0.0, 0.0 };
+                        v1 = new double[] { 2.67862420772792, -1.50975376683806, -0.000107174977829257 };
+                        dtsec = 86400.0; // 1ld
+                        break;
+                    case 23:
+                        nrev = 0;
+                        r1 = new double[] { -1467.0216503866718, 1586.1576668688224, 6812.892902302875 };
+                        v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        r2 = new double[] { 0.0, 6021.0229606764833, -3721.196836741588 };
+                        v2 = new double[] { 2.67862420772792, -1.50975376683806, -0.000107174977829257 };
+                        dtsec = 60.0; // 0ld
+                        break;
+                    case 24:  // shows need for complex
+                        nrev = 0;
+                        r1 = new double[] { -1467.0216503866718, 1586.1576668688224, 6812.892902302875 };
+                        v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        r2 = new double[] { -1674.818065, 1349.399286, 6496.355133 };
+                        v2 = new double[] { 2.67862420772792, -1.50975376683806, -0.000107174977829257 };
+                        dtsec = 60.0; // 0sd
+                        break;
+                    case 25:
+                        nrev = 1;
+                        r1 = new double[] { -1467.0216503866718, 1586.1576668688224, 6812.892902302875 };
+                        v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        r2 = new double[] { -1271.900616, 2703.476434, 6306.177922 };
+                        v2 = new double[] { 2.65211231086955, -1.55584941166386, 5.96175008776875E-07 };
+                        dtsec = 5000.0; // 1sr
+                        break;
+                    case 26:
+                        nrev = 0;
+                        r1 = new double[] { -1467.0216503866718, 1586.1576668688224, 6812.892902302875 };
+                        v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        r2 = new double[] { -1552.07576, 1558.848765, 6832.766801 };
+                        v2 = new double[] { 2.65211231086955, -1.55584941166386, 5.96175008776875E-07 };
+                        dtsec = 10.0; // 1ld
+                        break;
+                    case 27:
+                        nrev = 1;
+                        r1 = new double[] { -1467.0216503866718, 1586.1576668688224, 6812.892902302875 };
+                        v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        r2 = new double[] { -1530.453496, 1537.132145, 6737.578219 };
+                        v2 = new double[] { 2.65211231086955, -1.55584941166386, 5.96175008776875E-07 };
+                        dtsec = 4000.0; // 1ld
+                        break;
+                    case 28:
+                        nrev = 1;
+                        r1 = new double[] { -1467.0216503866718, 1586.1576668688224, 6812.892902302875 };
+                        v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        r2 = new double[] { 233.4851636, 6213.368002, 3167.639301 };
+                        v2 = new double[] { 2.65211231086955, -1.55584941166386, 5.96175008776875E-07 };
+                        dtsec = 5000.0; // 1ld
+                        break;
+                    case 29:
+                        nrev = 1;
+                        r1 = new double[] { -1467.0216503866718, 1586.1576668688224, 6812.892902302875 };
+                        v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        r2 = new double[] { -5252.90710654156, -2309.78595136001, 3970.67397046322 };
+                        v2 = new double[] { 2.65211231086955, -1.55584941166386, 5.96175008776875E-07 };
+                        dtsec = 5000.0; // 1ld
+                        break;
+                    case 30:
+                        nrev = 1;
+                        r1 = new double[] { -1467.0216503866718, 1586.1576668688224, 6812.892902302875 };
+                        v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        r2 = new double[] { -1720.86781033105, 2455.79570291113, 6300.95845373533 };
+                        v2 = new double[] { 2.65211231086955, -1.55584941166386, 5.96175008776875E-07 };
+                        dtsec = 5000.0; // 1sr
+                        break;
+                    case 31:   // needs 16 iterations?
+                        nrev = 1;
+                        r1 = new double[] { -1467.0216503866718, 1586.1576668688224, 6812.892902302875 };
+                        v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        r2 = new double[] { -1501.58876366474, 1598.6698362693, 6729.74808816849 };
+                        v2 = new double[] { 2.65211231086955, -1.55584941166386, 5.96175008776875E-07 };
+                        dtsec = 4000.0; // 1ld
+                        break;
+                    case 32:
+                        nrev = 1;
+                        r1 = new double[] { -1467.0216503866718, 1586.1576668688224, 6812.892902302875 };
+                        v1 = new double[] { 2.65211231086955, -1.55584941166386, 5.96175008776875E-07 };
+                        r2 = new double[] { -1596.16447011803, 2572.48740761792, 6287.20633610422 };
+                        v2 = new double[] { 2.65211231086955, -1.55584941166386, 5.96175008776875E-07 };
+                        dtsec = 5000.0; // 1sr
+                        break;
+                    case 33:
+                        nrev = 1;
+                        r1 = new double[] { -1467.0216503866718, 1586.1576668688224, 6812.892902302875 };
+                        v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        r2 = new double[] { -1530.76975907306, 2578.18070794673, 6301.12086637351 };
+                        v2 = new double[] { 2.65211231086955, -1.55584941166386, 5.96175008776875E-07 };
+                        dtsec = 5000.0; // 1sr
+                        break;
+                    case 34:
+                        nrev = 0;
+                        r1 = new double[] { -1467.0216503866718, 1586.1576668688224, 6812.892902302875 };
+                        v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        r2 = new double[] { -1453.48010524337, 1619.93081291069, 6819.24812980238 };
+                        v2 = new double[] { 2.65211231086955, -1.55584941166386, 5.96175008776875E-07 };
+                        dtsec = 10.0; // 0ld
+                        break;
+                    case 35:
+                        nrev = 0;
+                        r1 = new double[] { -1467.0216503866718, 1586.1576668688224, 6812.892902302875 };
+                        v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        r2 = new double[] { -1482.87003576258, 1557.63131212973, 6827.43044367934 };
+                        v2 = new double[] { 2.65211231086955, -1.55584941166386, 5.96175008776875E-07 };
+                        dtsec = 10.0; // 0sd
+                        break;
+                    case 36:
+                        nrev = 0;
+                        r1 = new double[] { -1467.0216503866718, 1586.1576668688224, 6812.892902302875 };
+                        v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        r2 = new double[] { -1608.99706453697, 2084.23508424173, 6656.27657708845 };
+                        v2 = new double[] { 2.65211231086955, -1.55584941166386, 5.96175008776875E-07 };
+                        dtsec = 2400.0; // 0lr
+                        break;
+                    case 37:
+                        nrev = 0;
+                        r1 = new double[] { -1467.0216503866718, 1586.1576668688224, 6812.892902302875 };
+                        v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        r2 = new double[] { -1121.44922682935, 1510.6959195005, 6906.45167804839 };
+                        v2 = new double[] { 2.65211231086955, -1.55584941166386, 5.96175008776875E-07 };
+                        dtsec = 2400.0; // 0sr
+                        break;
+
+                    case 38:
+                        nrev = 0;
+                        r1 = new double[] { -1467.0216503866718, 1586.1576668688224, 6812.892902302875 };
+                        v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        r2 = new double[] { 1469.25087675358, -1588.56792747551, -6823.24549695535 };
+                        v2 = new double[] { 2.65211231086955, -1.55584941166386, 5.96175008776875E-07 };
+                        dtsec = 25.0; // 0sr
+                        break;
+                    case 39:
+                        nrev = 2;
+                        r1 = new double[] { -1467.0216503866718, 1586.1576668688224, 6812.892902302875 };
+                        v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        r2 = new double[] { 940.2742457112, 2002.55768150576, 6807.6848036512 };
+                        v2 = new double[] { 2.65211231086955, -1.55584941166386, 5.96175008776875E-07 };
+                        dtsec = 7200.0; // 0lr
+                        break;
+                    case 40:  // ld2 may be a 0 deg case?
+                        nrev = 2;
+                        r1 = new double[] { -1467.0216503866718, 1586.1576668688224, 6812.892902302875 };
+                        v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        r2 = new double[] { -1482.87003576258, 1557.63131212973, 6827.43044367934 };
+                        v2 = new double[] { 2.65211231086955, -1.55584941166386, 5.96175008776875E-07 };
+                        dtsec = 7300.0; // 0sr
+                        break;
+                    case 41:  // ld2 may be a 180 deg case? 
+                        nrev = 2;
+                        r1 = new double[] { -1467.0216503866718, 1586.1576668688224, 6812.892902302875 };
+                        v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        r2 = new double[] { 1482.87003576258, -1557.63131212973, -6827.43044367934 };
+                        v2 = new double[] { -2.65211231086955, 1.55584941166386, -5.96175008776875E-07 };
+                        dtsec = 7300.0; // 0sr
+                        break;
+                    case 42:  // 180 deg case from JGCD 2013: pg 1925
+                        nrev = 0;
+                        r1 = new double[] { 5690.21923, 3309.62377, 1311.30504 };
+                        v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        r2 = new double[] { -5691.9147514, -3310.6095425, -1311.695711 };
+                        v2 = new double[] { -2.65211231086955, 1.55584941166386, -5.96175008776875E-07 };
+                        dtsec = 2750.0; // 0sr
+                        break;
+                    case 43:  // 
+                        nrev = 0;
+                        r1 = new double[] { -1467.0216503866718, 1586.1576668688224, 6812.892902302875 };
+                        v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        r2 = new double[] { -1442.6617806489, -3284.98662949686, 5868.25003058415 };
+                        v2 = new double[] { 2.65211231086955, -1.55584941166386, 5.96175008776875E-07 };
+                        dtsec = 7800.0; // 0ld
+                        break;
+                    case 44:  //
+                        nrev = 0;
+                        r1 = new double[] { -1467.0216503866718, 1586.1576668688224, 6812.892902302875 };
+                        v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        r2 = new double[] { -1442.6617806489, -3284.98662949686, 5868.25003058415 };
+                        v2 = new double[] { 2.65211231086955, -1.55584941166386, 5.96175008776875E-07 };
+                        dtsec = 7800.0; // 0ld
+                        break;
+                    case 45:  // 
+                        nrev = 0;
+                        r1 = new double[] { -1467.0216503866718, 1586.1576668688224, 6812.892902302875 };
+                        v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        r2 = new double[] { 1479.51367890978, -1599.66416611606, -6870.90626048191 };
+                        v2 = new double[] { 2.65211231086955, -1.55584941166386, 5.96175008776875E-07 };
+                        dtsec = 500.0; // 0lr
+                        break;
+                    case 46:  // 
+                        nrev = 0;
+                        r1 = new double[] { -1467.0216503866718, 1586.1576668688224, 6812.892902302875 };
+                        v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        r2 = new double[] { 138.1064291783988, 1622.8249169416792, 6970.3867334561619 };
+                        v2 = new double[] { 2.65211231086955, -1.55584941166386, 5.96175008776875E-07 };
+                        dtsec = 6000.0; // 0lr
+                        break;
+                    case 47:  // 
+                        nrev = 0;
+                        r1 = new double[] { -1467.0216503866718, 1586.1576668688224, 6812.892902302875 };
+                        v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        r2 = new double[] { 1990.42456035076, -2152.06583753701, -9243.5918421576 };
+                        v2 = new double[] { 2.65211231086955, -1.55584941166386, 5.96175008776875E-07 };
+                        dtsec = 960.0; // ld0
+                        break;
+                    case 48:  // 
+                        nrev = 0;
+                        r1 = new double[] { -1467.0216503866718, 1586.1576668688224, 6812.892902302875 };
+                        v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        r2 = new double[] { 1836.48252800838, -1985.62225792871, -8528.68038925911 };
+                        v2 = new double[] { 2.65211231086955, -1.55584941166386, 5.96175008776875E-07 };
+                        dtsec = 960.0; // lr0
+                        break;
+                    case 49:  // 
+                        nrev = 0;
+                        r1 = new double[] { -1467.0216503866718, 1586.1576668688224, 6812.892902302875 };
+                        v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        r2 = new double[] { 1374.65643098123, -1486.2915191038, -6383.9460305636 };
+                        v2 = new double[] { 2.65211231086955, -1.55584941166386, 5.96175008776875E-07 };
+                        dtsec = 1080.0; // lr0
+                        break;
+                    case 50:  // exact same start/stop
+                        nrev = 1;
+                        r1 = new double[] { -1467.0216503866718, 1586.1576668688224, 6812.892902302875 };
+                        v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        r2 = new double[] { -1467.12165038667, 1586.15766686882, 6812.89290230288 };
+                        v2 = new double[] { 2.65211231086955, -1.55584941166386, 5.96175008776875E-07 };
+                        dtsec = 1260.0; // sd1
+                        break;
+                    case 51:  // 
+                        nrev = 0;
+                        r1 = new double[] { -1467.0216503866718, 1586.1576668688224, 6812.892902302875 };
+                        v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        r2 = new double[] { 1384.91923313739, -1497.38775774435, -6431.60679409017 };
+                        v2 = new double[] { 2.65211231086955, -1.55584941166386, 5.96175008776875E-07 };
+                        dtsec = 1380.0; // ld0
+                        break;
+                    case 52:  // GEO explosion case
+                        nrev = 0;
+                        r1 = new double[] { 482.5243001466, -42162.5367629581, -4.55720848611 };
+                        v1 = new double[] { 3.07452652818, 0.03517993278, -0.00157950955 };
+                        r2 = new double[] { -345.20067445796, 30163.3225995325, 3.26025330242 };
+                        v2 = new double[] { 2.65211231086955, -1.55584941166386, 5.96175008776875E-07 };
+                        dtsec = 5000.0; // lr0
+                        break;
+                    case 53:  // 
+                        nrev = 0;
+                        r1 = new double[] { -1467.02165038667, 1586.15766686882, 6812.89290230288 };
+                        v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        r2 = new double[] { 4125.08740883182, -4460.08347477213, -19157.0306556835 };
+                        v2 = new double[] { 2.65211231086955, -1.55584941166386, 5.96175008776875E-07 };
+                        dtsec = 8340.0; // ld0
+                        break;
+                    case 54:  // 
+                        nrev = 0; r1 = new double[] { -1467.02165038667, 1586.15766686882, 6812.89290230288 };
+                        v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        r2 = new double[] { 1467.02165038667, -1586.15766686882, -6812.89290230288 };
+                        v2 = new double[] { 6.99554331377, 2.45471059071, 0.93275076625 };
+                        dtsec = 8340.0; // ld0
+                        break;
+                    case 55: // 360 deg
+                        nrev = 0;
+                        r1 = new double[] { -1467.02165038667, 1586.15766686882, 6812.89290230288 };
+                        v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        r2 = new double[] { -1467.02165038667, 1586.15766686882, 6812.89290230288 };
+                        v2 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        dtsec = 480.0; // ld0
+                        break;
+                    case 56: // blair gnc paper tests case 1/2 
+                        nrev = 0;
+                        r1 = new double[] { 3189.06815, 3826.88178, 4464.69541 };
+                        v1 = new double[] { -2.8590, 6.0850, -4.0020 };
+                        r2 = new double[] { -0.0110, AstroLibr.gravConst.re, -0.0160 };
+                        v2 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        dtsec = 780.0; // ld0
+                        break;
+                    case 57: // blair gnc paper tests case 3/4
+                        nrev = 3;
+                        r1 = new double[] { 3189.06815, 3826.88178, 4464.69541 };
+                        v1 = new double[] { -2.8590, 6.0850, -4.0020 };
+                        r2 = new double[] { -0.0110, AstroLibr.gravConst.re, -0.0160 };
+                        v2 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        dtsec = 12600.0; // ld0
+                        break;
+                    case 58: // 180 deg blair gnc paper case 5
+                        nrev = 0;
+                        r1 = new double[] { -21027.028559886, -38422.464945077, -21040.739334720 };
+                        v1 = new double[] { 3.325465893, 2.974269616, 1.543325496 };
+                        r2 = new double[] { 3608.25094727094, 6593.31839594208, 3610.60369026747 };
+                        v2 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        dtsec = 9091.575023; // ld0
+                        break;
+                    case 59: // 180 deg blair gnc paper case 6
+                        nrev = 8;
+                        r1 = new double[] { 6495.311253785, 1581.249033056, 582.620453154 };
+                        v1 = new double[] { -1.915647898, 6.463641713, 3.813978950 };
+                        r2 = new double[] { -6724.292992018, -1636.993312801, -603.159736589 };
+                        v2 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        dtsec = 47761.161352; // ld0
+                        break;
+                    case 60: // 180 deg blair gnc paper case 7
+                        nrev = 6;
+                        r1 = new double[] { 45285.8020, -88813.9820, 2399.1110 };
+                        v1 = new double[] { 0.8882, 1.3803, -0.3455 };
+                        r2 = new double[] { -63464.2660, -67537.1770, 20780.2140 };
+                        v2 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        dtsec = 1380794.0; // ld0
+                        break;
+                    case 61: //  ted new combo
+                        nrev = 0;
+                        r1 = new double[] { 4542.91131514247, 1821.67923522038, 4832.74476981704 };
+                        v1 = new double[] { -2.26483797514683, 7.24188730176539, -.599013408289993 };
+                        r2 = new double[] { 4761.27919527887, -3399.35772120015, 4224.48134696029 };
+                        v2 = new double[] { 2.67662728229248, -3.61820668585223, -5.91158244795794 };
+                        dtsec = 1009.2273957218166; // ld0
+                        break;
+                    case 62: //  ted hit earth
+                        nrev = 0;
+                        r1 = new double[] { 20291.6011015625, 8524.842359375, -2.20945309966803 };
+                        v1 = new double[] { -.622422892570496, 1.48184535074234, -0.00000870507268700749 };
+                        r2 = new double[] { 57349.23609375, -19192.008359375, -3.79552479560673 };
+                        v2 = new double[] { 1.39519703006744, 4.18299925518036, -0.00022377042460721 };  //xx
+                        dtsec = 5744.5489431519109; // ld0
+                        break;
+                    case 63: //  ted notch case
+                        nrev = 0;
+                        r1 = new double[] { 1213.240569289341, -6764.54813179293, -289.971597590799 };
+                        v1 = new double[] { 5.342982219845, 0.727123585546384, 5.37891609348336 };
+                        r2 = new double[] { 20517.0512490881, 7556.0384007962, 29118.4938038349 };
+                        v2 = new double[] { 1395.19703006744, 4182.99925518036, -0.22377042460721 };  //xx
+                        dtsec = 5613.8273887025871; // ld0
+                        break;
+                    case 64: //  ted notch case
+                        nrev = 0;
+                        r1 = new double[] { 1213.240569289341, -6764.54813179293, -289.971597590799 };
+                        v1 = new double[] { 5.342982219845, 0.727123585546384, 5.37891609348336 };
+                        r2 = new double[] { 20557.2340311722, 7467.6271535836, 2.14318960051298 };
+                        v2 = new double[] { -0.631836782875836, 1.40386453042887, 2.14318960051298 };
+                        dtsec = 5550.7506764699738; // ld0
+                        break;
+                    case 65: // sd0 dan dread exact same start/stop
+                        nrev = 0;
+                        r1 = new double[] { -1467.02165038667, 1586.15766686882, 6812.89290230288 };
+                        v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        r2 = new double[] { -1467.12165038667, 1586.15766686882, 6812.89290230288 };
+                        v2 = new double[] { -0.631836782875836, 1.40386453042887, 2.14318960051298 };
+                        dtsec = 225;
+                        break;
+                    case 66: // ld1 dan dread exact same start/stop
+                        nrev = 1;
+                        r1 = new double[] { -1467.02165038667, 1586.15766686882, 6812.89290230288 };
+                        v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        r2 = new double[] { -1467.12165038667, 1586.15766686882, 6812.89290230288 };
+                        v2 = new double[] { -0.631836782875836, 1.40386453042887, 2.14318960051298 };
+                        dtsec = 4000;
+                        break;
+                    case 67: // lr1 dan dread
+                        nrev = 1;
+                        r1 = new double[] { -1467.02165038667, 1586.15766686882, 6812.89290230288 };
+                        v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        r2 = new double[] { 1876.72223784062, -1540.28396484846, -6615.85535337256 };
+                        v2 = new double[] { -0.631836782875836, 1.40386453042887, 2.14318960051298 };
+                        dtsec = 8675;
+                        break;
+                    case 68: // lr1 dan dread
+                        nrev = 1;
+                        r1 = new double[] { -1467.02165038667, 1586.15766686882, 6812.89290230288 };
+                        v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        r2 = new double[] { 2010.78554376248, -1708.25120993044, -7337.31128158262 };
+                        v2 = new double[] { -0.631836782875836, 1.40386453042887, 2.14318960051298 };
+                        dtsec = 9400;
+                        break;
+                    case 69: // 0sd ted latest
+                        nrev = 0;
+                        r1 = new double[] { 38552.6973353558, 17070.7437708141, 73.9065325070225 };
+                        v1 = new double[] { -1.24482521753443, 2.81155032626659, -0.002979028376179 };
+                        r2 = new double[] { 39676.8516951764, 14293.6391122781, 11.439978324149 };
+                        v2 = new double[] { -1.0427035181671, 2.89206500777264, -0.00086707753542956 };  //xx
+                        dtsec = 2872.31657022148;
+                        break;
+                    case 70: // 0sd ted latest
+                        nrev = 0;
+                        r1 = new double[] { -15719.4372207424, 39127.4313653065, -38.2565972410531 };
+                        v1 = new double[] { -2.85296391088266, -1.14595651345875, -0.00549014511352564 };
+                        r2 = new double[] { -12901.5977809522, 40136.901044369, -10.1027040757486 };
+                        v2 = new double[] { -2.92766954080673, -0.941319460393697, -0.00099716931263049 };
+                        dtsec = 2872.31657022148;
+                        break;
+                    case 71: // ld1 dan dread w new < 0.0, not <-1.0, and NAN for knew
+                        nrev = 1;
+                        r1 = new double[] { -1467.02165038667, 1586.15766686882, 6812.89290230288 };
+                        v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        r2 = new double[] { -1467.02165038667, 1586.15766686882, 6812.89290230288 };
+                        v2 = new double[] { -0.631836782875836, 1.40386453042887, 2.14318960051298 };  // xx
+                        dtsec = 6325.0;
+                        break;
+                    case 72: // ld0 dan dread w new < 0.0, not <-1.0
+                        nrev = 0;
+                        r1 = new double[] { -1467.02165038667, 1586.15766686882, 6812.89290230288 };
+                        v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        r2 = new double[] { -1467.02165038667, 1586.15766686882, 6812.89290230288 };
+                        v2 = new double[] { -0.631836782875836, 1.40386453042887, 2.14318960051298 };  // xx
+                        dtsec = 50.0;
+                        break;
+                    case 73: // ld2 dan dread w new < 0.0, not <-1.0
+                        nrev = 2;
+                        r1 = new double[] { -1467.02165038667, 1586.15766686882, 6812.89290230288 };
+                        v1 = new double[] { -6.99554331377, -2.45471059071, -0.93275076625 };
+                        r2 = new double[] { 3643.54668127958, 1361.21401630224, 5846.71089380907 };
+                        v2 = new double[] { -0.631836782875836, 1.40386453042887, 2.14318960051298 };  // xx
+                        dtsec = 8050.0;
+                        break;
+                    case 74: // ld2 dan dread w new < 0.0, not <-1.0
+                        nrev = 2;
+                        r1 = new double[] { -5383.180477, -889.26752, 4749.772766 };
+                        v1 = new double[] { -4.952471, 0.680931, -5.484262 };
+                        r2 = new double[] { -1577.53668163127, -1674.29862046126, 8942.79596495134 };
+                        v2 = new double[] { -0.631836782875836, 1.40386453042887, 2.14318960051298 };  // xx
+                        dtsec = 9840.0;
+                        break;
+                    case 75: // Nathan Zero Rev(2 degree transfer, short path)-
+                        nrev = 0;
+                        r1 = new double[] { -2447.5108649997796, 6425.7721331143939, 2598.9244187603417 };
+                        v1 = new double[] { -7.0417929290503141, -2.8681303717265290, 1.2224374606557487 };
+                        r2 = new double[] {-2681.1652972600514, 6326.4598751843578, 2638.2723306223224 };
+                        v2 = new double[] { -6.9560477233116353, -3.0813393768501216, 1.1348757995584626};  // xx
+                        dtsec = 33.381379026791095;
+                        break;
+                    case 76: // Nathan Zero Rev(2 degree transfer, short path)-
+                        nrev = 0;
+                        r1 = new double[] { -2447.5108649997796, 6425.7721331143939, 2598.9244187603417 };
+                        v1 = new double[] { -7.0417929290503141, -2.8681303717265290, 1.2224374606557487 };
+                        r2 = new double[] { -2681.1652972600514, 6326.4598751843578, 2638.2723306223224 };
+                        v2 = new double[] { -6.9560477233116353, -3.0813393768501216, 1.1348757995584626 };  // xx
+                        dtsec = 133.381379026791095;
+                        break;
+                    case 77: // Nathan Multi Rev (1 Rev, 173.5 degree transfer after rev)
+                        nrev = 1;
+                        r1 = new double[] { -2447.5108649997796, 6425.7721331143939, 2598.9244187603417 };
+                        v1 = new double[] { -7.0417929290503141, -2.8681303717265290, 1.2224374606557487 };
+                        r2 = new double[] { 2030.5293385373081, -8121.6045151470798, -2973.4911622306390};
+                        v2 = new double[] { 5.9109725501309471, 2.0990367313315055, -1.1164901518784618 };  // xx
+                        dtsec = 10925.110937168842;
+                        break;
+                    case 78: // Nathan Multi Rev (1 Rev, converges hyperbolic/parabolic?)
+                        nrev = 1;
+                        r1 = new double[] { 7117.5156243154161, -4257.1942597683246, -583.88210887807986 };
+                        v1 = new double[] { -7.0417929290503141, -2.8681303717265290, 1.2224374606557487 };
+                        r2 = new double[] { 7172.3074180808417, -4123.2685183007470, -560.47505356742181 };
+                        v2 = new double[] { 5.9109725501309471, 2.0990367313315055, -1.1164901518784618 };  // xx
+                        dtsec = 9864.8956080266707;
+                        break;
+                    case 79: // Nathan Multi Rev (1 Rev, converges hyperbolic/parabolic?)
+                        nrev = 1;
+                        r1 = new double[] { 15945.3425000,      0.0000000,      0.0000000 };
+                        v1 = new double[] { -7.0417929290503141, -2.8681303717265290, 1.2224374606557487 };
+                        r2 = new double[] { 12214.8409660,  10249.4684368,      0.0000000 };
+                        v2 = new double[] { 5.9109725501309471, 2.0990367313315055, -1.1164901518784618 };  // xx
+                        dtsec = 29573.972651;
+                        break;
+                    case 80: // Dan dread
+                        nrev = 1;
+                        r1 = new double[] { -1984.0302332256897, 1525.2723537058205, 6364.7695528344739 };
+                        v1 = new double[] { 3.659783, -6.176723, 2.606056 };
+                        r2 = new double[] { 2193.910120325967, -1959.3361517230558, -8176.0631482998751 };
+                        v2 = new double[] { 5.9109725501309471, 2.0990367313315055, -1.1164901518784618 };  // xx
+                        dtsec = 5400.0;
+                        break;
+                    case 81: // Dan dread
+                        nrev = 2;
+                        r1 = new double[] { -1984.0302332256897, 1525.2723537058205, 6364.7695528344739 };
+                        v1 = new double[] { 3.659783, -6.176723, 2.606056 };
+                        r2 = new double[] { -1982.5797253035344, 1524.1572398353539, 6360.1163230073907 };
+                        v2 = new double[] { 5.9109725501309471, 2.0990367313315055, -1.1164901518784618 };  // xx
+                        dtsec = 10.0;
+                        break;
+                    case 82: // Dan dread
+                        nrev = 0;
+                        r1 = new double[] { -1984.0302332256897, 1525.2723537058205, 6364.7695528344739 };
+                        v1 = new double[] { 3.659783, -6.176723, 2.606056 };
+                        r2 = new double[] { -5123.56515285304, -1168.59526837238, -4876.40096908065 };
+                        v2 = new double[] { -2.835, -5.507, 4.1508 };  // xx
+                        dtsec = 1130.0;
+                        break;
+                    case 83: // Dan dread
+                        nrev = 0;
+                        r1 = new double[] { -1984.0302332256897, 1525.2723537058205, 6364.7695528344739 };
+                        v1 = new double[] { 3.659783, -6.176723, 2.606056 };
+                        r2 = new double[] { -2038.89153433683, 1538.41986781477, 6419.63247439258 };
+                        v2 = new double[] { -2.835, -5.507, 4.1508 };  // xx
+                        dtsec = 2580;
+                        break;
+                    case 84: // Dan dread
+                        nrev = 0;
+                        r1 = new double[] { -1984.0302332256897, 1525.2723537058205, 6364.7695528344739 };
+                        v1 = new double[] { 3.659783, -6.176723, 2.606056 };
+                        r2 = new double[] { -2002.23801460696, 1515.44724266202, 6323.7706010913 };
+                        v2 = new double[] { -2.835, -5.507, 4.1508 };  // xx
+                        dtsec = 2720;
+                        break;
+                    case 85: // Dan dread
+                        nrev = 0;
+                        r1 = new double[] { -1984.0302332256897, 1525.2723537058205, 6364.7695528344739 };
+                        v1 = new double[] { 3.659783, -6.176723, 2.606056 };
+                        r2 = new double[] { -2055.0600028083, 1517.71253635698, 6333.223386558 };
+                        v2 = new double[] { -2.835, -5.507, 4.1508 };  // xx
+                        dtsec = 2880;
+                        break;
+                }  // switch
+
+                //      dtsec0 = 300.0;
+                //      r1 = new double[] { 6.6100000    0.000000    0.000000]*AstroLibr.gravConst.re;
+                //      r2  = [ 32328.6   27126.9   0.000000];
+                strbuildAll.AppendLine("===== Lambert Case " + caseopt.ToString() + " === ");
+
+                // assume circular initial orbit for vel calcs
+                //    v1 = new double[] {0.0; sqrt(mu/r1(1)); 0.0];
+                ang = Math.Atan(r2[1] / r2[0]);
+                //    v2 = new double[] {-sqrt(mu/r2(2))*cos(ang);sqrt(mu/r2(1))*sin(ang);0.0];
+                // or
+//                r2eci = [-5123.56515285304 - 1168.59526837238 - 4876.40096908065];
+//                temp = sqrt(r2eci(1) ^ 2 + r2eci(2) ^ 2);
+//                sinlatgc = atan(r2eci(3) / temp);
+//                p = mag(r2eci);
+//                v2mag = sqrt(mu / mag(r2eci));
+
+//                omega = 220.0 / rad;  % atan2(r2(1), temp);
+
+////approx only
+//incl = sinlatgc;
+
+//                [tempvec] = rot3(r2eci, omega);
+//                [rpqw] = rot1(tempvec, incl);
+////[tempvec] = rot3(rpqw, -argp);
+//                cosnu = rpqw(1) / p;
+//                sinnu = rpqw(2) / p;
+
+//                sini = sinlatgc / sinnu;
+//                incl = asin(sini);
+
+//// in pqw
+//v2pqw = [-v2mag * sinnu; v2mag* cosnu; 0.0]';
+
+//    //[tempvec] = rot3(vpqw, 0.0);
+//                [tempvec] = rot1(v2pqw, -incl);
+//                [v2] = rot3(tempvec, -omega);
+
+                double magr1 = MathTimeLibr.mag(r1);
+                double magr2 = MathTimeLibr.mag(r2);
+
+                // this value stays constant in all calcs, vara changes with df
+                double cosdeltanu = MathTimeLibr.dot(r1, r2) / (magr1 * magr2);
+
+                //strbuild.AppendLine("now do findtbi calcs");
+                //strbuild.AppendLine("iter       y         dtnew          psiold      psinew   psinew-psiold   dtdpsi      dtdpsi2    lower    upper     ");
+
+                AstroLambertkLibr.lambertkmins1st(r1, r2, out s, out tau);
+                strbuildAll.AppendLine(" s " + s.ToString(fmt) + " tau " + tau.ToString(fmt) );
+
+                double kbi, tof;
+                double[,] tbidk = new double[10, 3];
+                AstroLambertkLibr.lambertkmins(s, tau, 1, 'x', 'L', out kbi, out tof);
+                tbidk[1, 1] = kbi;
+                tbidk[1, 2] = tof / tusec;
+                AstroLambertkLibr.lambertkmins(s, tau, 2, 'x', 'L', out kbi, out tof);
+                tbidk[2, 1] = kbi;
+                tbidk[2, 2] = tof / tusec;
+                AstroLambertkLibr.lambertkmins(s, tau, 3, 'x', 'L', out kbi, out tof);
+                tbidk[3, 1] = kbi;
+                tbidk[3, 2] = tof / tusec;
+                AstroLambertkLibr.lambertkmins(s, tau, 4, 'x', 'L', out kbi, out tof);
+                tbidk[4, 1] = kbi;
+                tbidk[4, 2] = tof / tusec;
+                AstroLambertkLibr.lambertkmins(s, tau, 5, 'x', 'L', out kbi, out tof);
+                tbidk[5, 1] = kbi;
+                tbidk[5, 2] = tof / tusec;
+                AstroLambertkLibr.lambertkmins(s, tau, 6, 'x', 'L', out kbi, out tof);
+                tbidk[6, 1] = kbi;
+                tbidk[6, 2] = tof / tusec;
+
+                double[,] tbirk = new double[10, 3];
+                AstroLambertkLibr.lambertkmins(s, tau, 1, 'x', 'H', out kbi, out tof);
+                tbirk[1, 1] = kbi;
+                tbirk[1, 2] = tof / tusec;
+                AstroLambertkLibr.lambertkmins(s, tau, 2, 'x', 'H', out kbi, out tof);
+                tbirk[2, 1] = kbi;
+                tbirk[2, 2] = tof / tusec;
+                AstroLambertkLibr.lambertkmins(s, tau, 3, 'x', 'H', out kbi, out tof);
+                tbirk[3, 1] = kbi;
+                tbirk[3, 2] = tof / tusec;
+                AstroLambertkLibr.lambertkmins(s, tau, 4, 'x', 'H', out kbi, out tof);
+                tbirk[4, 1] = kbi;
+                tbirk[4, 2] = tof / tusec;
+                AstroLambertkLibr.lambertkmins(s, tau, 5, 'x', 'H', out kbi, out tof);
+                tbirk[5, 1] = kbi;
+                tbirk[5, 2] = tof / tusec;
+                AstroLambertkLibr.lambertkmins(s, tau, 6, 'x', 'H', out kbi, out tof);
+                tbirk[6, 1] = kbi;
+                tbirk[6, 2] = tof / tusec;
+
+                strbuildAll.AppendLine("From k variables ");
+                strbuildAll.AppendLine(" " + tbidk[1, 1].ToString("#0.00000000000") + "  " + (tbidk[1, 2] * tusec).ToString("0.00000000000") + " s " + (tbidk[1, 2]).ToString("0.00000000000") + " tu ");
+                strbuildAll.AppendLine(" " + tbidk[2, 1].ToString("#0.00000000000") + "  " + (tbidk[2, 2] * tusec).ToString("0.00000000000") + " s " + (tbidk[2, 2]).ToString("0.00000000000") + " tu ");
+                strbuildAll.AppendLine(" " + tbidk[3, 1].ToString("#0.00000000000") + "  " + (tbidk[3, 2] * tusec).ToString("0.00000000000") + " s " + (tbidk[3, 2]).ToString("0.00000000000") + " tu ");
+                strbuildAll.AppendLine(" " + tbidk[4, 1].ToString("#0.00000000000") + "  " + (tbidk[4, 2] * tusec).ToString("0.00000000000") + " s " + (tbidk[4, 2]).ToString("0.00000000000") + " tu ");
+                strbuildAll.AppendLine(" " + tbidk[5, 1].ToString("#0.00000000000") + "  " + (tbidk[5, 2] * tusec).ToString("0.00000000000") + " s " + (tbidk[5, 2]).ToString("0.00000000000") + " tu ");
+                strbuildAll.AppendLine("");
+                strbuildAll.AppendLine(" " + tbirk[1, 1].ToString("#0.00000000000") + "  " + (tbirk[1, 2] * tusec).ToString("0.00000000000") + " s " + (tbirk[1, 2]).ToString("0.00000000000") + " tu ");
+                strbuildAll.AppendLine(" " + tbirk[2, 1].ToString("#0.00000000000") + "  " + (tbirk[2, 2] * tusec).ToString("0.00000000000") + " s " + (tbirk[2, 2]).ToString("0.00000000000") + " tu ");
+                strbuildAll.AppendLine(" " + tbirk[3, 1].ToString("#0.00000000000") + "  " + (tbirk[3, 2] * tusec).ToString("0.00000000000") + " s " + (tbirk[3, 2]).ToString("0.00000000000") + " tu ");
+                strbuildAll.AppendLine(" " + tbirk[4, 1].ToString("#0.00000000000") + "  " + (tbirk[4, 2] * tusec).ToString("0.00000000000") + " s " + (tbirk[4, 2]).ToString("0.00000000000") + " tu ");
+                strbuildAll.AppendLine(" " + tbirk[5, 1].ToString("#0.00000000000") + "  " + (tbirk[5, 2] * tusec).ToString("0.00000000000") + " s " + (tbirk[5, 2]).ToString("0.00000000000") + " tu ");
+
+
+                //strbuild.AppendLine("lambertTest" + caseopt.ToString() + " " + r1[0].ToString("0.00000000000") + " " + r1[1].ToString("0.00000000000") + " " + r1[2].ToString("0.00000000000") +
+                //    " " + v1[0].ToString("0.00000000000") + " " + v1[1].ToString("0.00000000000") + " " + v1[2].ToString("0.00000000000") +
+                //    " " + r2[0].ToString("0.00000000000") + " " + r2[1].ToString("0.00000000000") + " " + r2[2].ToString("0.00000000000") +
+                //    " " + v2[0].ToString("0.00000000000") + " " + v2[1].ToString("0.00000000000") + " " + v2[2].ToString("0.00000000000") + " " + dtsec.ToString());
+
+                AstroLibr.lambertminT(r1, r2, 'S', 'L', 1, out tmin, out tminp, out tminenergy);
+                strbuildAll.AppendLine("mint S " + tmin.ToString("0.0000") + " minp " + tminp.ToString("0.0000") + " minener " + tminenergy.ToString("0.0000"));
+                AstroLibr.lambertminT(r1, r2, 'S', 'L', 2, out tmin, out tminp, out tminenergy);
+                strbuildAll.AppendLine("mint S " + tmin.ToString("0.0000") + " minp " + tminp.ToString("0.0000") + " minener " + tminenergy.ToString("0.0000"));
+                AstroLibr.lambertminT(r1, r2, 'S', 'L', 3, out tmin, out tminp, out tminenergy);
+                strbuildAll.AppendLine("mint S " + tmin.ToString("0.0000") + " minp " + tminp.ToString("0.0000") + " minener " + tminenergy.ToString("0.0000"));
+
+                AstroLibr.lambertminT(r1, r2, 'L', 'H', 1, out tmin, out tminp, out tminenergy);
+                strbuildAll.AppendLine("mint L " + tmin.ToString("0.0000") + " minp " + tminp.ToString("0.0000") + " minener " + tminenergy.ToString("0.0000"));
+                AstroLibr.lambertminT(r1, r2, 'L', 'H', 2, out tmin, out tminp, out tminenergy);
+                strbuildAll.AppendLine("mint L " + tmin.ToString("0.0000") + " minp " + tminp.ToString("0.0000") + " minener " + tminenergy.ToString("0.0000"));
+                AstroLibr.lambertminT(r1, r2, 'L', 'H', 3, out tmin, out tminp, out tminenergy);
+                strbuildAll.AppendLine("mint L " + tmin.ToString("0.0000") + " minp " + tminp.ToString("0.0000") + " minener " + tminenergy.ToString("0.0000"));
+
+                char modecon = 'n';  // 'c' to shortcut bad cases (hitearth) at iter 3 or 'n'
+
+                strbuildAll.AppendLine(" TEST ------------------ s/l  H  0 rev ------------------");
+                hitearth = ' ';
+                dm = 'S';
+                de = 'H';
+                AstroLambertkLibr.lambertK(r1, v1, r2, dm, de, nrev, dtwait, dtsec, 0.0, 0.0, numiter, altpadc, modecon, 'n',
+                    out v1tk, out v2tk, out f, out g, out gdot, out hitearth, out errorout, out detailSum, out detailAll);
+                strbuildAll.AppendLine(detailAll);
+                //strbuild.AppendLine("k#" + caseopt + " " + detailSum + " diffs " + MathTimeLib::mag(dr).ToString("0.00000000000"));
+                strbuildAll.AppendLine("lamk v1t " + " " + v1tk[0].ToString("0.00000000000") + " " + v1tk[1].ToString("0.00000000000") + " " + v1tk[2].ToString("0.00000000000"));
+                strbuildAll.AppendLine("lamk v2t " + " " + v2tk[0].ToString("0.00000000000") + " " + v2tk[1].ToString("0.00000000000") + " " + v2tk[2].ToString("0.00000000000"));
+                //strbuild.AppendLine(magv1t.ToString("0.0000000").PadLeft(12) + " " + magv2t.ToString("0.0000000").PadLeft(12));
+
+                AstroLibr.kepler(r1, v1tk, dtsec, out r3h, out v3h);
+                strbuildAll.AppendLine("r3h " + " " + r3h[0].ToString("0.00000000000") + " " + r3h[1].ToString("0.00000000000") + " " + r3h[2].ToString("0.00000000000"));
+                for (int j = 0; j < 3; j++)
+                    dr[j] = r2[j] - r3h[j];
+                if (MathTimeLibr.mag(dr) > 0.01)
+                    strbuildAll.AppendLine("velk does not get to r2 position (km) " + MathTimeLibr.mag(dr).ToString() + "\n");
+
+                AstroLibr.lambertuniv(r1, r2, v1, dm, de, nrev, 0.0, dtsec, 0.0, altpadc * AstroLibr.gravConst.re, 'n', out v1tu, out v2tu, out hitearth, out detailSum, out detailAll);
+                //strbuild.AppendLine(detailSum);
+                strbuildAll.AppendLine("univ v1t " + " " + v1tu[0].ToString("0.00000000000") + " " + v1tu[1].ToString("0.00000000000") + " " + v1tu[2].ToString("0.00000000000"));
+                strbuildAll.AppendLine("univ v2t " + " " + v2tu[0].ToString("0.00000000000") + " " + v2tu[1].ToString("0.00000000000") + " " + v2tu[2].ToString("0.00000000000"));
+                AstroLibr.kepler(r1, v1tu, dtsec, out r3h, out v3h);
+                for (int j = 0; j < 3; j++)
+                    dr[j] = r2[j] - r3h[j];
+                if (MathTimeLibr.mag(dr) > 0.01)
+                    strbuildAll.AppendLine("velu does not get to r2 position (km) " + MathTimeLibr.mag(dr).ToString() + "\n");
+
+                for (int j = 0; j < 3; j++)
+                {
+                    dv1[j] = v1tk[j] - v1tu[j];
+                    dv2[j] = v2tk[j] - v2tu[j];
+                }
+                if (MathTimeLibr.mag(dv1) > 0.01 || MathTimeLibr.mag(dv2) > 0.01)
+                    strbuildAll.AppendLine("velk does not match velu \n");
+
+                AstroLibr.lambertbattin(r1, r2, v1, dm, de, nrev, 0.0, dtsec, altpadc * AstroLibr.gravConst.re, 'n', out v1tb, out v2tb, out hitearth, out detailSum, out detailAll);
+                //strbuild.AppendLine(detailSum);
+                strbuildAll.AppendLine("batt v1t " + " " + v1tb[0].ToString("0.00000000000") + " " + v1tb[1].ToString("0.00000000000") + " " + v1tb[2].ToString("0.00000000000"));
+                strbuildAll.AppendLine("batt v2t " + " " + v2tb[0].ToString("0.00000000000") + " " + v2tb[1].ToString("0.00000000000") + " " + v2tb[2].ToString("0.00000000000"));
+                AstroLibr.kepler(r1, v1tb, dtsec, out r3h, out v3h);
+                for (int j = 0; j < 3; j++)
+                    dr[j] = r2[j] - r3h[j];
+                if (MathTimeLibr.mag(dr) > 0.01)
+                    strbuildAll.AppendLine("velb does not get to r2 position (km) " + MathTimeLibr.mag(dr).ToString() + "\n");
+                //strbuild.AppendLine("diffs " + MathTimeLibr.mag(dr).ToString("0.00000000000"));
+
+                for (int j = 0; j < 3; j++)
+                {
+                    dv1[j] = v1tk[j] - v1tb[j];
+                    dv2[j] = v2tk[j] - v2tb[j];
+                }
+                if (MathTimeLibr.mag(dv1) > 0.01 || MathTimeLibr.mag(dv2) > 0.01)
+                    strbuildAll.AppendLine("velk does not match velb \n");
+                //strbuild.AppendLine("diffs " + MathTimeLib::mag(dr).ToString("0.00000000000"));
+
+                //// teds approach
+                //double[] r2ted = new double[] { r2[0], r2[1], r2[2] };
+                //double[] v2ted = new double[] { v2[0], v2[1], v2[2] };
+                //double[] r1ted = new double[] { r1[0], r1[1], r1[2] };
+                //double[] v1ted = new double[] { v1[0], v1[1], v1[2] };
+                //Cartesian r1com = new Cartesian(r1ted[0], r1ted[1], r1ted[2]);
+                //Cartesian v1com = new Cartesian(v1ted[0], v1ted[1], v1ted[2]);
+                //Cartesian r2com = new Cartesian(r2ted[0], r2ted[1], r2ted[2]);
+                //Cartesian v2com = new Cartesian(v2ted[0], v2ted[1], v2ted[2]);
+                //var result = LambertDeltaV.FindMinimumDeltaV(r2com, v2com, r1com, v1com, dtsec, Lambert.EngagementType.Prox, 0);  // .Intercept
+                //double[] v1tr = { result.Velocities.Item1.X, result.Velocities.Item1.Y, result.Velocities.Item1.Z };  // LambertKMin/s
+                //double[] v2tr = { result.Velocities.Item2.X, result.Velocities.Item2.Y, result.Velocities.Item2.Z };  // LambertKMin/s
+                //for (int i = 0; i < 3; i++)
+                //{
+                //    dv1t[i] = v1[i] - v1tr[i];
+                //    dv2t[i] = v2[i] - v2tr[i];
+                //}
+                //magv1tt = MathTimeLibr.mag(dv1);
+                //magv2tt = MathTimeLibr.mag(dv2);
+                ////strbuild.AppendLine(detailAll);  // dont do again
+                //double knew = 1.1;
+                //detailAll = ("T" + detailSum.PadLeft(2) + result.LambertCalculations.ToString().PadLeft(4) + 0.ToString().PadLeft(3) + "   " + dm + "  " + df + dtwait.ToString("0.00000000000").PadLeft(15) +
+                //           dtsec.ToString("0.00000000000").PadLeft(15) + knew.ToString("0.00000000000").PadLeft(15) +
+                //           v1tr[0].ToString("0.00000000000").PadLeft(15) + v1tr[1].ToString("0.00000000000").PadLeft(15) + v1tr[2].ToString("0.00000000000").PadLeft(15) +
+                //           v2tr[0].ToString("0.00000000000").PadLeft(15) + v2tr[1].ToString("0.00000000000").PadLeft(15) + v2tr[2].ToString("0.00000000000").PadLeft(15) +
+                //           (Math.Acos(cosdeltanu) * 180 / Math.PI).ToString("0.00000000000").PadLeft(15) + caseopt + hitearth);
+                ////                strbuild.AppendLine(detailAll);
+
+                ////                strbuild.AppendLine(magv1tt.ToString("0.00000000000") + "  " + magv2tt.ToString("0.00000000000") + " \n");
+                //if ((Math.Abs(magv1t - magv1tt) > 0.01) || (Math.Abs(magv2t - magv2tt) > 0.01))
+                //    strbuild.AppendLine("Error between the approaches");
+
+                // timing of routines
+                //var watch = System.Diagnostics.Stopwatch.StartNew();
+                //int l = 0;
+                //for (l = 1; l < 500; l++)
+                {
+                    strbuildAll.AppendLine(" TEST ------------------ s/l L 0 rev ------------------");
+                    dm = 'L';
+                    de = 'L';
+                    // k near 180 is about 53017 while battin is 30324!
+                    AstroLambertkLibr.lambertK(r1, v1, r2, dm, de, nrev, dtwait, dtsec, 0.0, 0.0, numiter, altpadc, modecon, 'n',
+                        out v1tk, out v2tk, out f, out g, out gdot, out hitearth, out errorout, out detailSum, out detailAll);
+                    strbuildAll.AppendLine(detailAll);
+                    //strbuild.AppendLine("k#" + caseopt + " " + detailSum + " diffs " + MathTimeLibr.mag(dr).ToString("0.00000000000"));
+                    strbuildAll.AppendLine("lamk v1t " + " " + v1tk[0].ToString("0.00000000000") + " " + v1tk[1].ToString("0.00000000000") + " " + v1tk[2].ToString("0.00000000000"));
+                    strbuildAll.AppendLine("lamk v2t " + " " + v2tk[0].ToString("0.00000000000") + " " + v2tk[1].ToString("0.00000000000") + " " + v2tk[2].ToString("0.00000000000"));
+                    //strbuild.AppendLine(magv1t.ToString("0.0000000").PadLeft(12) + " " + magv2t.ToString("0.0000000").PadLeft(12));
+
+                    AstroLibr.kepler(r1, v1tk, dtsec, out r3h, out v3h);
+                    for (int j = 0; j < 3; j++)
+                        dr[j] = r2[j] - r3h[j];
+                    if (MathTimeLibr.mag(dr) > 0.01)
+                        strbuildAll.AppendLine("velk does not get to r2 (km) position " + MathTimeLibr.mag(dr).ToString() + "\n");
+
+                    AstroLibr.lambertuniv(r1, r2, v1, dm, de, nrev, 0.0, dtsec, 0.0, altpadc * AstroLibr.gravConst.re, 'n', out v1tu, out v2tu, out hitearth, out detailSum, out detailAll);
+                    //strbuild.AppendLine(detailSum);
+                    strbuildAll.AppendLine("univ v1t " + " " + v1tu[0].ToString("0.00000000000") + " " + v1tu[1].ToString("0.00000000000") + " " + v1tu[2].ToString("0.00000000000"));
+                    strbuildAll.AppendLine("univ v2t " + " " + v2tu[0].ToString("0.00000000000") + " " + v2tu[1].ToString("0.00000000000") + " " + v2tu[2].ToString("0.00000000000"));
+                    AstroLibr.kepler(r1, v1tu, dtsec, out r3h, out v3h);
+                    for (int j = 0; j < 3; j++)
+                        dr[j] = r2[j] - r3h[j];
+                    if (MathTimeLibr.mag(dr) > 0.01)
+                        strbuildAll.AppendLine("velu does not get to r2 (km) position " + MathTimeLibr.mag(dr).ToString() + "\n");
+
+                    for (int j = 0; j < 3; j++)
+                    {
+                        dv1[j] = v1tk[j] - v1tu[j];
+                        dv2[j] = v2tk[j] - v2tu[j];
+                    }
+                    if (MathTimeLibr.mag(dv1) > 0.01 || MathTimeLibr.mag(dv2) > 0.01)
+                        strbuildAll.AppendLine("velk does not match velu \n");
+
+                    AstroLibr.lambertbattin(r1, r2, v1, dm, de, nrev, 0.0, dtsec, altpadc * AstroLibr.gravConst.re, 'n', out v1tb, out v2tb, out hitearth, out detailSum, out detailAll);
+                    //strbuild.AppendLine(detailSum);
+                    strbuildAll.AppendLine("batt v1t " + " " + v1tb[0].ToString("0.00000000000") + " " + v1tb[1].ToString("0.00000000000") + " " + v1tb[2].ToString("0.00000000000"));
+                    strbuildAll.AppendLine("batt v2t " + " " + v2tb[0].ToString("0.00000000000") + " " + v2tb[1].ToString("0.00000000000") + " " + v2tb[2].ToString("0.00000000000"));
+                    AstroLibr.kepler(r1, v1tb, dtsec, out r3h, out v3h);
+                    for (int j = 0; j < 3; j++)
+                        dr[j] = r2[j] - r3h[j];
+                    if (MathTimeLibr.mag(dr) > 0.01)
+                        strbuildAll.AppendLine("velb does not get to r2 (km) position " + MathTimeLibr.mag(dr).ToString() + "\n");
+                    //strbuild.AppendLine("diffs " + MathTimeLibr.mag(dr).ToString("0.00000000000"));
+
+                    for (int j = 0; j < 3; j++)
+                    {
+                        dv1[j] = v1tk[j] - v1tb[j];
+                        dv2[j] = v2tk[j] - v2tb[j];
+                    }
+                    if (MathTimeLibr.mag(dv1) > 0.01 || MathTimeLibr.mag(dv2) > 0.01)
+                        strbuildAll.AppendLine("velk does not match velb \n");
+                    //strbuild.AppendLine("diffs " + MathTimeLib::mag(dr).ToString("0.00000000000"));
+
+                    for (int j = 0; j < 3; j++)
+                    {
+                        dv1[j] = v1tk[j] - v1tb[j];
+                        dv2[j] = v2tk[j] - v2tb[j];
+                    }
+                    if (MathTimeLibr.mag(dv1) > 0.01 || MathTimeLibr.mag(dv2) > 0.01)
+                        strbuildAll.AppendLine("velk does not match velb \n");
+                    //strbuild.AppendLine("diffs " + MathTimeLib::mag(dr).ToString("0.00000000000"));
+                }
+                //watch.Stop();
+                //var elapsedMs = watch.ElapsedMilliseconds;
+                //Console.WriteLine(watch.ElapsedMilliseconds); 
+
+                // use random nrevs, but check if nrev = 0 and set to 1
+                // but then you have to check that there is enough time for 1 rev
+                int nnrev = nrev;
+                if (nnrev == 0)
+                    nnrev = 1;
+
+                AstroLibr.lambertminT(r1, r2, 'S', 'L', nnrev, out tmin, out tminp, out tminenergy);
+                strbuildAll.AppendLine("mint S " + tmin.ToString("0.0000") + " minp " + tminp.ToString("0.0000") + " minener " + tminenergy.ToString("0.0000"));
+                AstroLibr.lambertminT(r1, r2, 'L', 'L', nnrev, out tmin, out tminp, out tminenergy);
+                strbuildAll.AppendLine("mint L " + tmin.ToString("0.0000") + " minp " + tminp.ToString("0.0000") + " minener " + tminenergy.ToString("0.0000"));
+
+                strbuildAll.AppendLine(" TEST ------------------ S  L " + nnrev.ToString() + " rev ------------------");
+                //if (dtsec / tusec >= tbidk[nnrev, 2])
+                // do inside lambertk now
+                {
+                    dm = 'S';
+                    de = 'L';
+                    AstroLambertkLibr.lambertkmins(s, tau, nnrev, dm, de, out kbi, out tof);
+                    AstroLambertkLibr.lambertK(r1, v1, r2, dm, de, nnrev, dtwait, dtsec, tof, kbi, numiter, altpadc, modecon, 'n',
+                        out v1tk, out v2tk, out f, out g, out gdot, out hitearth, out errorout, out detailSum, out detailAll);
+                    strbuildAll.AppendLine(detailAll);
+                    //strbuild.AppendLine("k#" + caseopt + " " + detailSum + " diffs " + MathTimeLibr.mag(dr).ToString("0.00000000000"));
+                    strbuildAll.AppendLine("lamk v1t " + " " + v1tk[0].ToString("0.00000000000") + " " + v1tk[1].ToString("0.00000000000") + " " + v1tk[2].ToString("0.00000000000"));
+                    strbuildAll.AppendLine("lamk v2t " + " " + v2tk[0].ToString("0.00000000000") + " " + v2tk[1].ToString("0.00000000000") + " " + v2tk[2].ToString("0.00000000000"));
+                    //strbuild.AppendLine(magv1t.ToString("0.0000000").PadLeft(12) + " " + magv2t.ToString("0.0000000").PadLeft(12));
+
+                    AstroLibr.kepler(r1, v1tk, dtsec, out r3h, out v3h);
+                    for (int j = 0; j < 3; j++)
+                        dr[j] = r2[j] - r3h[j];
+                    if (MathTimeLibr.mag(dr) > 0.01)
+                        strbuildAll.AppendLine("velk does not get to r2 (km) position " + MathTimeLibr.mag(dr).ToString() + "\n");
+
+                    AstroLibr.lambertumins(r1, r2, nnrev, dm, out kbi, out tof);
+                    AstroLibr.lambertuniv(r1, r2, v1, dm, de, nnrev, 0.0, dtsec, kbi, altpadc * AstroLibr.gravConst.re, 'n', out v1tu, out v2tu, out hitearth, out detailSum, out detailAll);
+                    //strbuild.AppendLine(detailSum);
+                    strbuildAll.AppendLine("univ v1t " + " " + v1tu[0].ToString("0.00000000000") + " " + v1tu[1].ToString("0.00000000000") + " " + v1tu[2].ToString("0.00000000000"));
+                    strbuildAll.AppendLine("univ v2t " + " " + v2tu[0].ToString("0.00000000000") + " " + v2tu[1].ToString("0.00000000000") + " " + v2tu[2].ToString("0.00000000000"));
+                    AstroLibr.kepler(r1, v1tu, dtsec, out r3h, out v3h);
+                    for (int j = 0; j < 3; j++)
+                        dr[j] = r2[j] - r3h[j];
+                    if (MathTimeLibr.mag(dr) > 0.01)
+                        strbuildAll.AppendLine("velu does not get to r2 (km) position " + MathTimeLibr.mag(dr).ToString() + "\n");
+
+                    for (int j = 0; j < 3; j++)
+                    {
+                        dv1[j] = v1tk[j] - v1tu[j];
+                        dv2[j] = v2tk[j] - v2tu[j];
+                    }
+                    if (MathTimeLibr.mag(dv1) > 0.01 || MathTimeLibr.mag(dv2) > 0.01)
+                        strbuildAll.AppendLine("velk does not match velu \n");
+
+                    AstroLibr.lambertbattin(r1, r2, v1, dm, de, nnrev, 0.0, dtsec, altpadc * AstroLibr.gravConst.re, 'n', out v1tb, out v2tb, out hitearth, out detailSum, out detailAll);
+                    //strbuild.AppendLine(detailSum);
+                    strbuildAll.AppendLine("batt v1t " + " " + v1tb[0].ToString("0.00000000000") + " " + v1tb[1].ToString("0.00000000000") + " " + v1tb[2].ToString("0.00000000000"));
+                    strbuildAll.AppendLine("batt v2t " + " " + v2tb[0].ToString("0.00000000000") + " " + v2tb[1].ToString("0.00000000000") + " " + v2tb[2].ToString("0.00000000000"));
+                    AstroLibr.kepler(r1, v1tb, dtsec, out r3h, out v3h);
+                    for (int j = 0; j < 3; j++)
+                        dr[j] = r2[j] - r3h[j];
+                    if (MathTimeLibr.mag(dr) > 0.01)
+                        strbuildAll.AppendLine("velb does not get to r2 (km) position " + MathTimeLibr.mag(dr).ToString() + "\n");
+                    //strbuild.AppendLine("diffs " + MathTimeLibr.mag(dr).ToString("0.00000000000"));
+
+                    for (int j = 0; j < 3; j++)
+                    {
+                        dv1[j] = v1tk[j] - v1tb[j];
+                        dv2[j] = v2tk[j] - v2tb[j];
+                    }
+                    if (MathTimeLibr.mag(dv1) > 0.01 || MathTimeLibr.mag(dv2) > 0.01)
+                        strbuildAll.AppendLine("velk does not match velb \n");
+                    //strbuild.AppendLine("diffs " + MathTimeLib::mag(dr).ToString("0.00000000000"));
+                }
+                //else
+                //    strbuild.AppendLine(" ------------------------- not enough time for 1 revs ");
+
+                strbuildAll.AppendLine(" TEST ------------------ L  L " + nnrev.ToString() + " rev ------------------");
+                //if (dtsec / tusec >= tbidk[nnrev, 2])
+                // do inside lambertk now
+                {
+                    dm = 'L';
+                    de = 'L';
+                    // switch tdi!!  tdidk to tdirk 'H'
+                    AstroLambertkLibr.lambertkmins(s, tau, nnrev, dm, de, out kbi, out tof);  // 'H'
+
+                    //double tofk1, kbik2, tofk2, kbik1;
+                    //string outstr;
+                    //getmins(1, 'k', nrev, r1, r2, s, tau, dm, de, out tofk1, out kbik1, out tofk2, out kbik2, out outstr);
+
+                    AstroLambertkLibr.lambertK(r1, v1, r2, dm, de, nnrev, dtwait, dtsec, tof, kbi, numiter, altpadc, modecon, 'n',
+                        out v1tk, out v2tk, out f, out g, out gdot, out hitearth, out errorout, out detailSum, out detailAll);
+                    strbuildAll.AppendLine(detailAll);
+                    //strbuild.AppendLine("k#" + caseopt + " " + detailSum + " diffs " + MathTimeLibr.mag(dr).ToString("0.00000000000"));
+                    strbuildAll.AppendLine("lamk v1t " + " " + v1tk[0].ToString("0.00000000000") + " " + v1tk[1].ToString("0.00000000000") + " " + v1tk[2].ToString("0.00000000000"));
+                    strbuildAll.AppendLine("lamk v2t " + " " + v2tk[0].ToString("0.00000000000") + " " + v2tk[1].ToString("0.00000000000") + " " + v2tk[2].ToString("0.00000000000"));
+                    //strbuild.AppendLine(magv1t.ToString("0.0000000").PadLeft(12) + " " + magv2t.ToString("0.0000000").PadLeft(12));
+
+                    AstroLibr.kepler(r1, v1tk, dtsec, out r3h, out v3h);
+                    for (int j = 0; j < 3; j++)
+                        dr[j] = r2[j] - r3h[j];
+                    if (MathTimeLibr.mag(dr) > 0.01)
+                        strbuildAll.AppendLine("velk does not get to r2 (km) position " + MathTimeLibr.mag(dr).ToString() + "\n");
+
+                    AstroLibr.lambertumins(r1, r2, nnrev, dm, out kbi, out tof);
+                    AstroLibr.lambertuniv(r1, r2, v1, dm, de, nnrev, 0.0, dtsec, kbi, altpadc * AstroLibr.gravConst.re, 'n', out v1tu, out v2tu, out hitearth, out detailSum, out detailAll);
+                    //strbuild.AppendLine(detailSum);
+                    strbuildAll.AppendLine("univ v1t " + " " + v1tu[0].ToString("0.00000000000") + " " + v1tu[1].ToString("0.00000000000") + " " + v1tu[2].ToString("0.00000000000"));
+                    strbuildAll.AppendLine("univ v2t " + " " + v2tu[0].ToString("0.00000000000") + " " + v2tu[1].ToString("0.00000000000") + " " + v2tu[2].ToString("0.00000000000"));
+                    AstroLibr.kepler(r1, v1tu, dtsec, out r3h, out v3h);
+                    for (int j = 0; j < 3; j++)
+                        dr[j] = r2[j] - r3h[j];
+                    if (MathTimeLibr.mag(dr) > 0.01)
+                        strbuildAll.AppendLine("velu does not get to r2 (km) position " + MathTimeLibr.mag(dr).ToString() + "\n");
+
+                    for (int j = 0; j < 3; j++)
+                    {
+                        dv1[j] = v1tk[j] - v1tu[j];
+                        dv2[j] = v2tk[j] - v2tu[j];
+                    }
+                    if (MathTimeLibr.mag(dv1) > 0.01 || MathTimeLibr.mag(dv2) > 0.01)
+                        strbuildAll.AppendLine("velk does not match velu \n");
+
+                    AstroLibr.lambertbattin(r1, r2, v1, dm, de, nnrev, 0.0, dtsec, altpadc * AstroLibr.gravConst.re, 'n', out v1tb, out v2tb, out hitearth, out detailSum, out detailAll);
+                    //strbuild.AppendLine(detailSum);
+                    strbuildAll.AppendLine("batt v1t " + " " + v1tb[0].ToString("0.00000000000") + " " + v1tb[1].ToString("0.00000000000") + " " + v1tb[2].ToString("0.00000000000"));
+                    strbuildAll.AppendLine("batt v2t " + " " + v2tb[0].ToString("0.00000000000") + " " + v2tb[1].ToString("0.00000000000") + " " + v2tb[2].ToString("0.00000000000"));
+                    AstroLibr.kepler(r1, v1tb, dtsec, out r3h, out v3h);
+                    for (int j = 0; j < 3; j++)
+                        dr[j] = r2[j] - r3h[j];
+                    if (MathTimeLibr.mag(dr) > 0.01)
+                        strbuildAll.AppendLine("velb does not get to r2 (km) position " + MathTimeLibr.mag(dr).ToString() + "\n");
+                    //strbuild.AppendLine("diffs " + MathTimeLibr.mag(dr).ToString("0.00000000000"));
+
+                    for (int j = 0; j < 3; j++)
+                    {
+                        dv1[j] = v1tk[j] - v1tb[j];
+                        dv2[j] = v2tk[j] - v2tb[j];
+                    }
+                    if (MathTimeLibr.mag(dv1) > 0.01 || MathTimeLibr.mag(dv2) > 0.01)
+                        strbuildAll.AppendLine("velk does not match velb \n");
+                    //strbuild.AppendLine("diffs " + MathTimeLib::mag(dr).ToString("0.00000000000"));
+                }
+                //else
+                //    strbuild.AppendLine(" ------------------------- not enough time for 1 revs ");
+
+                strbuildAll.AppendLine(" TEST ------------------ S  H " + nnrev.ToString() + " rev ------------------");
+                //if (dtsec / tusec >= tbirk[nnrev, 2])
+                // do inside lambertk now
+                {
+                    dm = 'S';
+                    de = 'H';
+                    // switch tdi!!  tdirk to tdidk  'L'
+                    AstroLambertkLibr.lambertkmins(s, tau, nnrev, dm, de, out kbi, out tof);  // 'L'
+                    AstroLambertkLibr.lambertK(r1, v1, r2, dm, de, nnrev, dtwait, dtsec, tof, kbi, numiter, altpadc, modecon, 'n',
+                        out v1tk, out v2tk, out f, out g, out gdot, out hitearth, out errorout, out detailSum, out detailAll);
+                    strbuildAll.AppendLine(detailAll);
+                    //strbuild.AppendLine("k#" + caseopt + " " + detailSum + " diffs " + MathTimeLibr.mag(dr).ToString("0.00000000000"));
+                    strbuildAll.AppendLine("lamk v1t " + " " + v1tk[0].ToString("0.00000000000") + " " + v1tk[1].ToString("0.00000000000") + " " + v1tk[2].ToString("0.00000000000"));
+                    strbuildAll.AppendLine("lamk v2t " + " " + v2tk[0].ToString("0.00000000000") + " " + v2tk[1].ToString("0.00000000000") + " " + v2tk[2].ToString("0.00000000000"));
+                    //strbuild.AppendLine(magv1t.ToString("0.0000000").PadLeft(12) + " " + magv2t.ToString("0.0000000").PadLeft(12));
+
+                    AstroLibr.kepler(r1, v1tk, dtsec, out r3h, out v3h);
+                    for (int j = 0; j < 3; j++)
+                        dr[j] = r2[j] - r3h[j];
+                    if (MathTimeLibr.mag(dr) > 0.01)
+                        strbuildAll.AppendLine("velk does not get to r2 (km) position " + MathTimeLibr.mag(dr).ToString() + "\n");
+
+                    AstroLibr.lambertumins(r1, r2, nnrev, dm, out kbi, out tof);
+                    AstroLibr.lambertuniv(r1, r2, v1, dm, de, nnrev, 0.0, dtsec, kbi, altpadc * AstroLibr.gravConst.re, 'n', out v1tu, out v2tu, out hitearth, out detailSum, out detailAll);
+                    //strbuild.AppendLine(detailSum);
+                    strbuildAll.AppendLine("univ v1t " + " " + v1tu[0].ToString("0.00000000000") + " " + v1tu[1].ToString("0.00000000000") + " " + v1tu[2].ToString("0.00000000000"));
+                    strbuildAll.AppendLine("univ v2t " + " " + v2tu[0].ToString("0.00000000000") + " " + v2tu[1].ToString("0.00000000000") + " " + v2tu[2].ToString("0.00000000000"));
+                    AstroLibr.kepler(r1, v1tu, dtsec, out r3h, out v3h);
+                    for (int j = 0; j < 3; j++)
+                        dr[j] = r2[j] - r3h[j];
+                    if (MathTimeLibr.mag(dr) > 0.01)
+                        strbuildAll.AppendLine("velu does not get to r2 (km) position " + MathTimeLibr.mag(dr).ToString() + "\n");
+
+                    for (int j = 0; j < 3; j++)
+                    {
+                        dv1[j] = v1tk[j] - v1tu[j];
+                        dv2[j] = v2tk[j] - v2tu[j];
+                    }
+                    if (MathTimeLibr.mag(dv1) > 0.01 || MathTimeLibr.mag(dv2) > 0.01)
+                        strbuildAll.AppendLine("velk does not match velu \n");
+
+                    AstroLibr.lambertbattin(r1, r2, v1, dm, de, nnrev, 0.0, dtsec, altpadc * AstroLibr.gravConst.re, 'n', out v1tb, out v2tb, out hitearth, out detailSum, out detailAll);
+                    //strbuild.AppendLine(detailSum);
+                    strbuildAll.AppendLine("batt v1t " + " " + v1tb[0].ToString("0.00000000000") + " " + v1tb[1].ToString("0.00000000000") + " " + v1tb[2].ToString("0.00000000000"));
+                    strbuildAll.AppendLine("batt v2t " + " " + v2tb[0].ToString("0.00000000000") + " " + v2tb[1].ToString("0.00000000000") + " " + v2tb[2].ToString("0.00000000000"));
+                    AstroLibr.kepler(r1, v1tb, dtsec, out r3h, out v3h);
+                    for (int j = 0; j < 3; j++)
+                        dr[j] = r2[j] - r3h[j];
+                    if (MathTimeLibr.mag(dr) > 0.01)
+                        strbuildAll.AppendLine("velb does not get to r2 (km) position " + MathTimeLibr.mag(dr).ToString() + "\n");
+                    //strbuild.AppendLine("diffs " + MathTimeLibr.mag(dr).ToString("0.00000000000"));
+
+                    for (int j = 0; j < 3; j++)
+                    {
+                        dv1[j] = v1tk[j] - v1tb[j];
+                        dv2[j] = v2tk[j] - v2tb[j];
+                    }
+                    if (MathTimeLibr.mag(dv1) > 0.01 || MathTimeLibr.mag(dv2) > 0.01)
+                        strbuildAll.AppendLine("velk does not match velb \n");
+                    //strbuild.AppendLine("diffs " + MathTimeLib::mag(dr).ToString("0.00000000000"));
+                }
+                //else
+                //    strbuild.AppendLine(" ------------------------- not enough time for 1 revs ");
+
+                strbuildAll.AppendLine(" TEST ------------------ L  H " + nnrev.ToString() + " rev ------------------");
+                //if (dtsec / tusec >= tbirk[nnrev, 2])
+                // do inside lambertk now
+                {
+                    dm = 'L';
+                    de = 'H';
+                    AstroLambertkLibr.lambertkmins(s, tau, nnrev, dm, de, out kbi, out tof);
+                    AstroLambertkLibr.lambertK(r1, v1, r2, dm, de, nnrev, dtwait, dtsec, tof, kbi, numiter, altpadc, modecon, 'n',
+                        out v1tk, out v2tk, out f, out g, out gdot, out hitearth, out errorout, out detailSum, out detailAll);
+                    strbuildAll.AppendLine(detailAll);
+                    //strbuild.AppendLine("k#" + caseopt + " " + detailSum + " diffs " + MathTimeLibr.mag(dr).ToString("0.00000000000"));
+                    strbuildAll.AppendLine("lamk v1t " + " " + v1tk[0].ToString("0.00000000000") + " " + v1tk[1].ToString("0.00000000000") + " " + v1tk[2].ToString("0.00000000000"));
+                    strbuildAll.AppendLine("lamk v2t " + " " + v2tk[0].ToString("0.00000000000") + " " + v2tk[1].ToString("0.00000000000") + " " + v2tk[2].ToString("0.00000000000"));
+                    //strbuild.AppendLine(magv1t.ToString("0.0000000").PadLeft(12) + " " + magv2t.ToString("0.0000000").PadLeft(12));
+
+                    AstroLibr.kepler(r1, v1tk, dtsec, out r3h, out v3h);
+                    for (int j = 0; j < 3; j++)
+                        dr[j] = r2[j] - r3h[j];
+                    if (MathTimeLibr.mag(dr) > 0.01)
+                        strbuildAll.AppendLine("velk does not get to r2 (km) position " + MathTimeLibr.mag(dr).ToString() + "\n");
+
+                    AstroLibr.lambertumins(r1, r2, nnrev, dm, out kbi, out tof);
+                    AstroLibr.lambertuniv(r1, r2, v1, dm, de, nnrev, 0.0, dtsec, kbi, altpadc * AstroLibr.gravConst.re, 'n', out v1tu, out v2tu, out hitearth, out detailSum, out detailAll);
+                    //strbuild.AppendLine(detailSum);
+                    strbuildAll.AppendLine("univ v1t " + " " + v1tu[0].ToString("0.00000000000") + " " + v1tu[1].ToString("0.00000000000") + " " + v1tu[2].ToString("0.00000000000"));
+                    strbuildAll.AppendLine("univ v2t " + " " + v2tu[0].ToString("0.00000000000") + " " + v2tu[1].ToString("0.00000000000") + " " + v2tu[2].ToString("0.00000000000"));
+                    AstroLibr.kepler(r1, v1tu, dtsec, out r3h, out v3h);
+                    for (int j = 0; j < 3; j++)
+                        dr[j] = r2[j] - r3h[j];
+                    if (MathTimeLibr.mag(dr) > 0.01)
+                        strbuildAll.AppendLine("velu does not get to r2 (km) position " + MathTimeLibr.mag(dr).ToString() + "\n");
+
+                    for (int j = 0; j < 3; j++)
+                    {
+                        dv1[j] = v1tk[j] - v1tu[j];
+                        dv2[j] = v2tk[j] - v2tu[j];
+                    }
+                    if (MathTimeLibr.mag(dv1) > 0.01 || MathTimeLibr.mag(dv2) > 0.01)
+                        strbuildAll.AppendLine("velk does not match velu \n");
+
+                    AstroLibr.lambertbattin(r1, r2, v1, dm, de, nnrev, 0.0, dtsec, altpadc * AstroLibr.gravConst.re, 'n', out v1tb, out v2tb, out hitearth, out detailSum, out detailAll);
+                    //strbuild.AppendLine(detailSum);
+                    strbuildAll.AppendLine("batt v1t " + " " + v1tb[0].ToString("0.00000000000") + " " + v1tb[1].ToString("0.00000000000") + " " + v1tb[2].ToString("0.00000000000"));
+                    strbuildAll.AppendLine("batt v2t " + " " + v2tb[0].ToString("0.00000000000") + " " + v2tb[1].ToString("0.00000000000") + " " + v2tb[2].ToString("0.00000000000"));
+                    AstroLibr.kepler(r1, v1tb, dtsec, out r3h, out v3h);
+                    for (int j = 0; j < 3; j++)
+                        dr[j] = r2[j] - r3h[j];
+                    if (MathTimeLibr.mag(dr) > 0.01)
+                        strbuildAll.AppendLine("velb does not get to r2 (km) position " + MathTimeLibr.mag(dr).ToString() + "\n");
+                    //strbuild.AppendLine("diffs " + MathTimeLibr.mag(dr).ToString("0.00000000000"));
+
+                    for (int j = 0; j < 3; j++)
+                    {
+                        dv1[j] = v1tk[j] - v1tb[j];
+                        dv2[j] = v2tk[j] - v2tb[j];
+                    }
+                    if (MathTimeLibr.mag(dv1) > 0.01 || MathTimeLibr.mag(dv2) > 0.01)
+                        strbuildAll.AppendLine("velk does not match velb \n");
+                    //strbuild.AppendLine("diffs " + MathTimeLib::mag(dr).ToString("0.00000000000"));
+                }
+                //else
+                //    strbuild.AppendLine(" ------------------------- not enough time for 1 revs ");
+
+                strbuildAll.AppendLine(" --------------------------------end case " + caseopt + "------------------------------------------------ ");
+                string resultStr = strbuildAll.ToString();
+            }
+
+            string directory = @"D:\Codes\LIBRARY\cs\TestAll\";
+            File.WriteAllText(directory + "testall-lambertknown.out", strbuildAll.ToString());
+
+            this.opsStatus.Text = "Done ";
+            Refresh();
+        }  // testknowncases
+
 
         public void testradecgeo2azel()
         {
@@ -2416,10 +6128,15 @@ namespace TestAll
         public void testijk2ll()
         {
             double[] r = new double[3];
-            double latgc, latgd, lon, hellp;
-            r = new double[] { 1.023 * MathTimeLib.globals.re, 1.076 * MathTimeLib.globals.re, 1.011 * MathTimeLib.globals.re };
+            double latgc, latgd, lon, hellp, rad;
+            rad = 180.0 / Math.PI;
+
+            r = new double[] { 1.023 * AstroLibr.gravConst.re, 1.076 * AstroLibr.gravConst.re, 1.011 * AstroLibr.gravConst.re };
 
             AstroLibr.ecef2ll(r, out latgc, out latgd, out lon, out hellp);
+
+            strbuild.AppendLine("ecef2ll " + (latgd*rad).ToString(fmt) + " " + 
+                (lon * rad).ToString(fmt) + " "+ hellp.ToString(fmt) + "\n");
         }
 
         public void testgd2gc()
@@ -2429,6 +6146,8 @@ namespace TestAll
             latgd = 34.173429 / rad;
 
             ans = AstroLibr.gd2gc(latgd);
+
+            strbuild.AppendLine("gd2gc " + ans.ToString(fmt) + "\n");
         }
 
         public void testsite()
@@ -2442,6 +6161,9 @@ namespace TestAll
             alt = 0.3253;
 
             AstroLibr.site(latgd, lon, alt, out rsecef, out vsecef);
+
+            strbuild.AppendLine("site " + rsecef[0].ToString(fmt) + " " + rsecef[1].ToString(fmt) + " " + rsecef[2].ToString(fmt) + " " +
+                        vsecef[0].ToString(fmt) + " " + vsecef[1].ToString(fmt) + " " + vsecef[2].ToString(fmt));
         }
 
 
@@ -2453,6 +6175,7 @@ namespace TestAll
             jd = 2449444.5;
             AstroLibr.sun(jd, out rsun, out rtasc, out decl);
 
+            strbuild.AppendLine("sun " + rsun[0].ToString(fmt) + " " + rsun[1].ToString(fmt) + " " + rsun[2].ToString(fmt));
         }
 
         // --------  moon         - analytical moon ephemeris
@@ -2464,6 +6187,7 @@ namespace TestAll
             jd = 2449470.5;
             AstroLibr.moon(jd, out rmoon, out rtasc, out decl);
 
+            strbuild.AppendLine("moon " + rmoon[0].ToString(fmt) + " " + rmoon[1].ToString(fmt) + " " + rmoon[2].ToString(fmt));
         }
 
         public void testkepler()
@@ -2475,11 +6199,27 @@ namespace TestAll
             double dtsec;
             dtsec = 42397.344;  // s
 
-            r1 = new double[] { 2.500000 * 6378.137, 0.000000, 0.000000 };
+            r1 = new double[] { 2.500000 * AstroLibr.gravConst.re, 0.000000, 0.000000 };
             // assume circular initial orbit for vel calcs
-            v1 = new double[] { 0.0, Math.Sqrt(MathTimeLib.globals.mu / r1[0]), 0.0 };
+            v1 = new double[] { 0.0, Math.Sqrt(AstroLibr.gravConst.mu / r1[0]), 0.0 };
+            strbuild.AppendLine("kepler " + r1[0].ToString(fmt) + " " + r1[1].ToString(fmt) + " " + r1[2].ToString(fmt) + " " +
+                                v1[0].ToString(fmt) + " " + v1[1].ToString(fmt) + " " + v1[2].ToString(fmt) + " " + dtsec);
 
             AstroLibr.kepler(r1, v1, dtsec, out r2, out v2);
+
+            strbuild.AppendLine("kepler " + r2[0].ToString(fmt) + " " + r2[1].ToString(fmt) + " " + r2[2].ToString(fmt) + " " + 
+                                v2[0].ToString(fmt) + " " + v2[1].ToString(fmt) + " " + v2[2].ToString(fmt));
+
+            // test multi-rev case
+            double p, a, ecc, incl, raan, argp, nu, m, arglat, truelon, lonper, period;
+            AstroLibr.rv2coe(r1, v1, out p, out a, out ecc, out incl, out raan, out argp, out nu, out m, out arglat, out truelon, out lonper);
+            period = 2.0 * Math.PI * Math.Sqrt(Math.Pow(MathTimeLibr.mag(r1),3)/ AstroLibr.gravConst.mu);
+
+            AstroLibr.kepler(r1, v1, dtsec+7.0*period, out r2, out v2);
+
+            strbuild.AppendLine("kepler " + r2[0].ToString(fmt) + " " + r2[1].ToString(fmt) + " " + r2[2].ToString(fmt) + " " +
+                                v2[0].ToString(fmt) + " " + v2[1].ToString(fmt) + " " + v2[2].ToString(fmt) + " " + (dtsec+7.0*period));
+
         }
 
 
@@ -2579,31 +6319,38 @@ namespace TestAll
             strbuild.AppendLine(" =============================   test sun and moon ephemerides =============================\n");
 
             // read in jpl sun moon files
-            AstroLibr.initjplde(ref jpldearr, "D:/Codes/LIBRARY/DataLib/", "sunmooneph_430t.txt", out jdjpldestart, out jdjpldestartFrac);
+            // answers
+            strbuild.AppendLine("2017  5 11  0  96576094.2145 106598001.2476 46210616.7776     151081093.9419  0.9804616 -252296.5509 -302841.7334 -93212.7720");
+            strbuild.AppendLine("2017  5 11 12  95604355.9737 107353047.2919 46537942.1006     151098145.9151  0.9802403 -218443.5158 -325897.7785 -102799.8515");
+            strbuild.AppendLine("2017  5 12  0  94625783.6875 108100430.4112 46861940.2387     151115133.0492  0.9800199 -182165.5046 -345316.4032 -111246.7742");
+
+            // for 1 day centers, need to adjust the initjpl function
+            //AstroLibr.initjplde(ref jpldearr, "D:/Codes/LIBRARY/DataLib/", "sunmooneph_430t.txt", out jdjpldestart, out jdjpldestartFrac);
+            AstroLibr.initjplde(ref jpldearr, "D:/Codes/LIBRARY/DataLib/", "sunmooneph_430t12.txt", out jdjpldestart, out jdjpldestartFrac);
 
             AstroLibr.findjpldeparam(jd, 0.0, 'l', jpldearr, jdjpldestart, out rsun, out rsmag, out rmoon, out rmmag);
             strbuild.AppendLine("findjpldeephem 0000 hrs l\n " + jd.ToString() + " 0.00000 " + rsun[0].ToString() + " " +
                 rsun[1].ToString() + " " + rsun[2].ToString() + " " +
                 rmoon[0].ToString() + " " + rmoon[1].ToString() + " " + rmoon[2].ToString());
 
-            AstroLibr.findjpldeparam(jd, jdF, 's', jpldearr, jdjpldestart, out rsun, out rsmag, out rmoon, out rmmag);
+            AstroLibr.findjpldeparam(jd, 0.0, 's', jpldearr, jdjpldestart, out rsun, out rsmag, out rmoon, out rmmag);
             strbuild.AppendLine("findjpldeephem 0000 hrs s\n " + jd.ToString() + " " + jdF.ToString() + " " + rsun[0].ToString() + " " +
                 rsun[1].ToString() + " " + rsun[2].ToString() + " " +
                 rmoon[0].ToString() + " " + rmoon[1].ToString() + " " + rmoon[2].ToString());
 
-            AstroLibr.sunmoonjpl(jd, jdF, 's', ref jpldearr, jdjpldestart, out rsun, out rtascs, out decls, out rmoon, out rtascm, out declm);
+            AstroLibr.sunmoonjpl(jd, 0.0, 's', ref jpldearr, jdjpldestart, out rsun, out rtascs, out decls, out rmoon, out rtascm, out declm);
             strbuild.AppendLine("sunmoon 0000 hrs s\n " + jd.ToString() + " " + jdF.ToString() + " " + rsun[0].ToString() + " " +
                 rsun[1].ToString() + " " + rsun[2].ToString() + " " +
                 rmoon[0].ToString() + " " + rmoon[1].ToString() + " " + rmoon[2].ToString());
 
 
             AstroLibr.findjpldeparam(jd, jdF, 'l', jpldearr, jdjpldestart, out rsun, out rsmag, out rmoon, out rmmag);
-            strbuild.AppendLine("findjpldeephem 0000 hrs l\n " + jd.ToString() + " " + jdF.ToString() + " " + rsun[0].ToString() + " " +
+            strbuild.AppendLine("findjpldeephem hrs l\n " + jd.ToString() + " " + jdF.ToString() + " " + rsun[0].ToString() + " " +
                 rsun[1].ToString() + " " + rsun[2].ToString() + " " +
                 rmoon[0].ToString() + " " + rmoon[1].ToString() + " " + rmoon[2].ToString());
 
             AstroLibr.sunmoonjpl(jd, jdF, 'l', ref jpldearr, jdjpldestart, out rsun, out rtascs, out decls, out rmoon, out rtascm, out declm);
-            strbuild.AppendLine("sunmoon 0000 hrs l\n " + jd.ToString() + " " + jdF.ToString() + " " + rsun[0].ToString() + " " +
+            strbuild.AppendLine("sunmoon hrs l\n " + jd.ToString() + " " + jdF.ToString() + " " + rsun[0].ToString() + " " +
                 rsun[1].ToString() + " " + rsun[2].ToString() + " " +
                 rmoon[0].ToString() + " " + rmoon[1].ToString() + " " + rmoon[2].ToString());
 
@@ -2615,22 +6362,43 @@ namespace TestAll
 
             // ex 8.5 test
             MathTimeLibr.jday(2020, 2, 18, 15, 8, 47.23847, out jd, out jdF);
-            AstroLibr.findjpldeparam(jd, jdF, 's', jpldearr, jdjpldestart, out rsun, out rsmag, out rmoon, out rmmag);
+            AstroLibr.findjpldeparam(jd, 0.0, 's', jpldearr, jdjpldestart, out rsun, out rsmag, out rmoon, out rmmag);
             strbuild.AppendLine("ex findjpldeephem 0000 hrs s\n " + jd.ToString() + " " + jdF.ToString() + " " + rsun[0].ToString() + " " +
                 rsun[1].ToString() + " " + rsun[2].ToString() + " " +
                 rmoon[0].ToString() + " " + rmoon[1].ToString() + " " + rmoon[2].ToString());
 
             // test interpolation of vectors
             // shows spline is MUCH better - 3 km sun variation in mid day linear, 60m diff with spline. 
+            MathTimeLibr.jday(2017, 5, 11, 3, 51, 42.7657, out jd, out jdF);
+            MathTimeLibr.jday(2000, 1, 1, 0, 0, 0.0, out jd, out jdF);
             strbuild.AppendLine("findjplde  mfme     rsun x             y                 z             rmoon x             y                z      (km)");
+            
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            // the code that you want to measure comes here
+            // read in jpl sun moon files - seems to be the slowest part (800 msec)
+            AstroLibr.initjplde(ref jpldearr, "D:/Codes/LIBRARY/DataLib/", "sunmooneph_430t12.txt", out jdjpldestart, out jdjpldestartFrac);
+
+            watch.Stop();
+            var elapsedMs = watch.ElapsedMilliseconds;
+
+            watch = System.Diagnostics.Stopwatch.StartNew();
+
             int ii;
-            for (ii = 0; ii < 90; ii++)
+            for (ii = 0; ii < 36500; ii++)
             {
-                AstroLibr.findjpldeparam(jd, (ii * 1.0) / 24.0, 's', jpldearr, jdjpldestart, out rsun, out rsmag, out rmoon, out rmmag);
-                strbuild.AppendLine(" " + jd.ToString() + " " + (ii * 60.0).ToString("0000") + " " +
-                    rsun[0].ToString() + " " + rsun[1].ToString() + " " + rsun[2].ToString() + " " +
-                    rmoon[0].ToString() + " " + rmoon[1].ToString() + " " + rmoon[2].ToString());
+                // seems pretty fast (45 msec)
+                for (int jj = 0; jj < 24; jj++)
+                {
+                    AstroLibr.findjpldeparam(jd + ii, (jj * 1.0) / 24.0, 's', jpldearr, jdjpldestart, out rsun, out rsmag, out rmoon, out rmmag);
+                    // the write takes some time (160 msec)
+                    //strbuild.AppendLine(" " + jd.ToString() + " " + (ii * 60.0).ToString("0000") + " " +
+                    //    rsun[0].ToString() + " " + rsun[1].ToString() + " " + rsun[2].ToString() + " " +
+                    //    rmoon[0].ToString() + " " + rmoon[1].ToString() + " " + rmoon[2].ToString());
+                }
             }
+
+            watch.Stop();
+            elapsedMs = watch.ElapsedMilliseconds;
         }
 
         public void testkp2ap()
@@ -2662,7 +6430,7 @@ namespace TestAll
             double rho, az, el, drho, daz, del, alt, latgd, lon;
             double rr, rtasc, decl, drr, drtasc, ddecl;
             double trtasc, tdecl, dtrtasc, dtdecl;
-            double ttt, xp, yp, lod, jdut1, ddpsi, ddeps, dut1, lst, gst;
+            double ttt, xp, yp, lod, jdut1, ddpsi, ddeps, ddx, ddy, dut1, lst, gst, jdtt, jdftt;
             int year, mon, day, hr, minute, dat;
             double second, jd, jdFrac;
 
@@ -2670,14 +6438,25 @@ namespace TestAll
             rho = az = el = drho = daz = del = 0.0;
 
             EOPSPWLib.iau80Class iau80arr;
-            string nutLoc = @"D:\Codes\LIBRARY\DataLib\nut80.dat";
+            EOPSPWLib.iau00Class iau00arr;
+            string nutLoc;
+            nutLoc = @"D:\Codes\LIBRARY\DataLib\nut80.dat";
             EOPSPWLibr.iau80in(nutLoc, out iau80arr);
+            nutLoc = @"D:\Codes\LIBRARY\DataLib\";
+            EOPSPWLibr.iau00in(nutLoc, out iau00arr);
+
+            // now read it in
+            double jdxysstart, jdfxysstart;
+            AstroLib.xysdataClass[] xysarr = AstroLibr.xysarr;
+            AstroLibr.initXYS(ref xysarr, nutLoc, "xysdata.dat", out jdxysstart, out jdfxysstart);
 
             xp = 0.0;
             yp = 0.0;
             lod = 0.0;
             ddpsi = -0.052195;
             ddeps = -0.003875;
+            ddx = 0.0;  // fixxxxxx
+            ddy = 0.0;
             dut1 = -0.37816;
 
             year = 2015;
@@ -2689,20 +6468,27 @@ namespace TestAll
             second = 50.208;
             MathTimeLibr.jday(year, mon, day, hr, minute, second, out jd, out jdFrac);
 
-            ttt = (jd + jdFrac + (dat + 32.184) / 86400.0 - 2451545.0) / 36525.0;
+            // note you have to use tdb for time of ineterst AND j2000 (when dat = 32)
+            jdtt = jd;
+            jdftt = jdFrac + (dat + 32.184) / 86400.0;
+            ttt = (jdtt + jdftt - 2451545.0) / 36525.0;
             jdut1 = jd + jdFrac + dut1 / 86400.0;
 
             recef = new double[] { -605.79221660, -5870.22951108, 3493.05319896 };
             recef = new double[] { -100605.79221660, -1005870.22951108, 1003493.05319896 };
             vecef = new double[] { -1.56825429, -3.70234891, -6.47948395 };
-            AstroLibr.eci_ecef(ref reci, ref veci, iau80arr, MathTimeLib.Edirection.efrom, ttt, jdut1, lod, xp, yp, 2, ddpsi, ddeps, AstroLib.EOpt.e80, ref recef, ref vecef);
+            AstroLibr.eci_ecef(ref reci, ref veci, MathTimeLib.Edirection.efrom, ref recef, ref vecef,
+                AstroLib.EOpt.e80, iau80arr, iau00arr,
+                jdtt, jdftt, jdut1, jdxysstart, lod, xp, yp, ddpsi, ddeps, ddx, ddy);
 
             lon = -104.883 / rad;
             latgd = 39.007 / rad;
-            alt = 0.3253;
+            alt = 2.102;
             AstroLibr.site(latgd, lon, alt, out rsecef, out vsecef);
 
-            AstroLibr.eci_ecef(ref rseci, ref vseci, iau80arr, MathTimeLib.Edirection.efrom, ttt, jdut1, lod, xp, yp, 2, ddpsi, ddeps, AstroLib.EOpt.e80, ref rsecef, ref vsecef);
+            AstroLibr.eci_ecef(ref rseci, ref vseci, MathTimeLib.Edirection.efrom, ref rsecef, ref vsecef,
+                AstroLib.EOpt.e80, iau80arr, iau00arr,
+                jdtt, jdftt, jdut1, jdxysstart, lod, xp, yp, ddpsi, ddeps, ddx, ddy);
 
             AstroLibr.lstime(lon, jdut1, out lst, out gst);
 
@@ -2715,7 +6501,7 @@ namespace TestAll
             strbuild.AppendLine("rs eci  " + rseci[0].ToString(fmt).PadLeft(4) + " " + rseci[1].ToString(fmt).PadLeft(4) + " " + rseci[2].ToString(fmt).PadLeft(4));
 
 
-            AstroLibr.rv_razel(ref recef, ref vecef, ref rsecef, latgd, lon, MathTimeLib.Edirection.eto, ref rho, ref az, ref el, ref drho, ref daz, ref del);
+            AstroLibr.rv_razel(ref recef, ref vecef, latgd, lon, alt, MathTimeLib.Edirection.eto, ref rho, ref az, ref el, ref drho, ref daz, ref del);
 
             AstroLibr.rv_radec(ref reci, ref veci, MathTimeLib.Edirection.eto, ref rr, ref rtasc, ref decl, ref drr, ref drtasc, ref ddecl);
 
@@ -2733,7 +6519,6 @@ namespace TestAll
             AstroLibr.azel_radec(az, el, lst, latgd, out rtasc, out decl, out rtasc1);
             strbuild.AppendLine("radec " + rtasc.ToString(fmt).PadLeft(4) + " rtasc1 " + rtasc1.ToString(fmt).PadLeft(4) + " " + decl.ToString(fmt).PadLeft(4));
             strbuild.AppendLine("radec " + (Math.PI * 2 - rtasc).ToString(fmt).PadLeft(4) + " rtasc1 " + (Math.PI * 2 - rtasc1).ToString(fmt).PadLeft(4) + " " + decl.ToString(fmt).PadLeft(4));
-
         }
 
 
@@ -2746,7 +6531,7 @@ namespace TestAll
          *   in my text). fortran implementations will have indicies of 1 greater as they often 
          *   start at 1. these are exact expressions derived from mathematica. 
          *      
-         *  author        : david vallado                    719-573-2600  16 dec 2019
+         *  author        : david vallado             davallado@gmail.com  16 dec 2019
          *
          *  inputs        description                                   range / units
          *    latgc       - Geocentric lat of satellite                   pi to pi rad          
@@ -4077,11 +7862,11 @@ namespace TestAll
                 Int32 order,
                 char normalized,
                 double[,,] normArr,
-                AstroLib.gravityModelData gravData,
+                AstroLib.gravityConst gravData,
                 out double[,] ALFArr
             )
         {
-            Int32 L, m, ix, iy, iz;
+            Int32 L, m;
             double x, y, z, f, g;
 
             ALFArr = new double[order + 2, order + 2];
@@ -4135,7 +7920,7 @@ namespace TestAll
         public void xfsh2f
             (
             Int32 nmax,
-            AstroLib.gravityModelData gravData,
+            AstroLib.gravityConst gravData,
             out double[,] a,
             out double[,] b
             )
@@ -4334,7 +8119,7 @@ namespace TestAll
             double[] pos,
             double latgc,
             Int32 nn, Int32 mm,
-            AstroLib.gravityModelData gravData,
+            AstroLib.gravityConst gravData,
             out double[] acc
             //out double[,] gradient
             )
@@ -4428,24 +8213,15 @@ namespace TestAll
 
             // Now do summation ------------------------------------------------
             // initialize recursion
-            double FieldRadius = MathTimeLib.globals.re;
+            double FieldRadius = AstroLibr.gravConst.re;
             double rho = FieldRadius / magr;
-            double Factor = MathTimeLib.globals.mu;
+            double Factor = AstroLibr.gravConst.mu;
             double rho_np1 = -Factor / magr * rho;   // rho(0) ,Ref[3], Eq 26 , factor = mu for gravity
             double rho_np2 = rho_np1 * rho;
             double a1 = 0;
             double a2 = 0;
             double a3 = 0;
             double a4 = 0;
-            double a11 = 0;
-            double a12 = 0;
-            double a13 = 0;
-            double a14 = 0;
-            double a23 = 0;
-            double a24 = 0;
-            double a33 = 0;
-            double a34 = 0;
-            double a44 = 0;
             for (Int32 n = 1; n <= nn; ++n)
             {
                 rho_np1 *= rho;
@@ -4454,15 +8230,6 @@ namespace TestAll
                 double sum2 = 0;
                 double sum3 = 0;
                 double sum4 = 0;
-                double sum11 = 0;
-                double sum12 = 0;
-                double sum13 = 0;
-                double sum14 = 0;
-                double sum23 = 0;
-                double sum24 = 0;
-                double sum33 = 0;
-                double sum34 = 0;
-                double sum44 = 0;
 
                 for (Int32 m = 0; m <= n && m <= mm; ++m) // wcs - removed "m<=n"
                 {
@@ -4497,8 +8264,8 @@ namespace TestAll
                     //    {
                     //        // Pines Equation 27 (Part of)
                     //        // 2015.09.18 GMT-5295 m<=2  -> m<=1
-                    //        double G = m <= 1 ? 0 : (Cval * Re[m - 2] + Sval * Im[m - 2]) * sqrt2;
-                    //        double H = m <= 1 ? 0 : (Sval * Re[m - 2] - Cval * Im[m - 2]) * sqrt2;
+                    //        double G = m <= 1 ? 0 : (Cval * AstroLibr.gravConst.[m - 2] + Sval * Im[m - 2]) * sqrt2;
+                    //        double H = m <= 1 ? 0 : (Sval * AstroLibr.gravConst.[m - 2] - Cval * Im[m - 2]) * sqrt2;
                     //        // Correct for normalization
                     //        double Avv02 = VR02[n][m] * A[n][m + 2];
                     //        double Avv12 = VR12[n][m] * A[n + 1][m + 2];
@@ -4579,7 +8346,7 @@ namespace TestAll
 
         public void FullGeopF
     (
-        AstroLib.gravityModelData gravData,
+        AstroLib.gravityConst gravData,
         double[] recef,
         double[,,] normArr,
         int order,
@@ -4602,9 +8369,9 @@ namespace TestAll
             double muor, muor2, Reor, Reorn;
             double Sumh, Sumgam, Sumj, Sumk, Lambda;
             double Sumh_N, Sumgam_N, Sumj_N, Sumk_N, Mxpnm;
-            double BnmVal, pnm, snm, cnm, ctmm1, stmm1;
+            double BnmVal, pnm, snm, cnm;
             Int32 mm1, mp1, nm1, nm2, npmp1, Lim, Sum_Init;
-            double cn, sn, zn;
+            double cn;
 
             magr = MathTimeLibr.mag(recef);
             Ri = 1.0 / magr;
@@ -4613,9 +8380,9 @@ namespace TestAll
             Zovr = recef[2] * Ri;
             sinlat = Zovr;
             double coslat = Math.Cos(Math.Asin(sinlat));
-            Reor = MathTimeLib.globals.re * Ri;
+            Reor = AstroLibr.gravConst.re * Ri;
             Reorn = Reor;
-            muor = MathTimeLib.globals.mu * Ri;
+            muor = AstroLibr.gravConst.mu * Ri;
             muor2 = muor * Ri;
 
             // include two-body or not
@@ -4724,6 +8491,7 @@ namespace TestAll
 
         public void testproporbit()
         {
+            double[] fArgs = new double[14];
             double[] reci = new double[3];
             double[] veci = new double[3];
             double[] aeci = new double[3];
@@ -4736,7 +8504,7 @@ namespace TestAll
             double[] rseci = new double[3];
             double[] vseci = new double[3];
             double psia, wa, epsa, chia;
-            double meaneps, raan, deltapsi, deltaeps, trueeps;
+            double meaneps, deltapsi, deltaeps, trueeps;
             double[] omegaearth = new double[3];
             double[] rpef = new double[3];
             double[] vpef = new double[3];
@@ -4776,7 +8544,7 @@ namespace TestAll
 
             double[] asrp = new double[3];
 
-            double ttt, ttdb, xp, yp, lod, jdut1, ddpsi, ddeps, ddx, ddy, dut1;
+            double ttt, ttdb, xp, yp, lod, jdut1, ddpsi, ddeps, ddx, ddy, dut1, jdtt, jdftt;
             int year, mon, day, hr, minute, dat, eqeterms;
             double second, jdF, jdutc, jdFutc, jdtdb, jdFtdb, jdtdbjplstart, jdFtdbjplstart;
 
@@ -4802,13 +8570,13 @@ namespace TestAll
 
             LegArrF = new double[orderSize, orderSize];
 
-            AstroLib.gravityModelData gravData;
+            AstroLib.gravityConst gravData;
 
             double rad = 180.0 / Math.PI;              // deg to rad
             double conv = Math.PI / (180.0 * 3600.0);  // " to rad
 
-            StringBuilder strbuild = new StringBuilder();
-            strbuild.Clear();
+            StringBuilder strbuildall = new StringBuilder();
+          //  strbuild.Clear();
             StringBuilder strbuildplot = new StringBuilder();
             strbuildplot.Clear();
 
@@ -4816,7 +8584,7 @@ namespace TestAll
             reci = new double[] { -605.79079600, -5870.23042200, 3493.05191600 };
             veci = new double[] { -1.568251000, -3.702348000, -6.479485000 };
             // print out initial conditions
-            strbuild.AppendLine("reci  " + reci[0].ToString(fmt).PadLeft(4) + " " + reci[1].ToString(fmt).PadLeft(4) + " " + reci[2].ToString(fmt).PadLeft(4) + " " +
+            strbuildall.AppendLine("reci  " + reci[0].ToString(fmt).PadLeft(4) + " " + reci[1].ToString(fmt).PadLeft(4) + " " + reci[2].ToString(fmt).PadLeft(4) + " " +
                                 "v  " + veci[0].ToString(fmt).PadLeft(4) + " " + veci[1].ToString(fmt).PadLeft(4) + " " + veci[2].ToString(fmt).PadLeft(4));
             cd = 2.2;
             cr = 1.2;
@@ -4825,8 +8593,16 @@ namespace TestAll
 
             // ------------------------------- establish time parameters -------------------------------
             EOPSPWLib.iau80Class iau80arr;
-            string nutLoc = @"D:\Codes\LIBRARY\DataLib\nut80.dat";
+            EOPSPWLib.iau00Class iau00arr;
+            string nutLoc;
+            nutLoc = @"D:\Codes\LIBRARY\DataLib\nut80.dat";
             EOPSPWLibr.iau80in(nutLoc, out iau80arr);
+            nutLoc = @"D:\Codes\LIBRARY\DataLib\";
+            EOPSPWLibr.iau00in(nutLoc, out iau00arr);
+            // now read it in
+            double jdxysstart, jdfxysstart;
+            AstroLib.xysdataClass[] xysarr = AstroLibr.xysarr;
+            AstroLibr.initXYS(ref xysarr, nutLoc, "xysdata.dat", out jdxysstart, out jdfxysstart);
 
             year = 2020;
             mon = 2;
@@ -4836,36 +8612,45 @@ namespace TestAll
             second = 47.23847;
             MathTimeLibr.jday(year, mon, day, hr, minute, second, out jdutc, out jdFutc);  // utc
 
-            xp = 0.030640 * conv;
-            yp = 0.336064 * conv;
-            lod = 0.0000643;
-            ddpsi = -0.108193 * conv;  // " to rad
-            ddeps = -0.007365 * conv;
-            ddx = 0.000255 * conv;     // " to rad
-            ddy = 0.000039 * conv;
-            dut1 = -0.1991042;   // sec
+            // these vaues are not consistent wih the EOP files - are they interpolated already????
+            // no. change to use actual at 0000 values, rerun probelm. 
+            //2020 02 18 58897  0.030655  0.336009 -0.1990725  0.0000639 -0.108041 -0.007459  0.000315 -0.000055  37
+            //2020 02 19 58898  0.030313  0.337617 - 0.1991016  0.0000235 - 0.107939 - 0.007476  0.000324 - 0.000036  37
+
+            xp = 0.030655 * conv;
+            yp = 0.336009 * conv;
+            lod = 0.0000639;
+            ddpsi = -0.108041 * conv;  // " to rad
+            ddeps = -0.007459 * conv;
+            ddx = 0.000315 * conv;     // " to rad
+            ddy = 0.000055 * conv;
+            dut1 = -0.1990725;   // sec
             dat = 37;            // sec
             AstroLib.EOpt opt = AstroLib.EOpt.e80;
             eqeterms = 2;
+            jdtt = jdutc;
+            jdftt = jdFutc + (dat + 32.184)/86400.0;
 
             // method to do calculations in
             char normalized = 'y';
-            strbuild.AppendLine("normalized = " + normalized.ToString());
+            strbuildall.AppendLine("normalized = " + normalized.ToString());
 
-            strbuild.AppendLine(year.ToString("0000") + " " + mon.ToString("00") + " " + day.ToString("00") + " " + hr.ToString("00") + ":" +
+            strbuildall.AppendLine(year.ToString("0000") + " " + mon.ToString("00") + " " + day.ToString("00") + " " + hr.ToString("00") + ":" +
                 minute.ToString("00") + ":" + second.ToString());
-            strbuild.AppendLine("dat " + dat.ToString() + " lod " + lod.ToString());
-            strbuild.AppendLine("jdutc " + (jdutc + jdFutc).ToString());
-            strbuild.AppendLine("xp yp " + (xp / conv).ToString() + " " + (yp / conv).ToString() + " arcsec");
-            strbuild.AppendLine("dpsi deps " + (ddpsi / conv).ToString() + " " + (ddeps / conv).ToString() + " arcsec");
-            strbuild.AppendLine("dx dy " + (ddx / conv).ToString() + " " + (ddy / conv).ToString() + " arcsec \n");
+            strbuildall.AppendLine("dat " + dat.ToString() + " lod " + lod.ToString());
+            strbuildall.AppendLine("jdutc " + (jdutc + jdFutc).ToString());
+            strbuildall.AppendLine("xp yp " + (xp / conv).ToString() + " " + (yp / conv).ToString() + " arcsec");
+            strbuildall.AppendLine("dpsi deps " + (ddpsi / conv).ToString() + " " + (ddeps / conv).ToString() + " arcsec");
+            strbuildall.AppendLine("dx dy " + (ddx / conv).ToString() + " " + (ddy / conv).ToString() + " arcsec \n");
 
             jdut1 = jdutc + jdFutc + dut1 / 86400.0;
-            strbuild.AppendLine("jdut1 " + jdut1.ToString());
+            strbuildall.AppendLine("jdut1 " + jdut1.ToString());
 
+            // watch if getting tdb that j2000 is also tdb
             ttt = (jdutc + jdFutc + (dat + 32.184) / 86400.0 - 2451545.0) / 36525.0;
-            strbuild.AppendLine("jdttt " + (jdutc + jdFutc + (dat + 32.184) / 86400.0).ToString() + " ttt " + ttt.ToString() + "\n");
+            strbuildall.AppendLine("jdttt " + (jdutc + jdFutc + (dat + 32.184) / 86400.0).ToString() + " ttt " + ttt.ToString() + "\n");
 
+            AstroLibr.fundarg(ttt, opt, out fArgs);
 
             tmptdb = (dat + 32.184 + 0.001657 * Math.Sin(628.3076 * ttt + 6.2401)
                  + 0.000022 * Math.Sin(575.3385 * ttt + 4.2970)
@@ -4876,20 +8661,19 @@ namespace TestAll
                  + 0.000010 * ttt * Math.Sin(628.3076 * ttt + 4.2490)) / 86400.0;  // USNO circ(14)
             MathTimeLibr.jday(year, mon, day, hr, minute, second + tmptdb, out jdtdb, out jdFtdb);
             ttdb = (jdtdb + jdFtdb - 2451545.0) / 36525.0;
-            strbuild.AppendLine("jdttb " + (jdtdb + jdFtdb).ToString() + " ttdb " + ttdb.ToString());
+            strbuildall.AppendLine("jdttb " + (jdtdb + jdFtdb).ToString() + " ttdb " + ttdb.ToString());
 
             // get reduction matrices
             deltapsi = 0.0;
             meaneps = 0.0;
-            raan = 0.0;
 
             omegaearth[0] = 0.0;
             omegaearth[1] = 0.0;
-            omegaearth[2] = MathTimeLib.globals.earthrot * (1.0 - lod / 86400.0);
+            omegaearth[2] = AstroLibr.gravConst.earthrot * (1.0 - lod / 86400.0);
 
             prec = AstroLibr.precess(ttt, opt, out psia, out wa, out epsa, out chia);
-            nut = AstroLibr.nutation(ttt, ddpsi, ddeps, iau80arr, opt, out deltapsi, out deltaeps, out trueeps, out meaneps, out raan);
-            st = AstroLibr.sidereal(jdut1, deltapsi, meaneps, raan, lod, eqeterms, opt);
+            nut = AstroLibr.nutation(ttt, ddpsi, ddeps, iau80arr, opt, fArgs, out deltapsi, out deltaeps, out trueeps, out meaneps);
+            st = AstroLibr.sidereal(jdut1, deltapsi, meaneps, fArgs, lod, eqeterms, opt);
             pm = AstroLibr.polarm(xp, yp, ttt, opt);
 
             //// ---- perform transformations eci to ecef
@@ -4901,7 +8685,7 @@ namespace TestAll
             temp1 = MathTimeLibr.matmult(temp, nutp, 3, 3, 3);
             transeci2ecef = MathTimeLibr.matmult(temp1, precp, 3, 3, 3);
             recef = MathTimeLibr.matvecmult(transeci2ecef, reci, 3);
-            strbuild.AppendLine("recef  " + recef[0].ToString(fmt).PadLeft(4) + " " + recef[1].ToString(fmt).PadLeft(4) + " " + recef[2].ToString(fmt).PadLeft(4) + " " +
+            strbuildall.AppendLine("recef  " + recef[0].ToString(fmt).PadLeft(4) + " " + recef[1].ToString(fmt).PadLeft(4) + " " + recef[2].ToString(fmt).PadLeft(4) + " " +
                                 "v  " + vecef[0].ToString(fmt).PadLeft(4) + " " + vecef[1].ToString(fmt).PadLeft(4) + " " + vecef[2].ToString(fmt).PadLeft(4));
 
             //----perform transformations ecef to eci
@@ -4909,15 +8693,17 @@ namespace TestAll
             temp1 = MathTimeLibr.matmult(temp, st, 3, 3, 3);
             transecef2eci = MathTimeLibr.matmult(temp1, pm, 3, 3, 3);
             reci = MathTimeLibr.matvecmult(transecef2eci, recef, 3);
-            strbuild.AppendLine("reci  " + reci[0].ToString(fmt).PadLeft(4) + " " + reci[1].ToString(fmt).PadLeft(4) + " " + reci[2].ToString(fmt).PadLeft(4) + " " +
+            strbuildall.AppendLine("reci  " + reci[0].ToString(fmt).PadLeft(4) + " " + reci[1].ToString(fmt).PadLeft(4) + " " + reci[2].ToString(fmt).PadLeft(4) + " " +
                                 "v  " + veci[0].ToString(fmt).PadLeft(4) + " " + veci[1].ToString(fmt).PadLeft(4) + " " + veci[2].ToString(fmt).PadLeft(4));
 
-            AstroLibr.eci_ecef(ref reci, ref veci, iau80arr, MathTimeLib.Edirection.eto, ttt, jdut1, lod, xp, yp, eqeterms, ddpsi, ddeps, AstroLib.EOpt.e80, ref recef, ref vecef);
+            AstroLibr.eci_ecef(ref reci, ref veci, MathTimeLib.Edirection.eto, ref recef, ref vecef,
+                 AstroLib.EOpt.e80, iau80arr, iau00arr,
+                 jdtt, jdftt, jdut1, jdxysstart, lod, xp, yp, ddpsi, ddeps, ddx, ddy);
 
             // print out initial conditions
-            strbuild.AppendLine("reci  " + reci[0].ToString(fmt).PadLeft(4) + " " + reci[1].ToString(fmt).PadLeft(4) + " " + reci[2].ToString(fmt).PadLeft(4) + " " +
+            strbuildall.AppendLine("reci  " + reci[0].ToString(fmt).PadLeft(4) + " " + reci[1].ToString(fmt).PadLeft(4) + " " + reci[2].ToString(fmt).PadLeft(4) + " " +
                                 "v  " + veci[0].ToString(fmt).PadLeft(4) + " " + veci[1].ToString(fmt).PadLeft(4) + " " + veci[2].ToString(fmt).PadLeft(4));
-            strbuild.AppendLine("recef  " + recef[0].ToString(fmt).PadLeft(4) + " " + recef[1].ToString(fmt).PadLeft(4) + " " + recef[2].ToString(fmt).PadLeft(4) + " " +
+            strbuildall.AppendLine("recef  " + recef[0].ToString(fmt).PadLeft(4) + " " + recef[1].ToString(fmt).PadLeft(4) + " " + recef[2].ToString(fmt).PadLeft(4) + " " +
                                 "v  " + vecef[0].ToString(fmt).PadLeft(4) + " " + vecef[1].ToString(fmt).PadLeft(4) + " " + vecef[2].ToString(fmt).PadLeft(4));
 
 
@@ -4935,17 +8721,17 @@ namespace TestAll
             char normal = 'y';  // file has normalized coefficients
 
             AstroLibr.initGravityField(fname, 0, normal, out order, out gravData, out convArr, out normArr);
-            strbuild.AppendLine("\nread in gravity field " + fname + " " + order.ToString() + " --------------- ");
-            strbuild.AppendLine("\ncoefficents --------------- ");
-            strbuild.AppendLine("c  2  0  " + gravData.c[2, 0].ToString() + " s " + gravData.s[2, 0].ToString());
-            strbuild.AppendLine("c  4  0  " + gravData.c[4, 0].ToString() + " s " + gravData.s[4, 0].ToString());
-            strbuild.AppendLine("c  4  4  " + gravData.c[4, 4].ToString() + " s " + gravData.s[4, 4].ToString());
-            strbuild.AppendLine("c 21  1 " + gravData.c[21, 1].ToString() + " s " + gravData.s[21, 1].ToString());
-            strbuild.AppendLine("\nnormalized coefficents --------------- ");
-            strbuild.AppendLine("c  2  0  " + gravData.cNor[2, 0].ToString() + " s " + gravData.sNor[2, 0].ToString());
-            strbuild.AppendLine("c  4  0  " + gravData.cNor[4, 0].ToString() + " s " + gravData.sNor[4, 0].ToString());
-            strbuild.AppendLine("c  4  4  " + gravData.cNor[4, 4].ToString() + " s " + gravData.sNor[4, 4].ToString());
-            strbuild.AppendLine("c 21  1 " + gravData.cNor[21, 1].ToString() + " s " + gravData.sNor[21, 1].ToString());
+            strbuildall.AppendLine("\nread in gravity field " + fname + " " + order.ToString() + " --------------- ");
+            strbuildall.AppendLine("\ncoefficents --------------- ");
+            strbuildall.AppendLine("c  2  0  " + gravData.c[2, 0].ToString() + " s " + gravData.s[2, 0].ToString());
+            strbuildall.AppendLine("c  4  0  " + gravData.c[4, 0].ToString() + " s " + gravData.s[4, 0].ToString());
+            strbuildall.AppendLine("c  4  4  " + gravData.c[4, 4].ToString() + " s " + gravData.s[4, 4].ToString());
+            strbuildall.AppendLine("c 21  1 " + gravData.c[21, 1].ToString() + " s " + gravData.s[21, 1].ToString());
+            strbuildall.AppendLine("\nnormalized coefficents --------------- ");
+            strbuildall.AppendLine("c  2  0  " + gravData.cNor[2, 0].ToString() + " s " + gravData.sNor[2, 0].ToString());
+            strbuildall.AppendLine("c  4  0  " + gravData.cNor[4, 0].ToString() + " s " + gravData.sNor[4, 0].ToString());
+            strbuildall.AppendLine("c  4  4  " + gravData.cNor[4, 4].ToString() + " s " + gravData.sNor[4, 4].ToString());
+            strbuildall.AppendLine("c 21  1 " + gravData.cNor[21, 1].ToString() + " s " + gravData.sNor[21, 1].ToString());
 
             AstroLibr.ecef2ll(recef, out latgc, out latgd, out lon, out hellp);
             degree = 500;
@@ -4976,7 +8762,7 @@ namespace TestAll
             sumdr1 = 0.0;
             sumdr2 = 0.0;
             sumdr3 = 0.0;
-            strbuild.AppendLine("\nnormalized Legendre polynomials --------------- ");
+            strbuildall.AppendLine("\nnormalized Legendre polynomials --------------- ");
 
             for (int L = 0; L <= 130; L++)  // order xxxxxxxxxxxxxxxxxx
             {
@@ -5009,10 +8795,10 @@ namespace TestAll
                     errstr = errstr + "\n" + L.ToString() + "  " + m.ToString() + "   " + dr1.ToString()
                         + " " + dr2.ToString() + " " + dr3.ToString();
                 }
-                strbuild.AppendLine(tempstr2);
-                strbuild.AppendLine(tempstr1);
-                strbuild.AppendLine(tempstr5);
-                strbuild.AppendLine(tempstr7 + "\n");
+                strbuildall.AppendLine(tempstr2);
+                strbuildall.AppendLine(tempstr1);
+                strbuildall.AppendLine(tempstr5);
+                strbuildall.AppendLine(tempstr7 + "\n");
                 //strbuild.AppendLine(tempstr3);
                 //strbuild.AppendLine(tempstr3a);
                 //strbuild.AppendLine(tempstr6);
@@ -5020,7 +8806,7 @@ namespace TestAll
             }
             strbuildplot.AppendLine(errstr);
 
-            strbuild.AppendLine("\naccelerations --------------- ");
+            strbuildall.AppendLine("\naccelerations --------------- ");
             string straccum = "";
 
             order = 4;
@@ -5044,39 +8830,49 @@ namespace TestAll
             double[,] b = new double[360, 360];
 
             xfsh2f(80, gravData, out a, out b);
-            strbuild.AppendLine(a[2, 0].ToString());
+            strbuildall.AppendLine(a[2, 0].ToString());
 
-            strbuild.AppendLine("a  2  0  " + a[2, 0].ToString() + " b " + b[2, 0].ToString());
-            strbuild.AppendLine("a  2  1  " + a[2, 1].ToString() + " b " + b[2, 1].ToString());
-            strbuild.AppendLine("a  4  0  " + a[4, 0].ToString() + " b " + b[4, 0].ToString());
-            strbuild.AppendLine("a  4  1  " + a[4, 0].ToString() + " b " + b[4, 1].ToString());
-            strbuild.AppendLine("a  4  4  " + a[4, 4].ToString() + " b " + b[4, 4].ToString());
-            strbuild.AppendLine("a 21  1 " + a[21, 1].ToString() + " b " + b[21, 1].ToString());
+            strbuildall.AppendLine("a  2  0  " + a[2, 0].ToString() + " b " + b[2, 0].ToString());
+            strbuildall.AppendLine("a  2  1  " + a[2, 1].ToString() + " b " + b[2, 1].ToString());
+            strbuildall.AppendLine("a  4  0  " + a[4, 0].ToString() + " b " + b[4, 0].ToString());
+            strbuildall.AppendLine("a  4  1  " + a[4, 0].ToString() + " b " + b[4, 1].ToString());
+            strbuildall.AppendLine("a  4  4  " + a[4, 4].ToString() + " b " + b[4, 4].ToString());
+            strbuildall.AppendLine("a 21  1 " + a[21, 1].ToString() + " b " + b[21, 1].ToString());
 
             CalculateField(jdutc, recef, latgc, order, order, gravData, out aeci);
 
-            strbuild.AppendLine(straccum);
-            strbuild.AppendLine(" body fixed frame ");
-            strbuild.AppendLine("apertG bf 4 4   " + aPertG[0].ToString() + "     " + aPertG[1].ToString() + "     " + aPertG[2].ToString());
-            strbuild.AppendLine("apertM bf 4 4   " + aPertM[0].ToString() + "     " + aPertM[1].ToString() + "     " + aPertM[2].ToString());
-            strbuild.AppendLine("apertMC bf 4 4  " + aPertM1[0].ToString() + "     " + aPertM1[1].ToString() + "     " + aPertM1[2].ToString());
-            strbuild.AppendLine("apertGt bf 4 4  " + G[0].ToString() + "     " + G[1].ToString() + "     " + G[2].ToString());
+            strbuildall.AppendLine(straccum);
+            strbuildall.AppendLine(" body fixed frame ");
+            strbuildall.AppendLine("apertG bf 4 4   " + aPertG[0].ToString() + "     " + aPertG[1].ToString() + "     " + aPertG[2].ToString());
+            strbuildall.AppendLine("apertM bf 4 4   " + aPertM[0].ToString() + "     " + aPertM[1].ToString() + "     " + aPertM[2].ToString());
+
+// bfc for gravity in example problem
+            double[] temm = new double[3];
+            temm[0] = aPertM[0];
+            temm[1] = aPertM[1];
+            temm[2] = aPertM[2];
+
+            strbuildall.AppendLine("apertMC bf 4 4  " + aPertM1[0].ToString() + "     " + aPertM1[1].ToString() + "     " + aPertM1[2].ToString());
+            strbuildall.AppendLine("apertGt bf 4 4  " + G[0].ToString() + "     " + G[1].ToString() + "     " + G[2].ToString());
             aPertG = MathTimeLibr.matvecmult(transecef2eci, aPertG, 3);
             aPertM = MathTimeLibr.matvecmult(transecef2eci, aPertM, 3);
             aPertM1 = MathTimeLibr.matvecmult(transecef2eci, aPertM1, 3);
             aPertGt = MathTimeLibr.matvecmult(transecef2eci, G, 3);
-            strbuild.AppendLine("apertG ec 4 4   " + aPertG[0].ToString() + "     " + aPertG[1].ToString() + "     " + aPertG[2].ToString());
-            strbuild.AppendLine("apertM ec 4 4   " + aPertM[0].ToString() + "     " + aPertM[1].ToString() + "     " + aPertM[2].ToString());
-            strbuild.AppendLine("apertMC ec 4 4  " + aPertM1[0].ToString() + "     " + aPertM1[1].ToString() + "     " + aPertM1[2].ToString());
-            strbuild.AppendLine("apertGt ec 4 4  " + aPertGt[0].ToString() + "     " + aPertGt[1].ToString() + "     " + aPertGt[2].ToString());
-            strbuild.AppendLine("ans 4x4         -0.0000003723020	-0.0000031362090   	-0.0000102647170\n");  // no 2-body
+            strbuildall.AppendLine("apertG ec 4 4   " + aPertG[0].ToString() + "     " + aPertG[1].ToString() + "     " + aPertG[2].ToString());
+            strbuildall.AppendLine("apertM ec 4 4   " + aPertM[0].ToString() + "     " + aPertM[1].ToString() + "     " + aPertM[2].ToString());
+            strbuildall.AppendLine("apertMC ec 4 4  " + aPertM1[0].ToString() + "     " + aPertM1[1].ToString() + "     " + aPertM1[2].ToString());
+            strbuildall.AppendLine("apertGt ec 4 4  " + aPertGt[0].ToString() + "     " + aPertGt[1].ToString() + "     " + aPertGt[2].ToString());
+            strbuildall.AppendLine("ans 4x4         -0.0000003723020	-0.0000031362090   	-0.0000102647170\n");  // no 2-body
 
             // add in two body term since full geop is only disturbing part
-            AstroLibr.eci_ecef(ref reci, ref veci, iau80arr, MathTimeLib.Edirection.efrom, ttt, jdut1, lod, xp, yp, eqeterms, ddpsi, ddeps, AstroLib.EOpt.e80, ref recef, ref vecef);
-            aeci2[0] = -MathTimeLib.globals.mu * reci[0] / (Math.Pow(MathTimeLibr.mag(reci), 3));
-            aeci2[1] = -MathTimeLib.globals.mu * reci[1] / (Math.Pow(MathTimeLibr.mag(reci), 3));
-            aeci2[2] = -MathTimeLib.globals.mu * reci[2] / (Math.Pow(MathTimeLibr.mag(reci), 3));
-            strbuild.AppendLine("a2body      " + aeci2[0].ToString() + "     " + aeci2[1].ToString() + "     " + aeci2[2].ToString());
+            AstroLibr.eci_ecef(ref reci, ref veci, MathTimeLib.Edirection.efrom, ref recef, ref vecef,
+                 AstroLib.EOpt.e80, iau80arr, iau00arr,
+                 jdtt, jdftt, jdut1, jdxysstart, lod, xp, yp, ddpsi, ddeps, ddx, ddy);
+
+            aeci2[0] = -AstroLibr.gravConst.mu * reci[0] / (Math.Pow(MathTimeLibr.mag(reci), 3));
+            aeci2[1] = -AstroLibr.gravConst.mu * reci[1] / (Math.Pow(MathTimeLibr.mag(reci), 3));
+            aeci2[2] = -AstroLibr.gravConst.mu * reci[2] / (Math.Pow(MathTimeLibr.mag(reci), 3));
+            strbuildall.AppendLine("a2body      " + aeci2[0].ToString() + "     " + aeci2[1].ToString() + "     " + aeci2[2].ToString());
 
             aPertG[0] = aPertG[0] + aeci2[0];
             aPertG[1] = aPertG[1] + aeci2[1];
@@ -5090,11 +8886,11 @@ namespace TestAll
             aPertM1[1] = aPertM1[1] + aeci2[1];
             aPertM1[2] = aPertM1[2] + aeci2[2];
 
-            strbuild.AppendLine(" now with two body included");
-            strbuild.AppendLine("apertG 4 4   " + aPertG[0].ToString() + "     " + aPertG[1].ToString() + "     " + aPertG[2].ToString());
-            strbuild.AppendLine("apertM 4 4   " + aPertM[0].ToString() + "     " + aPertM[1].ToString() + "     " + aPertM[2].ToString());
-            strbuild.AppendLine("apertMC 4 4  " + aPertM1[0].ToString() + "     " + aPertM1[1].ToString() + "     " + aPertM1[2].ToString());
-            strbuild.AppendLine("ans 4x4 w2   0.0007483593980          0.0072522125910         -0.0043275195170\n");  // no 2-body
+            strbuildall.AppendLine(" now with two body included");
+            strbuildall.AppendLine("apertG 4 4   " + aPertG[0].ToString() + "     " + aPertG[1].ToString() + "     " + aPertG[2].ToString());
+            strbuildall.AppendLine("apertM 4 4   " + aPertM[0].ToString() + "     " + aPertM[1].ToString() + "     " + aPertM[2].ToString());
+            strbuildall.AppendLine("apertMC 4 4  " + aPertM1[0].ToString() + "     " + aPertM1[1].ToString() + "     " + aPertM1[2].ToString());
+            strbuildall.AppendLine("ans 4x4 w2   0.0007483593980          0.0072522125910         -0.0043275195170\n");  // no 2-body
             //                    4x4 j2000   0.00074835849281         0.00725221243453        -0.00432751993509
             //                    4x4 icrf    0.00074835939828         0.00725221259059        -0.00432751951698
             //                    all j2000   0.00074845403274         0.00725223127396        -0.00432750265312
@@ -5109,25 +8905,28 @@ namespace TestAll
 
             AstroLibr.FullGeopMC(recef, order, normalized, convArr, gravData, out aPertM1, 'y', out straccum);
 
-            strbuild.AppendLine(straccum);
-            strbuild.AppendLine(" body fixed frame ");
-            strbuild.AppendLine("apertG bf 5 5   " + aPertG[0].ToString() + "     " + aPertG[1].ToString() + "     " + aPertG[2].ToString());
-            strbuild.AppendLine("apertM bf 5 5   " + aPertM[0].ToString() + "     " + aPertM[1].ToString() + "     " + aPertM[2].ToString());
-            strbuild.AppendLine("apertMC bf 5 5  " + aPertM1[0].ToString() + "     " + aPertM1[1].ToString() + "     " + aPertM1[2].ToString());
+            strbuildall.AppendLine(straccum);
+            strbuildall.AppendLine(" body fixed frame ");
+            strbuildall.AppendLine("apertG bf 5 5   " + aPertG[0].ToString() + "     " + aPertG[1].ToString() + "     " + aPertG[2].ToString());
+            strbuildall.AppendLine("apertM bf 5 5   " + aPertM[0].ToString() + "     " + aPertM[1].ToString() + "     " + aPertM[2].ToString());
+            strbuildall.AppendLine("apertMC bf 5 5  " + aPertM1[0].ToString() + "     " + aPertM1[1].ToString() + "     " + aPertM1[2].ToString());
             aPertG = MathTimeLibr.matvecmult(transecef2eci, aPertG, 3);
             aPertM = MathTimeLibr.matvecmult(transecef2eci, aPertM, 3);
             aPertM1 = MathTimeLibr.matvecmult(transecef2eci, aPertM1, 3);
-            strbuild.AppendLine("apertG ec 5 5   " + aPertG[0].ToString() + "     " + aPertG[1].ToString() + "     " + aPertG[2].ToString());
-            strbuild.AppendLine("apertM ec 5 5   " + aPertM[0].ToString() + "     " + aPertM[1].ToString() + "     " + aPertM[2].ToString());
-            strbuild.AppendLine("apertMC ec 5 5  " + aPertM1[0].ToString() + "     " + aPertM1[1].ToString() + "     " + aPertM1[2].ToString());
-            strbuild.AppendLine("ans 5x5      -0.0000003688720	    -0.0000031905410    	-0.0000102894900\n");
+            strbuildall.AppendLine("apertG ec 5 5   " + aPertG[0].ToString() + "     " + aPertG[1].ToString() + "     " + aPertG[2].ToString());
+            strbuildall.AppendLine("apertM ec 5 5   " + aPertM[0].ToString() + "     " + aPertM[1].ToString() + "     " + aPertM[2].ToString());
+            strbuildall.AppendLine("apertMC ec 5 5  " + aPertM1[0].ToString() + "     " + aPertM1[1].ToString() + "     " + aPertM1[2].ToString());
+            strbuildall.AppendLine("ans 5x5      -0.0000003688720	    -0.0000031905410    	-0.0000102894900\n");
 
             // add in two body term since full geop is only disturbing part
-            AstroLibr.eci_ecef(ref reci, ref veci, iau80arr, MathTimeLib.Edirection.efrom, ttt, jdut1, lod, xp, yp, eqeterms, ddpsi, ddeps, AstroLib.EOpt.e80, ref recef, ref vecef);
-            aeci2[0] = -MathTimeLib.globals.mu * reci[0] / (Math.Pow(MathTimeLibr.mag(reci), 3));
-            aeci2[1] = -MathTimeLib.globals.mu * reci[1] / (Math.Pow(MathTimeLibr.mag(reci), 3));
-            aeci2[2] = -MathTimeLib.globals.mu * reci[2] / (Math.Pow(MathTimeLibr.mag(reci), 3));
-            strbuild.AppendLine("a2body      " + aeci2[0].ToString() + "     " + aeci2[1].ToString() + "     " + aeci2[2].ToString());
+            AstroLibr.eci_ecef(ref reci, ref veci, MathTimeLib.Edirection.efrom, ref recef, ref vecef,
+                 AstroLib.EOpt.e80, iau80arr, iau00arr,
+                 jdtt, jdftt, jdut1, jdxysstart, lod, xp, yp, ddpsi, ddeps, ddx, ddy);
+
+            aeci2[0] = -AstroLibr.gravConst.mu * reci[0] / (Math.Pow(MathTimeLibr.mag(reci), 3));
+            aeci2[1] = -AstroLibr.gravConst.mu * reci[1] / (Math.Pow(MathTimeLibr.mag(reci), 3));
+            aeci2[2] = -AstroLibr.gravConst.mu * reci[2] / (Math.Pow(MathTimeLibr.mag(reci), 3));
+            strbuildall.AppendLine("a2body      " + aeci2[0].ToString() + "     " + aeci2[1].ToString() + "     " + aeci2[2].ToString());
 
             aPertG[0] = aPertG[0] + aeci2[0];
             aPertG[1] = aPertG[1] + aeci2[1];
@@ -5141,35 +8940,46 @@ namespace TestAll
             aPertM1[1] = aPertM1[1] + aeci2[1];
             aPertM1[2] = aPertM1[2] + aeci2[2];
 
-            strbuild.AppendLine(" now with two body included");
-            strbuild.AppendLine("apertG 5 5   " + aPertG[0].ToString() + "     " + aPertG[1].ToString() + "     " + aPertG[2].ToString());
-            strbuild.AppendLine("apertM 5 5   " + aPertM[0].ToString() + "     " + aPertM[1].ToString() + "     " + aPertM[2].ToString());
-            strbuild.AppendLine("apertMC 5 5  " + aPertM1[0].ToString() + "     " + aPertM1[1].ToString() + "     " + aPertM1[2].ToString());
+            strbuildall.AppendLine(" now with two body included");
+            strbuildall.AppendLine("apertG 5 5   " + aPertG[0].ToString() + "     " + aPertG[1].ToString() + "     " + aPertG[2].ToString());
+            strbuildall.AppendLine("apertM 5 5   " + aPertM[0].ToString() + "     " + aPertM[1].ToString() + "     " + aPertM[2].ToString());
+            strbuildall.AppendLine("apertMC 5 5  " + aPertM1[0].ToString() + "     " + aPertM1[1].ToString() + "     " + aPertM1[2].ToString());
 
 
-            strbuild.AppendLine("------------------ find drag acceleration");
+            strbuildall.AppendLine("------------------ find drag acceleration");
             double density = 1.5e-12;  // kg / m3
             double magv = MathTimeLibr.mag(vecef);
             vrel[0] = vecef[0]; // vecef normal is veci to tod, then - wxr
             vrel[1] = vecef[1];
             vrel[2] = vecef[2];
-            strbuild.AppendLine(" vrel " + vrel[0].ToString() + " " + vrel[1].ToString() + " " + vrel[2].ToString());
+            strbuildall.AppendLine(" vrel " + vrel[0].ToString() + " " + vrel[1].ToString() + " " + vrel[2].ToString());
             //                 kg / m3        m2  /  kg     km / s  km / s
             adrag[0] = -0.5 * density * cd * area / mass * magv * vrel[0] * 1000.0;  // simplify vel, get units to km/s2
             adrag[1] = -0.5 * density * cd * area / mass * magv * vrel[1] * 1000.0;  // simplify vel, get units to km/s2
             adrag[2] = -0.5 * density * cd * area / mass * magv * vrel[2] * 1000.0;  // simplify vel, get units to km/s2
 
-            strbuild.AppendLine(" adrag efc" + adrag[0].ToString() + " " + adrag[1].ToString() + " " + adrag[2].ToString());
+            strbuildall.AppendLine(" adrag efc" + adrag[0].ToString() + " " + adrag[1].ToString() + " " + adrag[2].ToString());
+
+            double[] temmm = new double[3];
+
+            strbuildall.AppendLine(" agrav + drag efc" +(temm[0]+ adrag[0]).ToString() + " " +
+                (temm[1] + adrag[1]).ToString() + " " + (temm[2] + adrag[2]).ToString());
+
 
             transecef2eci = MathTimeLibr.matmult(temp1, pm, 3, 3, 3);
             aeci = MathTimeLibr.matvecmult(transecef2eci, adrag, 3);
-            strbuild.AppendLine(" adrag eci " + aeci[0].ToString() + " " + aeci[1].ToString() + " " + aeci[2].ToString());
-            strbuild.AppendLine("ans drag JR spline      0.0000000001040	0.0000000002090	0.0000000003550\n");
-            strbuild.AppendLine("ans drag JR daily       0.0000000000840	0.0000000001720	0.0000000002900\n");
-            strbuild.AppendLine("ans drag MSIS daily     0.0000000000730	0.0000000001510	0.0000000002530\n");
+            strbuildall.AppendLine(" adrag eci " + aeci[0].ToString() + " " + aeci[1].ToString() + " " + aeci[2].ToString());
+            strbuildall.AppendLine("ans drag JR spline      0.0000000001040	0.0000000002090	0.0000000003550\n");
+            strbuildall.AppendLine("ans drag JR daily       0.0000000000840	0.0000000001720	0.0000000002900\n");
+            strbuildall.AppendLine("ans drag MSIS daily     0.0000000000730	0.0000000001510	0.0000000002530\n");
 
+            temmm[0] = temm[0] + adrag[0];
+            temmm[1] = temm[1] + adrag[1];
+            temmm[2] = temm[2] + adrag[2];
+            aeci = MathTimeLibr.matvecmult(transecef2eci, temmm, 3);
+            strbuildall.AppendLine(" agrav+drag eci " + aeci[0].ToString() + " " + aeci[1].ToString() + " " + aeci[2].ToString());
 
-            strbuild.AppendLine(" ------------------ find third body acceleration");
+            strbuildall.AppendLine(" ------------------ find third body acceleration");
             AstroLib.jpldedataClass[] jpldearr = AstroLibr.jpldearr;
             double musun, mumoon, rsmag, rmmag;
             musun = 1.32712428e11;    // km3 / s2
@@ -5186,19 +8996,19 @@ namespace TestAll
             double[] rsunj = new double[] { 126921698.4134, -69564121.8695, -30156263.9220 };
 
             MathTimeLibr.addvec(1.0, rsuns, -1.0, rsun, out tempvec1);
-            strbuild.AppendLine(" diff rsun stk-mine " + tempvec1[0].ToString() + " " + tempvec1[1].ToString() + " " +
+            strbuildall.AppendLine(" diff rsun stk-mine " + tempvec1[0].ToString() + " " + tempvec1[1].ToString() + " " +
                 tempvec1[2].ToString() + " " + MathTimeLibr.mag(tempvec1).ToString());
             MathTimeLibr.addvec(1.0, rsunj, -1.0, rsun, out tempvec1);
-            strbuild.AppendLine(" diff rsun jpl-mine " + tempvec1[0].ToString() + " " + tempvec1[1].ToString() + " " +
+            strbuildall.AppendLine(" diff rsun jpl-mine " + tempvec1[0].ToString() + " " + tempvec1[1].ToString() + " " +
                 tempvec1[2].ToString() + " " + MathTimeLibr.mag(tempvec1).ToString());
             MathTimeLibr.addvec(1.0, rsuns, -1.0, rsunj, out tempvec1);
-            strbuild.AppendLine(" diff rsun stk-jpl  " + tempvec1[0].ToString() + " " + tempvec1[1].ToString() + " " +
+            strbuildall.AppendLine(" diff rsun stk-jpl  " + tempvec1[0].ToString() + " " + tempvec1[1].ToString() + " " +
                 tempvec1[2].ToString() + " " + MathTimeLibr.mag(tempvec1).ToString());
             MathTimeLibr.addvec(1.0, rmoonj, -1.0, rmoon, out tempvec1);
-            strbuild.AppendLine(" diff rmoon jpl-mine " + tempvec1[0].ToString() + " " + tempvec1[1].ToString() + " " +
+            strbuildall.AppendLine(" diff rmoon jpl-mine " + tempvec1[0].ToString() + " " + tempvec1[1].ToString() + " " +
                 tempvec1[2].ToString() + " " + MathTimeLibr.mag(tempvec1).ToString());
-            strbuild.AppendLine(" rsun  " + rsun[0].ToString() + " " + rsun[1].ToString() + " " + rsun[2].ToString());
-            strbuild.AppendLine(" rmoon " + rmoon[0].ToString() + " " + rmoon[1].ToString() + " " + rmoon[2].ToString());
+            strbuildall.AppendLine(" rsun  " + rsun[0].ToString() + " " + rsun[1].ToString() + " " + rsun[2].ToString());
+            strbuildall.AppendLine(" rmoon " + rmoon[0].ToString() + " " + rmoon[1].ToString() + " " + rmoon[2].ToString());
 
             double mu3 = musun;
             rsat3[0] = rsun[0] - reci[0];
@@ -5212,22 +9022,22 @@ namespace TestAll
             athirdbody[0] = mu3 * (rsat3[0] / Math.Pow(magrsat3, 3) - rearth3[0] / Math.Pow(magrearth3, 3));
             athirdbody[1] = mu3 * (rsat3[1] / Math.Pow(magrsat3, 3) - rearth3[1] / Math.Pow(magrearth3, 3));
             athirdbody[2] = mu3 * (rsat3[2] / Math.Pow(magrsat3, 3) - rearth3[2] / Math.Pow(magrearth3, 3));
-            strbuild.AppendLine(" a3bodyS  eci " + athirdbody[0].ToString() + " " + athirdbody[1].ToString() + " " + athirdbody[2].ToString());
+            strbuildall.AppendLine(" a3bodyS  eci " + athirdbody[0].ToString() + " " + athirdbody[1].ToString() + " " + athirdbody[2].ToString());
             athirdbody2[0] = -mu3 / Math.Pow(magrearth3, 3) * (rearth3[0] - 3.0 * rearth3[0] * (MathTimeLibr.dot(reci, rearth3) / Math.Pow(magrearth3, 2))
                 - 7.5 * rearth3[0] * Math.Pow(((MathTimeLibr.dot(reci, rearth3) / Math.Pow(magrearth3, 2))), 2));
             athirdbody2[1] = -mu3 / Math.Pow(magrearth3, 3) * (rearth3[1] - 3.0 * rearth3[1] * (MathTimeLibr.dot(reci, rearth3) / Math.Pow(magrearth3, 2))
                 - 7.5 * rearth3[1] * Math.Pow(((MathTimeLibr.dot(reci, rearth3) / Math.Pow(magrearth3, 2))), 2));
             athirdbody2[2] = -mu3 / Math.Pow(magrearth3, 3) * (rearth3[2] - 3.0 * rearth3[2] * (MathTimeLibr.dot(reci, rearth3) / Math.Pow(magrearth3, 2))
                 - 7.5 * rearth3[2] * Math.Pow(((MathTimeLibr.dot(reci, rearth3) / Math.Pow(magrearth3, 2))), 2));
-            strbuild.AppendLine(" a3bodyS2 eci" + athirdbody2[0].ToString() + " " + athirdbody2[1].ToString() + " " + athirdbody2[2].ToString());
+            strbuildall.AppendLine(" a3bodyS2 eci" + athirdbody2[0].ToString() + " " + athirdbody2[1].ToString() + " " + athirdbody2[2].ToString());
             q = (Math.Pow(MathTimeLibr.mag(reci), 2) + 2.0 * MathTimeLibr.dot(reci, rsat3)) *
                 (Math.Pow(magrearth3, 2) + magrearth3 * magrsat3 + Math.Pow(magrsat3, 2)) /
                 (Math.Pow(magrearth3, 3) * Math.Pow(magrsat3, 3) * (magrearth3 + magrsat3));
             athirdbody1[0] = mu3 * (rsat3[0] * q - reci[0] / Math.Pow(magrearth3, 3));
             athirdbody1[1] = mu3 * (rsat3[1] * q - reci[1] / Math.Pow(magrearth3, 3));
             athirdbody1[2] = mu3 * (rsat3[2] * q - reci[2] / Math.Pow(magrearth3, 3));
-            strbuild.AppendLine(" a3bodyS1 eci" + athirdbody1[0].ToString() + " " + athirdbody1[1].ToString() + " " + athirdbody1[2].ToString());
-            strbuild.AppendLine("ans sun        0.0000000001820	0.0000000001620	-0.0000000001800\n");
+            strbuildall.AppendLine(" a3bodyS1 eci" + athirdbody1[0].ToString() + " " + athirdbody1[1].ToString() + " " + athirdbody1[2].ToString());
+            strbuildall.AppendLine("ans sun        0.0000000001820	0.0000000001620	-0.0000000001800\n");
             a3body[0] = athirdbody1[0];
             a3body[1] = athirdbody1[1];
             a3body[2] = athirdbody1[2];
@@ -5245,29 +9055,29 @@ namespace TestAll
             athirdbody[0] = mu3 * (rsat3[0] / Math.Pow(magrsat3, 3) - rearth3[0] / Math.Pow(magrearth3, 3));
             athirdbody[1] = mu3 * (rsat3[1] / Math.Pow(magrsat3, 3) - rearth3[1] / Math.Pow(magrearth3, 3));
             athirdbody[2] = mu3 * (rsat3[2] / Math.Pow(magrsat3, 3) - rearth3[2] / Math.Pow(magrearth3, 3));
-            strbuild.AppendLine(" a3bodyM  eci " + athirdbody[0].ToString() + " " + athirdbody[1].ToString() + " " + athirdbody[2].ToString());
+            strbuildall.AppendLine(" a3bodyM  eci " + athirdbody[0].ToString() + " " + athirdbody[1].ToString() + " " + athirdbody[2].ToString());
             athirdbody2[0] = -mu3 / Math.Pow(magrearth3, 3) * (rearth3[0] - 3.0 * rearth3[0] * (MathTimeLibr.dot(reci, rearth3) / Math.Pow(magrearth3, 2))
                 - 7.5 * rearth3[0] * Math.Pow(((MathTimeLibr.dot(reci, rearth3) / Math.Pow(magrearth3, 2))), 2));
             athirdbody2[1] = -mu3 / Math.Pow(magrearth3, 3) * (rearth3[1] - 3.0 * rearth3[1] * (MathTimeLibr.dot(reci, rearth3) / Math.Pow(magrearth3, 2))
                 - 7.5 * rearth3[1] * Math.Pow(((MathTimeLibr.dot(reci, rearth3) / Math.Pow(magrearth3, 2))), 2));
             athirdbody2[2] = -mu3 / Math.Pow(magrearth3, 3) * (rearth3[2] - 3.0 * rearth3[2] * (MathTimeLibr.dot(reci, rearth3) / Math.Pow(magrearth3, 2))
                 - 7.5 * rearth3[2] * Math.Pow(((MathTimeLibr.dot(reci, rearth3) / Math.Pow(magrearth3, 2))), 2));
-            strbuild.AppendLine(" a3bodyM2 eci" + athirdbody2[0].ToString() + " " + athirdbody2[1].ToString() + " " + athirdbody2[2].ToString());
+            strbuildall.AppendLine(" a3bodyM2 eci" + athirdbody2[0].ToString() + " " + athirdbody2[1].ToString() + " " + athirdbody2[2].ToString());
             q = (Math.Pow(MathTimeLibr.mag(reci), 2) + 2.0 * MathTimeLibr.dot(reci, rsat3)) *
                 (Math.Pow(magrearth3, 2) + magrearth3 * magrsat3 + Math.Pow(magrsat3, 2)) /
                 (Math.Pow(magrearth3, 3) * Math.Pow(magrsat3, 3) * (magrearth3 + magrsat3));
             athirdbody1[0] = mu3 * (rsat3[0] * q - reci[0] / Math.Pow(magrearth3, 3));
             athirdbody1[1] = mu3 * (rsat3[1] * q - reci[1] / Math.Pow(magrearth3, 3));
             athirdbody1[2] = mu3 * (rsat3[2] * q - reci[2] / Math.Pow(magrearth3, 3));
-            strbuild.AppendLine(" a3bodyM1 eci" + athirdbody1[0].ToString() + " " + athirdbody1[1].ToString() + " " + athirdbody1[2].ToString());
-            strbuild.AppendLine("ans moon        0.0000000000860	-0.0000000004210	-0.0000000006980\n");
+            strbuildall.AppendLine(" a3bodyM1 eci" + athirdbody1[0].ToString() + " " + athirdbody1[1].ToString() + " " + athirdbody1[2].ToString());
+            strbuildall.AppendLine("ans moon        0.0000000000860	-0.0000000004210	-0.0000000006980\n");
             a3body[0] = a3body[0] + athirdbody1[0];
             a3body[1] = a3body[1] + athirdbody1[1];
             a3body[2] = a3body[2] + athirdbody1[2];
-            strbuild.AppendLine("ans sun/moon    0.0000000002730	-0.0000000002680	-0.0000000008800\n");
+            strbuildall.AppendLine("ans sun/moon    0.0000000002730	-0.0000000002680	-0.0000000008800\n");
 
 
-            strbuild.AppendLine(" ------------------ find srp acceleration\n");
+            strbuildall.AppendLine(" ------------------ find srp acceleration\n");
             double psrp = 4.56e-6;  // N/m2 = kgm/s2 / m2 = kg/ms2
             rsatsun[0] = rsun[0] - reci[0];
             rsatsun[1] = rsun[1] - reci[1];
@@ -5277,37 +9087,37 @@ namespace TestAll
             asrp[0] = -(psrp * cr * area / mass * rsatsun[0] / magrsatsun) / 1000.0;  // result in km/s
             asrp[1] = -(psrp * cr * area / mass * rsatsun[1] / magrsatsun) / 1000.0;
             asrp[2] = -(psrp * cr * area / mass * rsatsun[2] / magrsatsun) / 1000.0;
-            strbuild.AppendLine(" asrp eci " + asrp[0].ToString() + " " + asrp[1].ToString() + " " + asrp[2].ToString());
-            strbuild.AppendLine("ans srp        -0.0000000001970	0.0000000001150	0.0000000000480\n");
+            strbuildall.AppendLine(" asrp eci " + asrp[0].ToString() + " " + asrp[1].ToString() + " " + asrp[2].ToString());
+            strbuildall.AppendLine("ans srp        -0.0000000001970	0.0000000001150	0.0000000000480\n");
 
-            strbuild.AppendLine(" ------------------ add perturbing accelerations\n");
+            strbuildall.AppendLine(" ------------------ add perturbing accelerations\n");
             aecef[0] = adrag[0];  // plus gravity xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
             aecef[1] = adrag[1];
             aecef[2] = adrag[2];
-            strbuild.AppendLine(" aecef " + aecef[0].ToString() + " " + aecef[1].ToString() + " " + aecef[2].ToString());
+            strbuildall.AppendLine(" aecef " + aecef[0].ToString() + " " + aecef[1].ToString() + " " + aecef[2].ToString());
 
             // ---- move acceleration from earth fixed coordinates to eci
             // there are no cross products here as normal
             aeci = MathTimeLibr.matvecmult(transecef2eci, aecef, 3);
-            strbuild.AppendLine(" aeci " + aeci[0].ToString() + " " + aeci[1].ToString() + " " + aeci[2].ToString());
+            strbuildall.AppendLine(" aeci " + aeci[0].ToString() + " " + aeci[1].ToString() + " " + aeci[2].ToString());
 
             // find two body component of eci acceleration
-            aeci2[0] = -MathTimeLib.globals.mu * reci[0] / (Math.Pow(MathTimeLibr.mag(reci), 3));
-            aeci2[1] = -MathTimeLib.globals.mu * reci[1] / (Math.Pow(MathTimeLibr.mag(reci), 3));
-            aeci2[2] = -MathTimeLib.globals.mu * reci[2] / (Math.Pow(MathTimeLibr.mag(reci), 3));
-            strbuild.AppendLine(" aeci2body " + aeci2[0].ToString() + " " + aeci2[1].ToString() + " " + aeci2[2].ToString());
+            aeci2[0] = -AstroLibr.gravConst.mu * reci[0] / (Math.Pow(MathTimeLibr.mag(reci), 3));
+            aeci2[1] = -AstroLibr.gravConst.mu * reci[1] / (Math.Pow(MathTimeLibr.mag(reci), 3));
+            aeci2[2] = -AstroLibr.gravConst.mu * reci[2] / (Math.Pow(MathTimeLibr.mag(reci), 3));
+            strbuildall.AppendLine(" aeci2body " + aeci2[0].ToString() + " " + aeci2[1].ToString() + " " + aeci2[2].ToString());
 
             // totla acceleration
             aeci[0] = aeci2[0] + a3body[0] + asrp[0] + aeci[0];
             aeci[1] = aeci2[1] + a3body[1] + asrp[1] + aeci[1];
             aeci[2] = aeci2[2] + a3body[2] + asrp[2] + aeci[2];
-            strbuild.AppendLine("total aeci " + aeci[0].ToString() + " " + aeci[1].ToString() + " " + aeci[2].ToString());
+            strbuildall.AppendLine("total aeci " + aeci[0].ToString() + " " + aeci[1].ToString() + " " + aeci[2].ToString());
 
 
 
 
             // ------------------------------------------- timing comparisons
-            strbuild.AppendLine("\n ===================================== Timing Comparisons =====================================");
+            strbuildall.AppendLine("\n ===================================== Timing Comparisons =====================================");
             // timing of routines
             var watch = System.Diagnostics.Stopwatch.StartNew();
 
@@ -5321,7 +9131,7 @@ namespace TestAll
             //  stop timer
             watch.Stop();
             var elapsedMs = watch.ElapsedMilliseconds;
-            strbuild.AppendLine("Done with Montenbruck calcs " + (watch.ElapsedMilliseconds * 0.001).ToString() + " sec  ");
+            strbuildall.AppendLine("Done with Montenbruck calcs " + (watch.ElapsedMilliseconds * 0.001).ToString() + " sec  ");
 
             watch = System.Diagnostics.Stopwatch.StartNew();
             for (int i = 0; i < 500; i++)
@@ -5334,7 +9144,7 @@ namespace TestAll
             //  stop timer
             watch.Stop();
             elapsedMs = watch.ElapsedMilliseconds;
-            strbuild.AppendLine("Done with GTDS calcs " + (watch.ElapsedMilliseconds * 0.001).ToString() + " sec  ");
+            strbuildall.AppendLine("Done with GTDS calcs " + (watch.ElapsedMilliseconds * 0.001).ToString() + " sec  ");
 
 
             watch = System.Diagnostics.Stopwatch.StartNew();
@@ -5349,7 +9159,7 @@ namespace TestAll
             //  stop timer
             watch.Stop();
             elapsedMs = watch.ElapsedMilliseconds;
-            strbuild.AppendLine("Done with GTDS ALF calcs " + (watch.ElapsedMilliseconds * 0.001).ToString() + " sec  ");
+            strbuildall.AppendLine("Done with GTDS ALF calcs " + (watch.ElapsedMilliseconds * 0.001).ToString() + " sec  ");
 
 
             watch = System.Diagnostics.Stopwatch.StartNew();
@@ -5364,7 +9174,7 @@ namespace TestAll
             //  stop timer
             watch.Stop();
             elapsedMs = watch.ElapsedMilliseconds;
-            strbuild.AppendLine("Done with Gott ALF calcs " + (watch.ElapsedMilliseconds * 0.001).ToString() + " sec  ");
+            strbuildall.AppendLine("Done with Gott ALF calcs " + (watch.ElapsedMilliseconds * 0.001).ToString() + " sec  ");
 
             watch = System.Diagnostics.Stopwatch.StartNew();
             for (int i = 0; i < 500; i++)
@@ -5378,7 +9188,7 @@ namespace TestAll
             //  stop timer
             watch.Stop();
             elapsedMs = watch.ElapsedMilliseconds;
-            strbuild.AppendLine("Done with Mont ALF calcs " + (watch.ElapsedMilliseconds * 0.001).ToString() + " sec  ");
+            strbuildall.AppendLine("Done with Mont ALF calcs " + (watch.ElapsedMilliseconds * 0.001).ToString() + " sec  ");
 
 
             watch = System.Diagnostics.Stopwatch.StartNew();
@@ -5393,12 +9203,12 @@ namespace TestAll
             //  stop timer
             watch.Stop();
             elapsedMs = watch.ElapsedMilliseconds;
-            strbuild.AppendLine("Done with Fukushima ALF calcs " + (watch.ElapsedMilliseconds * 0.001).ToString() + " sec  ");
+            strbuildall.AppendLine("Done with Fukushima ALF calcs " + (watch.ElapsedMilliseconds * 0.001).ToString() + " sec  ");
 
 
 
             // ------------------------------------------- pole test case comparisons
-            strbuild.AppendLine("\n ===================================== Pole Test Comparisons =====================================");
+            strbuildall.AppendLine("\n ===================================== Pole Test Comparisons =====================================");
 
             rad = 180.0 / Math.PI;
             for (int i = 0; i < 500; i++)
@@ -5416,7 +9226,7 @@ namespace TestAll
                 // normalized calcs, show
                 AstroLibr.FullGeopG(recef, order, 'y', convArr, normArr, gravData, out aPertG, 'n', out straccum);
 
-                strbuild.AppendLine("test pole " + (latgc * rad).ToString() + " " + (lon * rad).ToString() + " " + aPertM[0].ToString() + "     " + aPertM[1].ToString() + "     " + aPertM[2].ToString());
+                strbuildall.AppendLine("test pole " + (latgc * rad).ToString() + " " + (lon * rad).ToString() + " " + aPertM[0].ToString() + "     " + aPertM[1].ToString() + "     " + aPertM[2].ToString());
             }
 
 
@@ -5445,8 +9255,8 @@ namespace TestAll
             //string fname = "D:\Dataorig\Gravity\egm2008_gfc.txt";  // norm
 
             // --------------------gottlieb 1993 test
-            strbuild.AppendLine("===================================== Gottlieb 1993 test case ===================================== ");
-            strbuild.AppendLine("GEM-10B unnormalized 36x36 ");
+            strbuildall.AppendLine("===================================== Gottlieb 1993 test case ===================================== ");
+            strbuildall.AppendLine("GEM-10B unnormalized 36x36 ");
             // get past text in each file
             //if (fname.Contains("GEM"))    // GEM10bunnorm36.grv, GEMT3norm50.grv
             //    startKtr = 17;
@@ -5468,7 +9278,7 @@ namespace TestAll
             //AstroLib.gravityModelData gravData;
 
             recef = new double[] { 5489.1500, 802.2220, 3140.9160 };  // km
-            strbuild.AppendLine("recef = " + recef[0].ToString() + " " + recef[1].ToString() + " " + recef[2].ToString());
+            strbuildall.AppendLine("recef = " + recef[0].ToString() + " " + recef[1].ToString() + " " + recef[2].ToString());
             // these are from the vector
             latgc = Math.Asin(recef[2] / MathTimeLibr.mag(recef));
             double templ = Math.Sqrt(recef[0] * recef[0] + recef[1] * recef[1]);
@@ -5478,22 +9288,22 @@ namespace TestAll
             else
                 rtasc = Math.Atan2(recef[1], recef[0]);
             lon = rtasc;
-            strbuild.AppendLine("latgc lon " + (latgc * rad).ToString() + " " + (lon * rad).ToString());
+            strbuildall.AppendLine("latgc lon " + (latgc * rad).ToString() + " " + (lon * rad).ToString());
 
             this.opsStatus.Text = "Status: Reading gravity field Gottlieb test";
             Refresh();
 
             AstroLibr.initGravityField(fname, 17, normal, out order, out gravData, out convArr, out normArr);
-            strbuild.AppendLine("\ncoefficents --------------- ");
-            strbuild.AppendLine("c  2  0  " + gravData.c[2, 0].ToString() + " s " + gravData.s[2, 0].ToString());
-            strbuild.AppendLine("c  4  0  " + gravData.c[4, 0].ToString() + " s " + gravData.s[4, 0].ToString());
-            strbuild.AppendLine("c  4  4  " + gravData.c[4, 4].ToString() + " s " + gravData.s[4, 4].ToString());
-            strbuild.AppendLine("c 21  1 " + gravData.c[21, 1].ToString() + " s " + gravData.s[21, 1].ToString());
-            strbuild.AppendLine("\nnormalized coefficents --------------- ");
-            strbuild.AppendLine("c  2  0  " + gravData.cNor[2, 0].ToString() + " s " + gravData.sNor[2, 0].ToString());
-            strbuild.AppendLine("c  4  0  " + gravData.cNor[4, 0].ToString() + " s " + gravData.sNor[4, 0].ToString());
-            strbuild.AppendLine("c  4  4  " + gravData.cNor[4, 4].ToString() + " s " + gravData.sNor[4, 4].ToString());
-            strbuild.AppendLine("c 21  1 " + gravData.cNor[21, 1].ToString() + " s " + gravData.sNor[21, 1].ToString());
+            strbuildall.AppendLine("\ncoefficents --------------- ");
+            strbuildall.AppendLine("c  2  0  " + gravData.c[2, 0].ToString() + " s " + gravData.s[2, 0].ToString());
+            strbuildall.AppendLine("c  4  0  " + gravData.c[4, 0].ToString() + " s " + gravData.s[4, 0].ToString());
+            strbuildall.AppendLine("c  4  4  " + gravData.c[4, 4].ToString() + " s " + gravData.s[4, 4].ToString());
+            strbuildall.AppendLine("c 21  1 " + gravData.c[21, 1].ToString() + " s " + gravData.s[21, 1].ToString());
+            strbuildall.AppendLine("\nnormalized coefficents --------------- ");
+            strbuildall.AppendLine("c  2  0  " + gravData.cNor[2, 0].ToString() + " s " + gravData.sNor[2, 0].ToString());
+            strbuildall.AppendLine("c  4  0  " + gravData.cNor[4, 0].ToString() + " s " + gravData.sNor[4, 0].ToString());
+            strbuildall.AppendLine("c  4  4  " + gravData.cNor[4, 4].ToString() + " s " + gravData.sNor[4, 4].ToString());
+            strbuildall.AppendLine("c 21  1 " + gravData.cNor[21, 1].ToString() + " s " + gravData.sNor[21, 1].ToString());
 
             this.opsStatus.Text = "Status: Gottlieb test legpoly calcs";
             Refresh();
@@ -5510,7 +9320,7 @@ namespace TestAll
             errstr = " ";
             sumdr1 = 0.0;
             sumdr2 = 0.0;
-            strbuild.AppendLine("\nLegendre polynomials --------------- ");
+            strbuildall.AppendLine("\nLegendre polynomials --------------- ");
             for (int L = 1; L <= 6; L++)  // order xxxxxxxxxxxxxxxxxx
             {
                 string tempstr1 = "MN ";  // montenbruck
@@ -5530,15 +9340,15 @@ namespace TestAll
                     //errstr = errstr + "\n" + L.ToString() + "  " + m.ToString() + "   " + dr1.ToString()
                     //    + " " + dr2.ToString();
                 }
-                strbuild.AppendLine(tempstr1);
-                strbuild.AppendLine(tempstr2);
+                strbuildall.AppendLine(tempstr1);
+                strbuildall.AppendLine(tempstr2);
                 //  strbuild.AppendLine(tempstr3);
-                strbuild.AppendLine(tempstr4 + "\n");
+                strbuildall.AppendLine(tempstr4 + "\n");
             }
-            strbuild.AppendLine("totals gtds " + sumdr1.ToString() + " montenbruck " + sumdr2.ToString());
+            strbuildall.AppendLine("totals gtds " + sumdr1.ToString() + " montenbruck " + sumdr2.ToString());
             strbuildplot.AppendLine(errstr);
 
-            strbuild.AppendLine("\naccelerations --------------- ");
+            strbuildall.AppendLine("\naccelerations --------------- ");
             jdutc = 2451573.0;
             jdF = 0.1;
             straccum = "";
@@ -5564,19 +9374,19 @@ namespace TestAll
             aPertM[2] = aPertM[2] + aeci2[2];
 
 
-            strbuild.AppendLine(straccum);
+            strbuildall.AppendLine(straccum);
             //   strbuild.AppendLine("apertG 4 4   " + aPertG[0].ToString() + "     " + aPertG[1].ToString() + "     " + aPertG[2].ToString());
-            strbuild.AppendLine("apertM 4 4   " + aPertM[0].ToString() + "     " + aPertM[1].ToString() + "     " + aPertM[2].ToString());
-            strbuild.AppendLine("ans          -0.00844269212018857E+00 -0.00123393633785485E+00 -0.00484659352346614E+00  km/s2  \n");
+            strbuildall.AppendLine("apertM 4 4   " + aPertM[0].ToString() + "     " + aPertM[1].ToString() + "     " + aPertM[2].ToString());
+            strbuildall.AppendLine("ans          -0.00844269212018857E+00 -0.00123393633785485E+00 -0.00484659352346614E+00  km/s2  \n");
 
             straccum = "";
             order = 5;
             // normalized calcs, show
             AstroLibr.FullGeopG(recef, order, 'n', convArr, normArr, gravData, out aPertG, 'y', out straccum);
-            strbuild.AppendLine(straccum);
-            strbuild.AppendLine("apertG 5 5   " + aPertG[0].ToString() + "     " + aPertG[1].ToString() + "     " + aPertG[2].ToString());
+            strbuildall.AppendLine(straccum);
+            strbuildall.AppendLine("apertG 5 5   " + aPertG[0].ToString() + "     " + aPertG[1].ToString() + "     " + aPertG[2].ToString());
             // strbuild.AppendLine("apertM 5 5   " + aPertM[0].ToString() + "     " + aPertM[1].ToString() + "     " + aPertM[2].ToString());
-            strbuild.AppendLine("ans          -0.00844260633555472E+00 -0.00123393243051834E+00 -0.00484652486332608E+00  km/s2  \n");
+            strbuildall.AppendLine("ans          -0.00844260633555472E+00 -0.00123393243051834E+00 -0.00484652486332608E+00  km/s2  \n");
 
 
 
@@ -5722,11 +9532,54 @@ namespace TestAll
 
             // write out results
             string directory = @"d:\codes\library\matlab\";
-            File.WriteAllText(directory + "legpoly.txt", strbuild.ToString());
+            File.WriteAllText(directory + "legpoly.txt", strbuildall.ToString());
 
             File.WriteAllText(directory + "legendreAcc.txt", strbuildplot.ToString());
 
         }
+
+        public void testhill()
+        {
+            double[] r, v, rh, vh, rint, vint;
+            double alt, dts;
+            r = new double[3];
+            v = new double[3];
+            rh = new double[3];
+            vh = new double[3];
+            // StringBuilder strbuild = new StringBuilder();
+
+            dts = 1400.0; // sec
+
+            // circular orbit
+            alt = 590.0;
+            r[0] = AstroLibr.gravConst.re + alt;
+            r[1] = 0.0;
+            r[2] = 0.0;
+            v[0] = 0.0;
+            v[1] = Math.Sqrt(AstroLibr.gravConst.mu / MathTimeLibr.mag(r));
+            v[2] = 0.0;
+
+            rh[0] = 0.0;
+            rh[1] = 0.0;
+            rh[2] = 0.0;
+            vh[0] = -0.1;
+            vh[1] = -0.04;
+            vh[2] = -0.02;
+
+            for (int i = 1; i <= 50; i++)
+            {
+                dts = i * 60.0;  // sec
+                AstroLibr.hillsr(rh, vh, alt, dts, out rint, out vint);
+                strbuild.AppendLine(dts.ToString() + " " + rint[0].ToString() + " " + rint[1].ToString() + " " + rint[2].ToString() +
+                    " " + vint[0].ToString() + " " + vint[1].ToString() + " " + vint[2].ToString());
+            }
+
+
+            AstroLibr.hillsv(r, alt, dts, out vint);
+
+
+
+        }  // test hill
 
 
         /* ----------------------------------------------------------------------------
@@ -5892,20 +9745,120 @@ namespace TestAll
 
         public void testcovct2rsw()
         {
+            int year, mon, day, hr, minute, timezone, dat, terms;
+            double sec, dut1, ut1, tut1, jdut1, jdut1frac, utc, tai, tt, ttt, jdtt, jdttfrac, tdb, ttdb, jdtdb, jdtdbfrac;
+            double p, a, n, ecc, incl, raan, argp, nu, m, arglat, truelon, lonper;
+            double af, ag, chi, psi, meanlonNu, meanlonM;
+            double latgc, lon, rtasc, decl, fpa, lod, xp, yp, ddpsi, ddeps, ddx, ddy, az, magr, magv;
+            Int16 fr;
+            double[,] tm = new double[,] { { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 } };
+            string anom = "meana";  // truea/n, meana/n
+            string anomflt = "latlon"; // latlon  radec
+            double[] cartstate = new double[6];
+            double[] recef = new double[3];
+            double[] vecef = new double[3];
+            double[] avec = new double[3];
+
+            double[,] cartcovrsw = new double[6, 6];
+            double[,] cartcovntw = new double[6, 6];
+            double[,] tmct2cl = new double[6, 6];
+            double[,] tmcl2ct = new double[6, 6];
+            string strout;
+
+            double[] reci = new double[3] { -605.79221660, -5870.22951108, 3493.05319896 };
+            double[] veci = new double[3] { -1.56825429, -3.70234891, -6.47948395 };
+            double[] aeci = new double[3] { 0.001, 0.002, 0.003 };
+
+            // StringBuilder strbuild = new StringBuilder();
+            // strbuild.Clear();
+
+            EOPSPWLib.iau80Class iau80arr;
+            EOPSPWLib.iau00Class iau00arr;
+            string nutLoc;
+            nutLoc = @"D:\Codes\LIBRARY\DataLib\nut80.dat";
+            EOPSPWLibr.iau80in(nutLoc, out iau80arr);
+            nutLoc = @"D:\Codes\LIBRARY\DataLib\";
+            EOPSPWLibr.iau00in(nutLoc, out iau00arr);
+            // now read it in
+            double jdxysstart, jdfxysstart;
+            AstroLib.xysdataClass[] xysarr = AstroLibr.xysarr;
+            AstroLibr.initXYS(ref xysarr, nutLoc, "xysdata.dat", out jdxysstart, out jdfxysstart);
+
+            year = 2000;
+            mon = 12;
+            day = 15;
+            hr = 16;
+            minute = 58;
+            sec = 50.208;
+            dut1 = 0.10597;
+            dat = 32;
+            timezone = 0;
+            xp = 0.0;
+            yp = 0.0;
+            lod = 0.0;
+            terms = 2;
+            timezone = 0;
+            ddpsi = 0.0;
+            ddeps = 0.0;
+            ddx = 0.0;
+            ddy = 0.0;
+
+            MathTimeLibr.convtime(year, mon, day, hr, minute, sec, timezone, dut1, dat,
+                out ut1, out tut1, out jdut1, out jdut1frac, out utc, out tai,
+                out tt, out ttt, out jdtt, out jdttfrac,
+                out tdb, out ttdb, out jdtdb, out jdtdbfrac);
+
+            // ---convert the eci state into the various other state formats(classical, equinoctial, etc)
+            double[,] cartcov = new double[,] {
+            { 100.0, 1.0e-2, 1.0e-2, 1.0e-4, 1.0e-4, 1.0e-4 },
+            {1.0e-2, 100.0,  1.0e-2, 1.0e-4,   1.0e-4,   1.0e-4},
+            {1.0e-2, 1.0e-2, 100.0,  1.0e-4,   1.0e-4,   1.0e-4},
+            {1.0e-4, 1.0e-4, 1.0e-4, 0.0001,   1.0e-6,   1.0e-6},
+            {1.0e-4, 1.0e-4, 1.0e-4, 1.0e-6,   0.0001,   1.0e-6},
+            {1.0e-4, 1.0e-4, 1.0e-4, 1.0e-6,   1.0e-6,   0.0001} };
+            cartstate = new double[] { reci[0], reci[1], reci[2], veci[0], veci[1], veci[2] };  // in km
+
+
+            // test position and velocity going back
+            avec = new double[] { 0.0, 0.0, 0.0 };
+
+            AstroLibr.eci_ecef(ref reci, ref veci, MathTimeLib.Edirection.eto, ref recef, ref vecef,
+                 AstroLib.EOpt.e80, iau80arr, iau00arr,
+                 jdtt, jdttfrac, jdut1, jdxysstart, lod, xp, yp, ddpsi, ddeps, ddx, ddy);
+
+            strbuild.AppendLine("==================== do the sensitivity tests \n");
+            strbuild.AppendLine("1.  Cartesian Covariance \n");
+            printcov(cartcov, "ct", 'm', anom, out strout);
+            strbuild.AppendLine(strout);
+
+            strbuild.AppendLine("2.  RSW Covariance from Cartesian #1 above  ------------------- \n");
+            AstroLibr.covct_rsw(ref cartcov, cartstate, MathTimeLib.Edirection.eto, ref cartcovrsw, out tmct2cl);
+            printcov(cartcovrsw, "ct", 'm', anom, out strout);
+            strbuild.AppendLine(strout);
+
+            strbuild.AppendLine("2.  NTW Covariance from Cartesian #1 above  ------------------- \n");
+            AstroLibr.covct_ntw(ref cartcov, cartstate, MathTimeLib.Edirection.eto, ref cartcovntw, out tmct2cl);
+            printcov(cartcovntw, "ct", 'm', anom, out strout);
+            strbuild.AppendLine(strout);
+            strbuild.AppendLine("\n");
         }
 
-        public void testcovct2ntw()
+
+            public void testcovct2ntw()
         {
+
         }
 
 
+        // test eci_ecef too
         public void testcovct2clmean()
         {
             int year, mon, day, hr, minute, timezone, dat, terms;
             double sec, dut1, ut1, tut1, jdut1, jdut1frac, utc, tai, tt, ttt, jdtt, jdttfrac, tdb, ttdb, jdtdb, jdtdbfrac;
             double p, a, n, ecc, incl, raan, argp, nu, m, arglat, truelon, lonper;
             double af, ag, chi, psi, meanlonNu, meanlonM;
-            double latgc, lon, rtasc, decl, fpa, lod, xp, yp, ddpsi, ddeps, az, magr, magv;
+            double latgc, lon, rtasc, decl, fpa, lod, xp, yp, ddpsi, ddeps, ddx, ddy, az, magr, magv;
             Int16 fr;
             double[,] tm = new double[,] { { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 },
                 { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 } };
@@ -5929,8 +9882,20 @@ namespace TestAll
             double[] veci = new double[3] { -1.56825429, -3.70234891, -6.47948395 };
             double[] aeci = new double[3] { 0.001, 0.002, 0.003 };
 
-           // StringBuilder strbuild = new StringBuilder();
-           // strbuild.Clear();
+            // StringBuilder strbuild = new StringBuilder();
+            // strbuild.Clear();
+
+            EOPSPWLib.iau80Class iau80arr;
+            EOPSPWLib.iau00Class iau00arr;
+            string nutLoc;
+            nutLoc = @"D:\Codes\LIBRARY\DataLib\nut80.dat";
+            EOPSPWLibr.iau80in(nutLoc, out iau80arr);
+            nutLoc = @"D:\Codes\LIBRARY\DataLib\";
+            EOPSPWLibr.iau00in(nutLoc, out iau00arr);
+            // now read it in
+            double jdxysstart, jdfxysstart;
+            AstroLib.xysdataClass[] xysarr = AstroLibr.xysarr;
+            AstroLibr.initXYS(ref xysarr, nutLoc, "xysdata.dat", out jdxysstart, out jdfxysstart);
 
             year = 2000;
             mon = 12;
@@ -5948,6 +9913,8 @@ namespace TestAll
             timezone = 0;
             ddpsi = 0.0;
             ddeps = 0.0;
+            ddx = 0.0;
+            ddy = 0.0;
 
             MathTimeLibr.convtime(year, mon, day, hr, minute, sec, timezone, dut1, dat,
                 out ut1, out tut1, out jdut1, out jdut1frac, out utc, out tai,
@@ -5965,7 +9932,7 @@ namespace TestAll
             cartstate = new double[] { reci[0], reci[1], reci[2], veci[0], veci[1], veci[2] };  // in km
 
             // --------convert to a classical orbit state
-            AstroLibr.rv2coe(reci, veci, MathTimeLib.globals.mu,
+            AstroLibr.rv2coe(reci, veci, 
                 out p, out a, out ecc, out incl, out raan, out argp, out nu, out m, out arglat, out truelon, out lonper);
             classstate[0] = a;   // km
             classstate[1] = ecc;
@@ -5993,7 +9960,8 @@ namespace TestAll
                 eqstate[5] = meanlonNu;
 
             // --------convert to a flight orbit state
-            AstroLibr.rv2flt(reci, veci, ttt, jdut1, lod, xp, yp, terms, ddpsi, ddeps,
+            AstroLibr.rv2flt(reci, veci, jdtt, jdttfrac, jdut1, jdxysstart, lod, xp, yp, terms, ddpsi, ddeps, ddx, ddy, 
+                iau80arr, iau00arr, 
                  out lon, out latgc, out rtasc, out decl, out fpa, out az, out magr, out magv);
             if (anomflt.Equals("radec"))
             {
@@ -6013,12 +9981,10 @@ namespace TestAll
 
             // test position and velocity going back
             avec = new double[] { 0.0, 0.0, 0.0 };
-            EOPSPWLib.iau80Class iau80arr;
-            string nutLoc = @"D:\Codes\LIBRARY\DataLib\nut80.dat";
-            EOPSPWLibr.iau80in(nutLoc, out iau80arr);
 
-            AstroLibr.eci_ecef(ref reci, ref veci, iau80arr, MathTimeLib.Edirection.eto,
-            ttt, jdut1, lod, xp, yp, 2, ddpsi, ddeps, AstroLib.EOpt.e80, ref recef, ref vecef);
+            AstroLibr.eci_ecef(ref reci, ref veci, MathTimeLib.Edirection.eto, ref recef, ref vecef,
+                 AstroLib.EOpt.e80, iau80arr, iau00arr,
+                 jdtt, jdttfrac, jdut1, jdxysstart, lod, xp, yp, ddpsi, ddeps, ddx, ddy);
             //vx = magv* ( -cos(lon)*sin(latgc)*cos(az)*cos(fpa) - sin(lon)*sin(az)*cos(fpa) + cos(lon)*cos(latgc)*sin(fpa) ); 
             //vy = magv* ( -sin(lon)*sin(latgc)*cos(az)*cos(fpa) + cos(lon)*sin(az)*cos(fpa) + sin(lon)*cos(latgc)*sin(fpa) );  
             //vz = magv* (sin(latgc) * sin(fpa) + cos(latgc)*cos(az)*cos(fpa) );
@@ -6048,6 +10014,14 @@ namespace TestAll
             printdiff(" cartcov - cartcovmeanarev \n", cartcov, cartcovmeanarev, out strout);
             strbuild.AppendLine(strout);
 
+            double[,] ecefcartcov = new double[6, 6];
+
+            //AstroLibr.coveci_ecef(ref cartcov, cartstate, MathTimeLib.Edirection.eto,  ref ecefcartcov, out tm, iau80arr,
+            //            ttt, jdut1, lod, xp, yp, 2, ddpsi, ddeps, AstroLib.EOpt.e80);
+            //printcov(cartcovmeanarev, "ct", 'm', anom, out strout);
+            //strbuild.AppendLine(strout);
+            //strbuild.AppendLine("\n");
+
         }  // testcovct2clmean
 
 
@@ -6057,7 +10031,7 @@ namespace TestAll
             double sec, dut1, ut1, tut1, jdut1, jdut1frac, utc, tai, tt, ttt, jdtt, jdttfrac, tdb, ttdb, jdtdb, jdtdbfrac;
             double p, a, n, ecc, incl, raan, argp, nu, m, arglat, truelon, lonper;
             double af, ag, chi, psi, meanlonNu, meanlonM;
-            double latgc, lon, rtasc, decl, fpa, lod, xp, yp, ddpsi, ddeps, az, magr, magv;
+            double latgc, lon, rtasc, decl, fpa, lod, xp, yp, ddpsi, ddeps, ddx, ddy, az, magr, magv;
             Int16 fr;
             double[,] tm = new double[,] { { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 },
                 { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 } };
@@ -6084,6 +10058,18 @@ namespace TestAll
             //StringBuilder strbuild = new StringBuilder();
             //strbuild.Clear();
 
+            EOPSPWLib.iau80Class iau80arr;
+            EOPSPWLib.iau00Class iau00arr;
+            string nutLoc;
+            nutLoc = @"D:\Codes\LIBRARY\DataLib\nut80.dat";
+            EOPSPWLibr.iau80in(nutLoc, out iau80arr);
+            nutLoc = @"D:\Codes\LIBRARY\DataLib\";
+            EOPSPWLibr.iau00in(nutLoc, out iau00arr);
+            // now read it in
+            double jdxysstart, jdfxysstart;
+            AstroLib.xysdataClass[] xysarr = AstroLibr.xysarr;
+            AstroLibr.initXYS(ref xysarr, nutLoc, "xysdata.dat", out jdxysstart, out jdfxysstart);
+
             year = 2000;
             mon = 12;
             day = 15;
@@ -6100,6 +10086,8 @@ namespace TestAll
             timezone = 0;
             ddpsi = 0.0;
             ddeps = 0.0;
+            ddx = 0.0;
+            ddy = 0.0;
 
             MathTimeLibr.convtime(year, mon, day, hr, minute, sec, timezone, dut1, dat,
                 out ut1, out tut1, out jdut1, out jdut1frac, out utc, out tai,
@@ -6117,7 +10105,7 @@ namespace TestAll
             cartstate = new double[] { reci[0], reci[1], reci[2], veci[0], veci[1], veci[2] };  // in km
 
             // --------convert to a classical orbit state
-            AstroLibr.rv2coe(reci, veci, MathTimeLib.globals.mu,
+            AstroLibr.rv2coe(reci, veci, 
                 out p, out a, out ecc, out incl, out raan, out argp, out nu, out m, out arglat, out truelon, out lonper);
             classstate[0] = a;  // in km
             classstate[1] = ecc;
@@ -6145,7 +10133,8 @@ namespace TestAll
                 eqstate[5] = meanlonNu;
 
             // --------convert to a flight orbit state
-            AstroLibr.rv2flt(reci, veci, ttt, jdut1, lod, xp, yp, terms, ddpsi, ddeps,
+            AstroLibr.rv2flt(reci, veci, jdtt, jdttfrac, jdut1, jdxysstart, lod, xp, yp, terms, ddpsi, ddeps, ddx, ddy, 
+                iau80arr, iau00arr, 
                  out lon, out latgc, out rtasc, out decl, out fpa, out az, out magr, out magv);
             if (anomflt.Equals("radec"))
             {
@@ -6165,12 +10154,10 @@ namespace TestAll
 
             // test position and velocity going back
             avec = new double[] { 0.0, 0.0, 0.0 };
-            EOPSPWLib.iau80Class iau80arr;
-            string nutLoc = @"D:\Codes\LIBRARY\DataLib\nut80.dat";
-            EOPSPWLibr.iau80in(nutLoc, out iau80arr);
 
-            AstroLibr.eci_ecef(ref reci, ref veci, iau80arr, MathTimeLib.Edirection.eto,
-            ttt, jdut1, lod, xp, yp, 2, ddpsi, ddeps, AstroLib.EOpt.e80, ref recef, ref vecef);
+            AstroLibr.eci_ecef(ref reci, ref veci, MathTimeLib.Edirection.eto, ref recef, ref vecef,
+                 AstroLib.EOpt.e80, iau80arr, iau00arr,
+                 jdtt, jdttfrac, jdut1, jdxysstart, lod, xp, yp, ddpsi, ddeps, ddx, ddy);
             //vx = magv* ( -cos(lon)*sin(latgc)*cos(az)*cos(fpa) - sin(lon)*sin(az)*cos(fpa) + cos(lon)*cos(latgc)*sin(fpa) ); 
             //vy = magv* ( -sin(lon)*sin(latgc)*cos(az)*cos(fpa) + cos(lon)*sin(az)*cos(fpa) + sin(lon)*cos(latgc)*sin(fpa) );  
             //vz = magv* (sin(latgc) * sin(fpa) + cos(latgc)*cos(az)*cos(fpa) );
@@ -6201,13 +10188,15 @@ namespace TestAll
             strbuild.AppendLine(strout);
         }  // testcovct2cltrue
 
+
+
         public void testcovcl2eq(string anom)
         {
             int year, mon, day, hr, minute, timezone, dat, terms;
             double sec, dut1, ut1, tut1, jdut1, jdut1frac, utc, tai, tt, ttt, jdtt, jdttfrac, tdb, ttdb, jdtdb, jdtdbfrac;
             double p, a, n, ecc, incl, raan, argp, nu, m, arglat, truelon, lonper;
             double af, ag, chi, psi, meanlonNu, meanlonM;
-            double latgc, lon, rtasc, decl, fpa, lod, xp, yp, ddpsi, ddeps, az, magr, magv;
+            double latgc, lon, rtasc, decl, fpa, lod, xp, yp, ddpsi, ddeps, ddx, ddy, az, magr, magv;
             Int16 fr;
             double[,] tm = new double[,] { { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 },
                 { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 } };
@@ -6236,6 +10225,18 @@ namespace TestAll
             // StringBuilder strbuild = new StringBuilder();
             // strbuild.Clear();
 
+            EOPSPWLib.iau80Class iau80arr;
+            EOPSPWLib.iau00Class iau00arr;
+            string nutLoc;
+            nutLoc = @"D:\Codes\LIBRARY\DataLib\nut80.dat";
+            EOPSPWLibr.iau80in(nutLoc, out iau80arr);
+            nutLoc = @"D:\Codes\LIBRARY\DataLib\";
+            EOPSPWLibr.iau00in(nutLoc, out iau00arr);
+            // now read it in
+            double jdxysstart, jdfxysstart;
+            AstroLib.xysdataClass[] xysarr = AstroLibr.xysarr;
+            AstroLibr.initXYS(ref xysarr, nutLoc, "xysdata.dat", out jdxysstart, out jdfxysstart);
+
             year = 2000;
             mon = 12;
             day = 15;
@@ -6252,6 +10253,8 @@ namespace TestAll
             timezone = 0;
             ddpsi = 0.0;
             ddeps = 0.0;
+            ddx = 0.0;
+            ddy = 0.0;
 
             MathTimeLibr.convtime(year, mon, day, hr, minute, sec, timezone, dut1, dat,
                 out ut1, out tut1, out jdut1, out jdut1frac, out utc, out tai,
@@ -6269,7 +10272,7 @@ namespace TestAll
             cartstate = new double[] { reci[0], reci[1], reci[2], veci[0], veci[1], veci[2] };  // in km
 
             // --------convert to a classical orbit state
-            AstroLibr.rv2coe(reci, veci, MathTimeLib.globals.mu,
+            AstroLibr.rv2coe(reci, veci, 
                 out p, out a, out ecc, out incl, out raan, out argp, out nu, out m, out arglat, out truelon, out lonper);
             classstate[0] = a;   // km
             classstate[1] = ecc;
@@ -6297,8 +10300,9 @@ namespace TestAll
                 eqstate[5] = meanlonNu;
 
             // --------convert to a flight orbit state
-            AstroLibr.rv2flt(reci, veci, ttt, jdut1, lod, xp, yp, terms, ddpsi, ddeps,
-                 out lon, out latgc, out rtasc, out decl, out fpa, out az, out magr, out magv);
+            AstroLibr.rv2flt(reci, veci, jdtt, jdttfrac, jdut1, jdxysstart, lod, xp, yp, terms, ddpsi, ddeps, ddx, ddy, 
+                iau80arr, iau00arr,
+                out lon, out latgc, out rtasc, out decl, out fpa, out az, out magr, out magv);
             if (anomflt.Equals("radec"))
             {
                 fltstate[0] = rtasc;
@@ -6317,12 +10321,10 @@ namespace TestAll
 
             // test position and velocity going back
             avec = new double[] { 0.0, 0.0, 0.0 };
-            EOPSPWLib.iau80Class iau80arr;
-            string nutLoc = @"D:\Codes\LIBRARY\DataLib\nut80.dat";
-            EOPSPWLibr.iau80in(nutLoc, out iau80arr);
 
-            AstroLibr.eci_ecef(ref reci, ref veci, iau80arr, MathTimeLib.Edirection.eto,
-            ttt, jdut1, lod, xp, yp, 2, ddpsi, ddeps, AstroLib.EOpt.e80, ref recef, ref vecef);
+            AstroLibr.eci_ecef(ref reci, ref veci, MathTimeLib.Edirection.eto, ref recef, ref vecef,
+                 AstroLib.EOpt.e80, iau80arr, iau00arr,
+                 jdtt, jdttfrac, jdut1, jdxysstart, lod, xp, yp, ddpsi, ddeps, ddx, ddy);
             //vx = magv* ( -cos(lon)*sin(latgc)*cos(az)*cos(fpa) - sin(lon)*sin(az)*cos(fpa) + cos(lon)*cos(latgc)*sin(fpa) ); 
             //vy = magv* ( -sin(lon)*sin(latgc)*cos(az)*cos(fpa) + cos(lon)*sin(az)*cos(fpa) + sin(lon)*cos(latgc)*sin(fpa) );  
             //vz = magv* (sin(latgc) * sin(fpa) + cos(latgc)*cos(az)*cos(fpa) );
@@ -6364,7 +10366,7 @@ namespace TestAll
             double sec, dut1, ut1, tut1, jdut1, jdut1frac, utc, tai, tt, ttt, jdtt, jdttfrac, tdb, ttdb, jdtdb, jdtdbfrac;
             double p, a, n, ecc, incl, raan, argp, nu, m, arglat, truelon, lonper;
             double af, ag, chi, psi, meanlonNu, meanlonM;
-            double latgc, lon, rtasc, decl, fpa, lod, xp, yp, ddpsi, ddeps, az, magr, magv;
+            double latgc, lon, rtasc, decl, fpa, lod, xp, yp, ddpsi, ddeps, ddx, ddy, az, magr, magv;
             Int16 fr;
             double[,] tm = new double[,] { { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 },
                 { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 } };
@@ -6393,6 +10395,18 @@ namespace TestAll
             // StringBuilder strbuild = new StringBuilder();
             // strbuild.Clear();
 
+            EOPSPWLib.iau80Class iau80arr;
+            EOPSPWLib.iau00Class iau00arr;
+            string nutLoc;
+            nutLoc = @"D:\Codes\LIBRARY\DataLib\nut80.dat";
+            EOPSPWLibr.iau80in(nutLoc, out iau80arr);
+            nutLoc = @"D:\Codes\LIBRARY\DataLib\";
+            EOPSPWLibr.iau00in(nutLoc, out iau00arr);
+            // now read it in
+            double jdxysstart, jdfxysstart;
+            AstroLib.xysdataClass[] xysarr = AstroLibr.xysarr;
+            AstroLibr.initXYS(ref xysarr, nutLoc, "xysdata.dat", out jdxysstart, out jdfxysstart);
+
             year = 2000;
             mon = 12;
             day = 15;
@@ -6409,6 +10423,8 @@ namespace TestAll
             timezone = 0;
             ddpsi = 0.0;
             ddeps = 0.0;
+            ddx = 0.0;
+            ddy = 0.0;
 
             MathTimeLibr.convtime(year, mon, day, hr, minute, sec, timezone, dut1, dat,
                 out ut1, out tut1, out jdut1, out jdut1frac, out utc, out tai,
@@ -6426,7 +10442,7 @@ namespace TestAll
             cartstate = new double[] { reci[0], reci[1], reci[2], veci[0], veci[1], veci[2] };  // in km
 
             // --------convert to a classical orbit state
-            AstroLibr.rv2coe(reci, veci, MathTimeLib.globals.mu,
+            AstroLibr.rv2coe(reci, veci, 
                 out p, out a, out ecc, out incl, out raan, out argp, out nu, out m, out arglat, out truelon, out lonper);
             classstate[0] = a;   // km
             classstate[1] = ecc;
@@ -6454,8 +10470,9 @@ namespace TestAll
                 eqstate[5] = meanlonNu;
 
             // --------convert to a flight orbit state
-            AstroLibr.rv2flt(reci, veci, ttt, jdut1, lod, xp, yp, terms, ddpsi, ddeps,
-                 out lon, out latgc, out rtasc, out decl, out fpa, out az, out magr, out magv);
+            AstroLibr.rv2flt(reci, veci, jdtt, jdttfrac, jdut1, jdxysstart, lod, xp, yp, terms, ddpsi, ddeps, ddx, ddy,
+                iau80arr, iau00arr,
+                out lon, out latgc, out rtasc, out decl, out fpa, out az, out magr, out magv);
             if (anomflt.Equals("radec"))
             {
                 fltstate[0] = rtasc;
@@ -6474,12 +10491,10 @@ namespace TestAll
 
             // test position and velocity going back
             avec = new double[] { 0.0, 0.0, 0.0 };
-            EOPSPWLib.iau80Class iau80arr;
-            string nutLoc = @"D:\Codes\LIBRARY\DataLib\nut80.dat";
-            EOPSPWLibr.iau80in(nutLoc, out iau80arr);
 
-            AstroLibr.eci_ecef(ref reci, ref veci, iau80arr, MathTimeLib.Edirection.eto,
-            ttt, jdut1, lod, xp, yp, 2, ddpsi, ddeps, AstroLib.EOpt.e80, ref recef, ref vecef);
+            AstroLibr.eci_ecef(ref reci, ref veci, MathTimeLib.Edirection.eto, ref recef, ref vecef,
+                 AstroLib.EOpt.e80, iau80arr, iau00arr,
+                 jdtt, jdttfrac, jdut1, jdxysstart, lod, xp, yp, ddpsi, ddeps, ddx, ddy);
             //vx = magv* ( -cos(lon)*sin(latgc)*cos(az)*cos(fpa) - sin(lon)*sin(az)*cos(fpa) + cos(lon)*cos(latgc)*sin(fpa) ); 
             //vy = magv* ( -sin(lon)*sin(latgc)*cos(az)*cos(fpa) + cos(lon)*sin(az)*cos(fpa) + sin(lon)*cos(latgc)*sin(fpa) );  
             //vz = magv* (sin(latgc) * sin(fpa) + cos(latgc)*cos(az)*cos(fpa) );
@@ -6518,7 +10533,7 @@ namespace TestAll
             double sec, dut1, ut1, tut1, jdut1, jdut1frac, utc, tai, tt, ttt, jdtt, jdttfrac, tdb, ttdb, jdtdb, jdtdbfrac;
             double p, a, n, ecc, incl, raan, argp, nu, m, arglat, truelon, lonper;
             double af, ag, chi, psi, meanlonNu, meanlonM;
-            double latgc, lon, rtasc, decl, fpa, lod, xp, yp, ddpsi, ddeps, az, magr, magv;
+            double latgc, lon, rtasc, decl, fpa, lod, xp, yp, ddpsi, ddeps, ddx, ddy, az, magr, magv;
             Int16 fr;
             double[,] tm = new double[,] { { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 },
                 { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 } };
@@ -6547,6 +10562,18 @@ namespace TestAll
             // StringBuilder strbuild = new StringBuilder();
             // strbuild.Clear();
 
+            EOPSPWLib.iau80Class iau80arr;
+            EOPSPWLib.iau00Class iau00arr;
+            string nutLoc;
+            nutLoc = @"D:\Codes\LIBRARY\DataLib\nut80.dat";
+            EOPSPWLibr.iau80in(nutLoc, out iau80arr);
+            nutLoc = @"D:\Codes\LIBRARY\DataLib\";
+            EOPSPWLibr.iau00in(nutLoc, out iau00arr);
+            // now read it in
+            double jdxysstart, jdfxysstart;
+            AstroLib.xysdataClass[] xysarr = AstroLibr.xysarr;
+            AstroLibr.initXYS(ref xysarr, nutLoc, "xysdata.dat", out jdxysstart, out jdfxysstart);
+
             year = 2000;
             mon = 12;
             day = 15;
@@ -6563,6 +10590,8 @@ namespace TestAll
             timezone = 0;
             ddpsi = 0.0;
             ddeps = 0.0;
+            ddx = 0.0;
+            ddy = 0.0;
 
             MathTimeLibr.convtime(year, mon, day, hr, minute, sec, timezone, dut1, dat,
                 out ut1, out tut1, out jdut1, out jdut1frac, out utc, out tai,
@@ -6580,7 +10609,7 @@ namespace TestAll
             cartstate = new double[] { reci[0], reci[1], reci[2], veci[0], veci[1], veci[2] };  // in km
 
             // --------convert to a classical orbit state
-            AstroLibr.rv2coe(reci, veci, MathTimeLib.globals.mu,
+            AstroLibr.rv2coe(reci, veci, 
                 out p, out a, out ecc, out incl, out raan, out argp, out nu, out m, out arglat, out truelon, out lonper);
             classstate[0] = a;   // km
             classstate[1] = ecc;
@@ -6608,7 +10637,8 @@ namespace TestAll
                 eqstate[5] = meanlonNu;
 
             // --------convert to a flight orbit state
-            AstroLibr.rv2flt(reci, veci, ttt, jdut1, lod, xp, yp, terms, ddpsi, ddeps,
+            AstroLibr.rv2flt(reci, veci, jdtt, jdttfrac, jdut1, jdxysstart, lod, xp, yp, terms, ddpsi, ddeps, ddx, ddy,
+                iau80arr, iau00arr,
                  out lon, out latgc, out rtasc, out decl, out fpa, out az, out magr, out magv);
             if (anomflt.Equals("radec"))
             {
@@ -6628,12 +10658,10 @@ namespace TestAll
 
             // test position and velocity going back
             avec = new double[] { 0.0, 0.0, 0.0 };
-            EOPSPWLib.iau80Class iau80arr;
-            string nutLoc = @"D:\Codes\LIBRARY\DataLib\nut80.dat";
-            EOPSPWLibr.iau80in(nutLoc, out iau80arr);
 
-            AstroLibr.eci_ecef(ref reci, ref veci, iau80arr, MathTimeLib.Edirection.eto,
-                    ttt, jdut1, lod, xp, yp, 2, ddpsi, ddeps, AstroLib.EOpt.e80, ref recef, ref vecef);
+            AstroLibr.eci_ecef(ref reci, ref veci, MathTimeLib.Edirection.eto, ref recef, ref vecef,
+                 AstroLib.EOpt.e80, iau80arr, iau00arr,
+                 jdtt, jdttfrac, jdut1, jdxysstart, lod, xp, yp, ddpsi, ddeps, ddx, ddy);
             //vx = magv* ( -cos(lon)*sin(latgc)*cos(az)*cos(fpa) - sin(lon)*sin(az)*cos(fpa) + cos(lon)*cos(latgc)*sin(fpa) ); 
             //vy = magv* ( -sin(lon)*sin(latgc)*cos(az)*cos(fpa) + cos(lon)*sin(az)*cos(fpa) + sin(lon)*cos(latgc)*sin(fpa) );  
             //vz = magv* (sin(latgc) * sin(fpa) + cos(latgc)*cos(az)*cos(fpa) );
@@ -6649,8 +10677,9 @@ namespace TestAll
             strbuild.AppendLine(strout);
 
             strbuild.AppendLine("7.  Flight Covariance from Cartesian #1 above (" + anomflt + ") ------------------- \n");
-            AstroLibr.covct2fl(cartcov, cartstate, anomflt, ttt, jdut1, lod, xp, yp, 2, ddpsi, ddeps, 
-                iau80arr, AstroLib.EOpt.e80, out fltcovmeana, out tmct2fl);
+            AstroLibr.covct2fl(cartcov, cartstate, anomflt, jdtt, jdttfrac, jdut1, jdxysstart,
+                lod, xp, yp, 2, ddpsi, ddeps, ddx, ddy, 
+                iau80arr, iau00arr, AstroLib.EOpt.e80, out fltcovmeana, out tmct2fl);
 
             if (anomflt.Equals("latlon"))
                 printcov(fltcovmeana, "fl", 'm', anomflt, out strout);
@@ -6660,8 +10689,9 @@ namespace TestAll
             strbuild.AppendLine(strout);
 
             strbuild.AppendLine("  Cartesian Covariance from Flight #7 above \n");
-            AstroLibr.covfl2ct(fltcovmeana, fltstate, anomflt, ttt, jdut1, lod, xp, yp, 2, ddpsi, ddeps,
-                iau80arr, AstroLib.EOpt.e80, out cartcovmeanarev, out tmfl2ct);
+            AstroLibr.covfl2ct(fltcovmeana, fltstate, anomflt, jdtt, jdttfrac, jdut1, jdxysstart,
+                lod, xp, yp, 2, ddpsi, ddeps, ddx, ddy,
+                iau80arr, iau00arr, AstroLib.EOpt.e80, out cartcovmeanarev, out tmfl2ct);
 
             printcov(cartcovmeanarev, "ct", 'm', anomflt, out strout);
             strbuild.AppendLine(strout);
@@ -6673,44 +10703,24 @@ namespace TestAll
 
 
 
-
-
-        // -----------------------------------------------------------------
-        //
-        // this file tests the various functions.
-        //
-        // companion code for
-        // fundamentals of astrodyanmics and applications
-        // 2019
-        // by david vallado
-        //
-        // (w)719-573-2600, email dvallado@agi.com, davallado@gmail.com
-        //
-        // *****************************************************************
-        //
-        // current :
-        // 24 jan 19  david vallado
-        // original baseline
-        //
-        // *****************************************************************
-
-        private void button4_Click_1(object sender, EventArgs e)
+        public void runtests(int testnum)
         {
-            double rad = 180.0 / Math.PI;
-            double rad2 = rad * rad;
+            Int32 opt, optstart, optstop;
 
-            Int32 opt;
+            if (testnum == -10)
+            {
+                optstart = 1;
+                optstop = 102;
+            }
+            else
+            {
+                optstart = testnum;
+                optstop = testnum;
+            }
 
-            this.opsStatus.Text = "Status: Find Test Solutions ";
-            Refresh();
+            string directory = @"D:\Codes\LIBRARY\cs\TestAll\";
 
-            //rj2000 = [-605.79221660; -5870.22951108; 3493.05319896;];
-            //vj2000 = [-1.56825429; -3.70234891; -6.47948395; ];
-            //aj2000 = [0.001; 0.002; 0.003];
-
-            //end
-
-            for (opt = 0; opt <= 95; opt++)
+            for (opt = optstart; opt <= optstop; opt++)  //102
             {
                 strbuild.AppendLine("\n\n=================================== Case" + opt.ToString() + " =======================================");
                 this.opsStatus.Text = "Status:  on case " + opt.ToString();
@@ -6933,14 +10943,20 @@ namespace TestAll
                         break;
                     case 72:
                         testcheckhitearth();
-                        break;
-                    case 73:
                         testcheckhitearthc();
                         break;
+                    case 73:
+                        testgibbs();
+                        testhgibbs();
+                        break;
                     case 74:
-                        testlambertumins();
+                        // in sln directory, testall-Angles.out
+                        testangles();
+                        // D:\faabook\current\excel\testgeo.out for ch9 plot
+                        testgeo();
                         break;
                     case 75:
+                        testlambertumins();
                         testlambertminT();
                         break;
                     case 76:
@@ -6956,7 +10972,23 @@ namespace TestAll
                         testrv2eq();
                         break;
                     case 80:
-                        //testlambertuniv();
+                        string directoryx = @"d:\codes\library\matlab\";
+                        // book example, simple
+                        testlambertuniv();
+                        strbuild.AppendLine("lambert envelope test case results written to " + directoryx + "testall.out ");
+
+                        // old approach? yes...
+                        testAllMoving();
+                        strbuild.AppendLine("lambert all moving test case results written to " + directoryx + "tlambertAllx.out ");
+                        strbuild.AppendLine("lambert all moving test case results written to " + directoryx + "tlamb3dx.out ");
+
+                        // envelope testing
+                        testAll();
+                        strbuild.AppendLine("lambert envelope test case results written to " + directoryx + "testall.out ");
+
+                        // known problem cases testall-lambertknown.out in sln directory
+                        testknowncases();
+                        strbuild.AppendLine("lambert known test case results written to " + directory + "testall-lambertknown.out ");
                         break;
                     case 81:
                         testradecgeo2azel();
@@ -6988,24 +11020,27 @@ namespace TestAll
                         testcovct2cltrue();
                         break;
                     case 90:
+                        testhill();
                         break;
                     case 91:
                         break;
                     case 92:
+                        testcovct2rsw();
+                        testcovct2ntw();
                         testcovcl2eq("truea");
                         testcovcl2eq("truen");
                         testcovcl2eq("meana");
                         testcovcl2eq("meann");
-                        break;
-                    case 93:
                         testcovct2eq("truea");
                         testcovct2eq("truen");
                         testcovct2eq("meana");
                         testcovct2eq("meann");
-                        break;
-                    case 94:
                         testcovct2fl("latlon");
                         testcovct2fl("radec");
+                        break;
+                    case 93:
+                        break;
+                    case 94:
                         break;
                     case 95:
                         break;
@@ -7016,13 +11051,16 @@ namespace TestAll
                         testcovct2ntw();
                         break;
                     case 98:
-                            testsunmoonjpl();
-                            break;
+                        testsunmoonjpl();
+                        break;
                     case 99:
-                        //testkp2ap();
+                        testkp2ap();
                         break;
                     case 100:
                         testproporbit();
+                        string directoryy = @"d:\codes\library\matlab\";
+                        strbuild.AppendLine("testproporbit (legendre) results written to " + directoryy + "legpoly.out ");
+                        strbuild.AppendLine("testproporbit (legendre) results written to " + directoryy + "legendreAcc.out ");
                         break;
                     case 101:
                         //testsemianaly();
@@ -7032,13 +11070,50 @@ namespace TestAll
                         break;
                 }
 
-
             } // for
 
             // write data out
-            string directory = @"D:\Codes\LIBRARY\cs\TestAll\";
             File.WriteAllText(directory + "testall.out", strbuild.ToString());
+        }  // runtests
 
+
+
+        // -----------------------------------------------------------------
+        //
+        // this file tests all the various functions.
+        //
+        // companion code for
+        // fundamentals of astrodyanmics and applications
+        // 2019
+        // by david vallado
+        //
+        // (w)719-573-2600, email dvallado@agi.com, davallado@gmail.com
+        //
+        // *****************************************************************
+        //
+        // current :
+        // 24 jan 19  david vallado
+        // original baseline
+        //
+        // *****************************************************************
+
+        private void button4_Click_1(object sender, EventArgs e)
+        {
+            double rad = 180.0 / Math.PI;
+            double rad2 = rad * rad;
+
+
+            this.opsStatus.Text = "Status: Find Test Solutions ";
+            Refresh();
+
+            // -----------------------------------------------------------------
+            // 74 angles-only tests
+            // 80 lambert tests
+            // 94 covariance tests
+            // 101 semianalytical (not built yet)
+            //
+
+            runtests(-10);  // run all
 
             this.opsStatus.Text = "Done";
             Refresh();
@@ -7049,5 +11124,115 @@ namespace TestAll
         }
 
 
+        // setup Lambert test page
+        void button1_Click(object sender, EventArgs e)
+        {
+
+            frmLambert form = new frmLambert();
+            form.Show();
+
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            this.opsStatus.Text = "Status: Running test ";
+            Refresh();
+
+            runtests(Convert.ToInt32(this.testNum.Text));  // run specific
+
+            this.opsStatus.Text = "Status: Done ";
+            Refresh();
+        }
+
+        // setup Gauss test page
+        private void button3_Click(object sender, EventArgs e)
+        {
+
+            frmGauss form = new frmGauss();
+            form.Show();
+
+        }
+
+        private void time2_TextChanged(object sender, EventArgs e)
+        {
+            double jd, jdf;
+            int year, month, day, h, m, dayofyr;
+            double s;
+            
+            MathTimeLibr.STKtime2JD(this.time2.Text, out jd, out jdf);
+            MathTimeLibr.invjday(jd, jdf, out year, out month, out day, out h, out m, out s);
+            MathTimeLibr.findDays(year, month, day, h, m, s, out dayofyr);
+            this.doy.Text = dayofyr.ToString();
+        }
+
+        private void rtasc_TextChanged(object sender, EventArgs e)
+        {
+            int h, m;
+            double hms, s, rad;
+            rad = 180.0 / Math.PI;
+
+            h = m = 0;
+            s = 0.0;
+
+            hms = Convert.ToDouble(this.rtasc.Text) / rad;  // get in rads first, not hrs
+            MathTimeLibr.hms_rad(ref h, ref m, ref s, MathTimeLib.Edirection.efrom, ref hms);
+
+            this.hms.Text = h + " " + m + " " + s;
+        }
+
+        private void decl_TextChanged(object sender, EventArgs e)
+        {
+            int d, m;
+            double dms, s, rad;
+            rad = 180.0 / Math.PI;
+
+            d = m = 0;
+            s = 0.0;
+
+            dms = Convert.ToDouble(this.decl.Text) / rad;
+            MathTimeLibr.dms_rad(ref d, ref m, ref s, MathTimeLib.Edirection.efrom, ref dms);
+
+            this.dms.Text = d + " " + m + " " + s;
+        }
+
+        private void hms_TextChanged(object sender, EventArgs e)
+        {
+            int h, m;
+            double hms, s, rad;
+            rad = 180.0 / Math.PI;
+
+            hms = 0.0;
+            string line;
+            line = this.hms.Text;
+            line.Replace(@"\s+", " ");
+            string[] linesplt = line.Split(' ');
+            h = Convert.ToInt32(linesplt[1]);
+            m = Convert.ToInt32(linesplt[2]);
+            s = Convert.ToDouble(linesplt[3]);
+
+            MathTimeLibr.hms_rad(ref h, ref m, ref s, MathTimeLib.Edirection.eto, ref hms);
+
+            this.hms.Text = hms.ToString();
+        }
+
+        private void dms_TextChanged(object sender, EventArgs e)
+        {
+            int d, m;
+            double dms, s, rad;
+            rad = 180.0 / Math.PI;
+
+            dms = 0.0;
+            string line;
+            line = this.dms.Text;
+            line.Replace(@"\s+", " ");
+            string[] linesplt = line.Split(' ');
+            d = Convert.ToInt32(linesplt[1]);
+            m = Convert.ToInt32(linesplt[2]);
+            s = Convert.ToDouble(linesplt[3]);
+
+            MathTimeLibr.dms_rad(ref d, ref m, ref s, MathTimeLib.Edirection.eto, ref dms);
+
+            this.dms.Text = dms.ToString();
+        }
     }
 }

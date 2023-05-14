@@ -36,7 +36,7 @@
         % recover the original function values
         % use the normalized time first, but at an arbitrary interval
         [r1r, r1i, r2r, r2i, r3r, r3i] = cubic(kc3, kc2, kc1, kc0 - valuein, 'R');
-        
+        %fprintf(1,'cubic %11.7f  %11.7f  %11.7f  %11.7f  %11.7f \n', ac0, ac1, kc0, r1r, r2r);
         if ((r1r >= -0.000001) && (r1r <= 1.001))
             value = r1r;
         else
@@ -47,7 +47,7 @@
                     value = r3r;
                 else
                     value = 0.0;
-                    Console.Write('error in cubicinterp root {0} {1} {2} {3} \n', valuein, r1r, r2r, r3r);
+                    fprintf(1,'error in cubicinterp root {0} {1} {2} {3} \n', valuein, r1r, r2r, r3r);
                 end
             end
         end

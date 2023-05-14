@@ -39,7 +39,8 @@
     timezone= 0;
     terms = 2;
     order = 106;
-    [ut1, tut1, jdut1,jdut1frac, utc, tai, tt, ttt, jdtt,jdttfrac, tdb, ttdb, jdtdb,jdtdbfrac, tcg, jdtcg,jdtcgfrac, tcb, jdtcb,jdtcbfrac ] ...
+    %, tcg, jdtcg,jdtcgfrac, tcb, jdtcb,jdtcbfrac 
+    [ut1, tut1, jdut1,jdut1frac, utc, tai, tt, ttt, jdtt,jdttfrac, tdb, ttdb, jdtdb,jdtdbfrac] ...
         = convtime ( year, mon, day, hr, min, sec, timezone, dut1, dat );
 
     ttdb

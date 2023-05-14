@@ -1,23 +1,29 @@
-﻿//
-//                          MathTimeMethods
-//
-// this library contains various math and basic time routines.
-//
-//    current :
-//              13 mar 18  david vallado
-//                           split up to be more functional
-//    changes :
-//              29 nov 17  david vallado
-//                           fixes to teme, new routines, etc
-//              19 mar 14  david vallado
-//                           original baseline 
-//
-//    (w) 719-573-2600, email dvallado@agi.com, davallado@gmail.com
-//
+﻿/*     -------------------------------------------------------------------------
+*
+*                                MathTimeLib.cs
+*
+* this library contains various math and basic time routines.
+*
+*                            companion code for
+*               fundamentals of astrodynamics and applications
+*                                    2013
+*                              by david vallado
+*
+*               email dvallado@comspoc.com, davallado@gmail.com
+*
+*    current :
+*              13 mar 18  david vallado
+*                           split up to be more functional
+*    changes :
+*              29 nov 17  david vallado
+*                           fixes to teme, new routines, etc
+*              19 mar 14  david vallado
+*                           original baseline 
+*                           
+*       ----------------------------------------------------------------      */
 
 using System;
-using System.Linq;
-
+using System.Numerics;  // add reference in for this
 
 namespace MathTimeMethods
 {
@@ -25,20 +31,16 @@ namespace MathTimeMethods
     // -----------------------------------------------------------------------------
     public class MathTimeLib
     {
-        public string MathTimeLibVersion = "MathTimeLib Version 2019-10-23";
+        public string MathTimeLibVersion = "MathTimeLib Version 2021-06-03";
+
+        // if needed...
+        public Complex ComplexLibr = new Complex();
 
         // ------------------------------- constants -----------------------------------
         public static class globals
         {
             public static double infinite = 999999.9;
             public static double undefined = 999999.1;
-            public static double mum = 3.986004415e14; // m^3/s^2 stk uses .4415
-            public static double mu = 398600.4415;     // km^3/s^2 stk uses .4415
-            public static double re = 6378.1363;       // km  stk uses .1363
-            public static double velkmps = 7.9053657160394282;
-            public static double earthrot = 7.29211514670698e-05;  // older rad/s
-            public static double c = 2.99792458e8;  // speed of light m/s
-          //  public static double earthrot = 7.292115e-05;  // rad/s
         }
 
         public enum Edirection { efrom, eto };
@@ -63,64 +65,9 @@ namespace MathTimeMethods
         } // degrees
 
 
-        /* -----------------------------------------------------------------------------
-        *
-        *                           function acosh
-        *
-        *  this function evaluates the inverse hyperbolic cosine function.
-        *
-        *  author        : david vallado                  719-573-2600    1 mar 2001
-        *
-        *  inputs          description                    range / units
-        *    xval        - angle value                                  1.0 to infinity
-        *
-        *  outputs       :
-        *    acosh       - result                                       any real
-        *
-        *  locals        :
-        *    temp        - temporary value
-        *
-        *  coupling      :
-        *    none.
-        * --------------------------------------------------------------------------- */
-
-        public double acosh
-            (
-            double xval
-            )
-        {
-            return Math.Log(xval + Math.Sqrt(xval * xval - 1.0));
-        }  // end acosh
-
-        /* -----------------------------------------------------------------------------
-        *
-        *                           function asinh
-        *
-        *  this function evaluates the inverse hyperbolic sine function.
-        *
-        *  author        : david vallado                  719-573-2600    1 mar 2001
-        *
-        *  inputs          description                               range / units
-        *    xval        - angle value                                  any real
-        *
-        *  outputs       :
-        *    asinh       - result                                       any real
-        *
-        *  locals        :
-        *    none.
-        *
-        *  coupling      :
-        *    none.
-        * --------------------------------------------------------------------------- */
-
-        public double asinh
-            (
-            double xval
-            )
-        {
-            return Math.Log(xval + Math.Sqrt(xval * xval + 1.0));
-        }  //  asinh
-
+        // ==============================================================================
+        //                              Trigonometric routines  
+        // ==============================================================================
 
         /* ------------------------------------------------------------------------------
         *
@@ -128,7 +75,7 @@ namespace MathTimeMethods
         *
         *  this function finds the cotangent of an input in radians.
         *
-        *  author        : david vallado                  719-573-2600    1 Mar 2001
+        *  author        : david vallado           davallado@gmail.com    1 Mar 2001
         *
         *  inputs          description                    range / units
         *    xval        - input to take cotangent of        rad
@@ -157,11 +104,74 @@ namespace MathTimeMethods
 
         /* -----------------------------------------------------------------------------
         *
+        *                           function acosh
+        *
+        *  this function evaluates the inverse hyperbolic cosine function.
+        *
+        *  author        : david vallado           davallado@gmail.com    1 mar 2001
+        *
+        *  inputs          description                    range / units
+        *    xval        - angle value                                  1.0 to infinity
+        *
+        *  outputs       :
+        *    acosh       - result                                       any real
+        *
+        *  locals        :
+        *    temp        - temporary value
+        *
+        *  coupling      :
+        *    none.
+        * --------------------------------------------------------------------------- */
+
+        public double acosh
+            (
+            double xval
+            )
+        {
+            return Math.Log(xval + Math.Sqrt(xval * xval - 1.0));
+        }  // end acosh
+
+        /* -----------------------------------------------------------------------------
+        *
+        *                           function asinh
+        *
+        *  this function evaluates the inverse hyperbolic sine function.
+        *
+        *  author        : david vallado           davallado@gmail.com    1 mar 2001
+        *
+        *  inputs          description                               range / units
+        *    xval        - angle value                                  any real
+        *
+        *  outputs       :
+        *    asinh       - result                                       any real
+        *
+        *  locals        :
+        *    none.
+        *
+        *  coupling      :
+        *    none.
+        * --------------------------------------------------------------------------- */
+
+        public double asinh
+            (
+            double xval
+            )
+        {
+            return Math.Log(xval + Math.Sqrt(xval * xval + 1.0));
+        }  //  asinh
+
+
+        // ==============================================================================
+        //                                 Vector routines 
+        // ==============================================================================
+
+        /* -----------------------------------------------------------------------------
+        *
         *                           function dot
         *
         *  this function finds the dot product of two vectors.
         *
-        *  author        : david vallado                  719-573-2600    1 mar 2001
+        *  author        : david vallado           davallado@gmail.com    1 mar 2001
         *
         *  inputs          description                    range / units
         *    vec1        - vector number 1
@@ -189,7 +199,7 @@ namespace MathTimeMethods
         *
         *  this procedure finds the magnitude of a vector.  
         *
-        *  author        : david vallado                  719-573-2600    1 mar 2001
+        *  author        : david vallado           davallado@gmail.com    1 mar 2001
         *
         *  inputs          description                    range / units
         *    vec         - vector
@@ -213,13 +223,14 @@ namespace MathTimeMethods
         }  // mag
 
 
+
         /* -----------------------------------------------------------------------------
         *
         *                           procedure cross
         *
         *  this procedure crosses two vectors.
         *
-        *  author        : david vallado                  719-573-2600    1 mar 2001
+        *  author        : david vallado           davallado@gmail.com    1 mar 2001
         *
         *  inputs          description                    range / units
         *    vec1        - vector number 1
@@ -255,7 +266,7 @@ namespace MathTimeMethods
         *  this procedure calculates a unit vector given the original vector.  if a
         *  zero vector is input, the vector is set to zero.
         *
-        * author        : david vallado                  719-573-2600    1 mar 2001
+        * author        : david vallado           davallado@gmail.com    1 mar 2001
         *
         *  inputs          description                    range / units
         *    vec        - vector
@@ -296,7 +307,7 @@ namespace MathTimeMethods
         *    set to 999999.1 to indicate an undefined value.  be sure to check for
         *    this at the output phase.
         *
-        *  author        : david vallado                  719-573-2600    1 mar 2001
+        *  author        : david vallado           davallado@gmail.com    1 mar 2001
         *
         *  inputs          description                    range / units
         *    vec1        - vector number 1
@@ -342,30 +353,30 @@ namespace MathTimeMethods
 
 
         /* -----------------------------------------------------------------------------
-*
-*                           procedure roti
-*
-*  this procedure performs a rotation about the ith axis. i is specified
-*    for each operation.
-*
-*  author        : david vallado                  719-573-2600    1 mar 2001
-*
-*  inputs          description                    range / units
-*    vec         - input vector
-*    xval        - angle of rotation              rad
-*
-*  outputs       :
-*    outvec      - vector result
-*
-*  locals        :
-*    c           - cosine of the angle xval
-*    s           - sine of the angle xval
-*    temp        - temporary extended value
-*
-*  coupling      :
-*    none.
-*
-* --------------------------------------------------------------------------- */
+        *
+        *                           procedure roti
+        *
+        *  this procedure performs a rotation about the ith axis. i is specified
+        *    for each operation.
+        *
+        *  author        : david vallado           davallado@gmail.com    1 mar 2001
+        *
+        *  inputs          description                    range / units
+        *    vec         - input vector
+        *    xval        - angle of rotation              rad
+        *
+        *  outputs       :
+        *    outvec      - vector result
+        *
+        *  locals        :
+        *    c           - cosine of the angle xval
+        *    s           - sine of the angle xval
+        *    temp        - temporary extended value
+        *
+        *  coupling      :
+        *    none.
+        *
+        * --------------------------------------------------------------------------- */
 
         public double[] rot1
             (
@@ -438,7 +449,7 @@ namespace MathTimeMethods
         *  this function sets up a rotation matrix for an input angle about the first
         *    axis.
         *
-        *  author        : david vallado                  719-573-2600   10 jan 2003
+        *  author        : david vallado           davallado@gmail.com   10 jan 2003
         *
         *  revisions
         *                -
@@ -540,7 +551,7 @@ namespace MathTimeMethods
         *
         *  this procedure adds two vectors possibly multiplied by a constant.
         *
-        *  author        : david vallado                  719-573-2600    1 mar 2001
+        *  author        : david vallado           davallado@gmail.com    1 mar 2001
         *
         *  inputs          description                    range / units
         *    a1          - constant multiplier
@@ -579,14 +590,59 @@ namespace MathTimeMethods
 
         /* -----------------------------------------------------------------------------
         *
+        *                           procedure addvec3
+        *
+        *  this procedure adds three vectors possibly multiplied by a constant.
+        *
+        *  author        : david vallado           davallado@gmail.com    1 mar 2001
+        *
+        *  inputs          description                    range / units
+        *    a1          - constant multiplier
+        *    a2          - constant multiplier
+        *    a3          - constant multiplier
+        *    vec1        - vector number 1
+        *    vec2        - vector number 2
+        *    vec3        - vector number 3
+        *
+        *  outputs       :
+        *    outvec      - vector result of a + b + c
+        *
+        *  locals        :
+        *    row         - index
+        *
+        *  coupling      :
+        *     none
+        * --------------------------------------------------------------------------- */
+
+        public void addvec3
+            (
+            double a1, double[] vec1,
+            double a2, double[] vec2,
+            double a3, double[] vec3,
+            out double[] vec4
+            )
+        {
+            vec4 = new double[] { 0.0, 0.0, 0.0 };
+            int row;
+            double[] tempvec = new double[3];
+
+            for (row = 0; row <= 2; row++)
+            {
+                vec4[row] = 0.0;
+                vec4[row] = a1 * vec1[row] + a2 * vec2[row] + a3 * vec3[row];
+            }
+        } // addvec3
+
+        /* -----------------------------------------------------------------------------
+        *
         *                           procedure matvecmult
         *
         *  this procedure multiplies a 3x3 matrix and a 3x1 vector together.
         *
-        *  author        : david vallado                  719-573-2600    1 mar 2001
+        *  author        : david vallado           davallado@gmail.com    1 mar 2001
         *
         *  inputs          description                    range / units
-        *    mat         - 3 x 3 matrix
+        *    mat         - order x order matrix
         *    vec         - vector
         *    order       - square size of the mat and the size of the vector which must be the same
         *
@@ -621,23 +677,67 @@ namespace MathTimeMethods
 
         // -----------------------------------------------------------------------------
         // perform vector outer product
-        // makes a 3x3 matrix from multiplying 2 [3] dimensioned vectors
+        // makes a 3order x order matrix from multiplying 2 [order] dimensioned vectors
         public double[,] vecouter
             (
-            double[] vec1, double[] vec2
+            double[] vec1, double[] vec2, int order
             )
         {
-            double[,] mat = new double[3, 3];
+            double[,] mat = new double[order, order];
             int row, col;
-            for (row = 0; row <= 2; row++)
+            for (row = 0; row <= order - 1; row++)
             {
-                for (col = 0; col <= 2; col++)
+                for (col = 0; col <= order - 1; col++)
                 {
                     mat[row, col] = vec1[row] * vec2[col];
                 }
             }
             return mat;
         } // vecouter  
+
+
+        // ==============================================================================
+        //                                   Matrix routines 
+        // ==============================================================================
+
+        // -----------------------------------------------------------------------------
+        // form a copy of a square matrix
+        public double[,] matequal
+            (
+            double[,] mat1, int matr
+            )
+        {
+            int row, col;
+            double[,] mat2 = new double[matr, matr];
+            for (row = 0; row < matr; row++)
+            {
+                for (col = 0; col < matr; col++)
+                {
+                    mat2[row, col] = mat1[row, col];
+                }
+            }
+            return mat2;
+        }  // matequal 
+
+
+        // -----------------------------------------------------------------------------
+        // multiply a matrix * a scalar
+        public double[,] matscale
+            (
+            double[,] mat1, int matr, int matc, double scale
+            )
+        {
+            int row, col;
+            double[,] mat2 = new double[matr, matr];
+            for (row = 0; row < matr; row++)
+            {
+                for (col = 0; col < matc; col++)
+                {
+                    mat2[row, col] = mat1[row, col] * scale;
+                }
+            }
+            return mat2;
+        }  // matscale 
 
 
         // -----------------------------------------------------------------------------
@@ -676,31 +776,31 @@ namespace MathTimeMethods
         } // matsub  
 
 
-       /* -----------------------------------------------------------------------------
-       *
-       *                           procedure matmult
-       *
-       *  this procedure multiplies two matricies up to 10x10 together.
-       *
-       *  author        : david vallado                  719-573-2600    7 dec 2007
-       *
-       *  inputs          description                    range / units
-       *    mat1        - matrix number 1
-       *    mat2        - matrix number 2
-       *    mat1r       - matrix number 1 rows
-       *    mat1c       - matrix number 1 columns
-       *    mat2c       - matrix number 2 columns
-       *
-       *  outputs       :
-       *    mat3        - matrix result of mat1 * mat2 of size mat1r x mat2c
-       *
-       *  locals        :
-       *    row         - row index
-       *    col         - column index
-       *    ktr         - index
-       *
-       *  coupling      :
-       * --------------------------------------------------------------------------- */
+        /* -----------------------------------------------------------------------------
+        *
+        *                           procedure matmult
+        *
+        *  this procedure multiplies two matricies up to 10x10 together.
+        *
+        *  author        : david vallado           davallado@gmail.com    7 dec 2007
+        *
+        *  inputs          description                    range / units
+        *    mat1        - matrix number 1
+        *    mat2        - matrix number 2
+        *    mat1r       - matrix number 1 rows
+        *    mat1c       - matrix number 1 columns
+        *    mat2c       - matrix number 2 columns
+        *
+        *  outputs       :
+        *    mat3        - matrix result of mat1 * mat2 of size mat1r x mat2c
+        *
+        *  locals        :
+        *    row         - row index
+        *    col         - column index
+        *    ktr         - index
+        *
+        *  coupling      :
+        * --------------------------------------------------------------------------- */
 
         public double[,] matmult
             (
@@ -723,7 +823,7 @@ namespace MathTimeMethods
 
 
         // -----------------------------------------------------------------------------
-        // form the transponse of a square matrix
+        // form the transpose of a square matrix
         public double[,] mattrans
             (
             double[,] mat1, int matr
@@ -770,7 +870,7 @@ namespace MathTimeMethods
         *
         *  this procedure decomposes a matrix into an lu form.
         *
-        *  author        : david vallado                  719-573-2600    1 mar 2001
+        *  author        : david vallado           davallado@gmail.com    1 mar 2001
         *
         *  inputs          description                    range / units
         *    order       - order of matrix
@@ -878,7 +978,7 @@ namespace MathTimeMethods
         *
         *  this procedure finds the inverse of a matrix using lu decomposition.
         *
-        *  author        : david vallado                  719-573-2600    1 mar 2001
+        *  author        : david vallado           davallado@gmail.com    1 mar 2001
         *
         *  inputs          description                    range / units
         *    order       - order of matrix
@@ -948,7 +1048,7 @@ namespace MathTimeMethods
         *
         *  this procedure finds the inverse of a matrix using lu decomposition.
         *
-        *  author        : david vallado                  719-573-2600    1 mar 2001
+        *  author        : david vallado           davallado@gmail.com    1 mar 2001
         *
         *  inputs          description                    range / units
         *    mat         - matrix to invert, 0 array starts
@@ -1013,16 +1113,21 @@ namespace MathTimeMethods
         } // matinverse
 
 
+
         /* ---------------------------------------------------------------------------- 
         *
         *                           procedure determinant
         *
         *  This function calculates the determinant value using L - U decompisition.
-        *    The formula must have a non-zero number in the 1, 1 position. if the
-        *    function senses a non-zero number in row 1, it exchanges row1 for a row
+        *    The formula must have a non-zero number in the 0, 0 position. if the
+        *    function senses a non-zero number in row 0, it exchanges row0 for a row
         *    with a non-zero number.
+        *    has trouble with this??? 
+        *    double[,] mat =  { { 3, 0, 2.0},
+        *                       { 2, 0, -2},
+        *                       { 0, 1.0, 1} };
         *
-        *  author        : david vallado                  719-573-2600    1 mar 2001
+        *  author        : david vallado           davallado@gmail.com    1 mar 2001
         *
         *  inputs          description                    range / units
         *    mat1        - matrix to find determinant of
@@ -1099,7 +1204,10 @@ namespace MathTimeMethods
                         sum = 0.0;
                         for (k = 0; k <= j - 1; k++)
                             sum = sum + l[j, k] * u[k, i];
-                        u[j, i] = (mat1[j, i] - sum) / l[j, j];
+                        //if (Math.Abs(l[j, j]) < small)
+                        //    u[j, i] = 1.0;
+                        //else
+                            u[j, i] = (mat1[j, i] - sum) / l[j, j];
                     } // for i 
                 } // if j 
             } //  for j 
@@ -1110,7 +1218,202 @@ namespace MathTimeMethods
         } // determinant
 
 
+        // -----------------------------------------------------------------------------
+        // https://www.geeksforgeeks.org/adjoint-inverse-matrix/
+        // Function to get cofactor of A[p,q] in [,]temp. n is current
+        // dimension of [,]mat
+        public void getCofactor(double[,] mat, out double[,] temp, int p, int q, int n)
+        {
+            temp = new double[,] { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
+            int i = 0, j = 0;
 
+            // Looping for each element of the matrix
+            for (int row = 0; row < n; row++)
+            {
+                for (int col = 0; col < n; col++)
+                {
+                    // Copying into temporary matrix only those element
+                    // which are not in given row and column
+                    if (row != p && col != q)
+                    {
+                        temp[i, j++] = mat[row, col];
+
+                        // Row is filled, so increase row index and
+                        // reset col index
+                        if (j == n - 1)
+                        {
+                            j = 0;
+                            i++;
+                        }
+                    }
+                }
+            }
+        }  // getCofactor
+
+
+        // -----------------------------------------------------------------------------
+        // https://www.geeksforgeeks.org/adjoint-inverse-matrix/
+        // function to get adjoint of 3x3 mat[order, order] in adj[order, order].
+        public void adjoint(double[,] mat, out double[,] adj)
+        {
+            int order = 3;
+            adj = new double[,] { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
+            if (order == 1)
+            {
+                adj[0, 0] = 1;
+                return;
+            }
+
+            // temp is used to store cofactors of [,]mat
+            int sign = 1;
+            double[,] temp = new double[order, order];
+
+            for (int i = 0; i < order; i++)
+            {
+                for (int j = 0; j < order; j++)
+                {
+                    // Get cofactor of mat[i,j]
+                    getCofactor(mat, out temp, i, j, order);
+
+                    // sign of adj[j,i] positive if sum of row
+                    // and column indexes is even.
+                    sign = ((i + j) % 2 == 0) ? 1 : -1;
+
+                    // Interchanging rows and columns to get the
+                    // transpose of the cofactor matrix
+                    adj[j, i] = sign * determ(temp, order - 1);
+                }
+            }
+        }   // adjoint
+
+
+        // -----------------------------------------------------------------------------
+        // https://www.geeksforgeeks.org/adjoint-inverse-matrix/
+        // Recursive function for finding determinant of matrix.
+        //   n is current dimension of [,]mat. 
+        public double determ(double[,] mat, int n)
+        {
+            int order = 3;
+            double D = 0; // Initialize result
+
+            // Base case : if matrix contains single element
+            if (n == 1)
+                return mat[0, 0];
+
+            // store cofactors
+            double[,] temp = new double[order, order];
+
+            // store sign multiplier
+            int sign = 1; 
+
+            // Iterate for each element of first row
+            for (int f = 0; f < n; f++)
+            {
+                // Getting Cofactor of mat[0,f]
+                getCofactor(mat, out temp, 0, f, n);
+                D = D + sign * mat[0, f] * determ(temp, n - 1);
+
+                // terms are to be added with alternate sign
+                sign = -sign;
+            }
+            return D;
+        }  // determ
+
+
+        /* ------------------------------------------------------------------------------
+        *
+        *                           procedure mat33inverse
+        *
+        *  this procedure finds the inverse of a 3x3 matrix using determinants.
+        *
+        *  author        : david vallado           davallado@gmail.com    4 aug 2022
+        *
+        *  inputs          description                    range / units
+        *    mat         - matrix to invert, 0 array starts
+        *
+        *  outputs       :
+        *    matinv      - inverted matrix, 0 array starts
+        *
+        *  locals        :
+        *    i           - index
+        *    j           - index
+        *
+        *  coupling      :
+        *     determinant- determinant of a matrix
+        *     adjoint    - adjoint of a matrix
+        *     
+        *  references    :
+        *    https://www.geeksforgeeks.org/adjoint-inverse-matrix/
+         ----------------------------------------------------------------------------- */
+        public bool mat33inverse(double[,] mat, out double[,] matinv)
+        {
+            double detval, temp;
+            int order = 3;
+            // find determinant of mat
+            detval = determ(mat, order);
+            matinv = new double[,] { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
+
+            if (detval == 0)
+            {
+                Console.Write("Singular matrix, can't find its inverse");
+                return false;
+            }
+
+            // find adjoint
+            double[,] adj = new double[order, order];
+            adjoint(mat, out adj);
+
+            // find Inverse using formula inverse(mat) = adj(mat)/det(mat)
+            temp = 1.0 / detval;
+            for (int i = 0; i < order; i++)
+                for (int j = 0; j < order; j++)
+                    matinv[i, j] = adj[i, j] * temp;
+            
+            return true;
+        }    // mat33inverse
+
+        public void writemat
+        (
+            string matname,
+            double[,] mat,
+            int row, int col, out string outstr
+        )
+        {
+            string fmt = "+#.#########;-#.#########";
+            int r, c;
+
+            outstr = "matrix " + matname + "\n";
+            for (r = 0; r < row; r++)
+            {
+                for (c = 0; c < col; c++)
+                    outstr = outstr + mat[r, c].ToString(fmt).PadLeft(16) + " ";
+                outstr = outstr + "\n";
+            }
+        }  // writemat
+
+        public void writeexpmat
+        (
+            string matname,
+            double[,] mat,
+            int row, int col, out string outstr
+        )
+        {
+            // format strings to show signs "and" to not round off if trailing 0!!
+            string fmt = "+#.#########0E+00;-#.#########0E+00";
+            int r, c;
+
+            outstr = "matrix " + matname + "\n";
+            for (r = 0; r < row; r++)
+            {
+                for (c = 0; c < col; c++)
+                    outstr = outstr + mat[r, c].ToString(fmt).PadLeft(16) + " ";
+                outstr = outstr + "\n";
+            }
+        }  // writeexpmat
+
+
+
+        //
         // https://rosettacode.org/wiki/Cholesky_decomposition#C.23
         // Content is available under GNU Free Documentation License 1.2 unless otherwise noted.
         // Returns the lower Cholesky Factor, L, of input matrix A. 
@@ -1152,124 +1455,572 @@ namespace MathTimeMethods
             return ret;
         }   // cholesky
 
+        // ==============================================================================
+        //                                 Polynomial routines 
+        // ==============================================================================
 
-        // -----------------------------------------------------------------------------
-        // form a copy of a square matrix
-        public double[,] matequal
-            (
-            double[,] mat1, int matr
-            )
+        /* -----------------------------------------------------------------------------
+        *
+        *                           function DMulRSub
+        *
+        * called by factor to find roots of a polynomial.
+        *
+        * the original code had several places with a double = 0.0
+        * The values here seem particularly touchy, values of 1e-45 may not even be enough
+        * so implement a try-catch in several places.
+        * 
+        * 
+        * ----------------------------------------------------------------------------- */
+
+        public void DMulRSub(ref double[] ALPR, ref double[] ALPI,
+            double[] BETR, double[] BETI)
         {
-            int row, col;
-            double[,] mat2 = new double[matr, matr];
-            for (row = 0; row < matr; row++)
+            double Te1, Te2, Te3, Te4, Te5, Te6, Te7, Te8, Te9, Te10, Te11, Te12,
+            Te13, Te14, Te15, Te16, tem, DE15, DE16;
+            Te8 = 0.0;
+
+            Te1 = ALPR[1] - ALPR[3];
+            Te2 = ALPI[1] - ALPI[3];
+            Te5 = ALPR[3] - ALPR[2];
+            Te6 = ALPI[3] - ALPI[2];
+            tem = Te5 * Te5 + Te6 * Te6;
+
+            // ---------------- Check for zero values of tem -------------- }
+            try
             {
-                for (col = 0; col < matr; col++)
-                {
-                    mat2[row, col] = mat1[row, col];
-                }
+                Te3 = (Te1 * Te5 + Te2 * Te6) / tem;
+                Te4 = (Te2 * Te5 - Te1 * Te6) / tem;
             }
-            return mat2;
-        }  // mattrans 
-
-
-        // -----------------------------------------------------------------------------
-        // multiply a matrix * a scalar
-        public double[,] matscale
-            (
-            double[,] mat1, int matr, int matc, double scale
-            )
-        {
-            int row, col;
-            double[,] mat2 = new double[matr, matr];
-            for (row = 0; row < matr; row++)
+            catch
             {
-                for (col = 0; col < matc; col++)
-                {
-                    mat2[row, col] = mat1[row, col] * scale;
-                }
+                Te3 = 0.0; // 9999999.0;   // account for small denominator
+                Te4 = 0.0; // 9999999.0;
+                Console.WriteLine("te3te4 chk 0.0" + tem.ToString());
             }
-            return mat2;
-        }  // matscale 
 
+            Te7 = Te3 + 1.0;
+            Te9 = Te3 * Te3 - Te4 * Te4;
+            Te10 = 2.0 * Te3 * Te4;
+            DE15 = Te7 * BETR[3] - Te4 * BETI[3];
+            DE16 = Te7 * BETI[3] + Te4 * BETR[3];
+            Te11 = Te3 * BETR[2] - Te4 * BETI[2] + BETR[1] - DE15;
+            Te12 = Te3 * BETI[2] + Te4 * BETR[2] + BETI[1] - DE16;
 
+            Te7 = Te9 - 1.0;
+            Te1 = Te9 * BETR[2] - Te10 * BETI[2];
+            Te2 = Te9 * BETI[2] + Te10 * BETR[2];
+            Te13 = Te1 - BETR[1] - Te7 * BETR[3] + Te10 * BETI[3];
+            Te14 = Te2 - BETI[1] - Te7 * BETI[3] - Te10 * BETR[3];
+            Te15 = DE15 * Te3 - DE16 * Te4;
+            Te16 = DE15 * Te4 + DE16 * Te3;
 
+            Te1 = Te13 * Te13 - Te14 * Te14 - 4.0 * (Te11 * Te15 - Te12 * Te16);
+            Te2 = 2.0 * Te13 * Te14 - 4.0 * (Te12 * Te15 + Te11 * Te16);
 
+            //Console.WriteLine(Te1 + " " + Te2 + " " + Te3 + " " + Te4 + " " + Te5 + " " + Te6);
+            //Console.WriteLine(Te7 + " " + Te8 + " " + Te9 + " " + Te10 + " " + Te11);
+            //Console.WriteLine(Te12 + " " + Te13 + " " + Te14 + " " + Te15 + " " + Te16);
 
+            /* --------------------------------------------------------------------
+            *   Sometimes, for stiff systems(the roots vary widely in order
+            *   of magnitude), Te1 and Te2 get large enough to have their
+            *   squares overflow the floating point range.To prevent this,
+            *   when either one is large, they are scaled by 10**10 for the
+            *   purpose of finding TeM.  The scale is restored when the
+            *   magnitude computation is completed.This should not affect
+            *   the accuracy of the computations, since the mantissa is not
+            *   affected, only the exponent.
+            *   this doesn't appear to be necessary with "modern" computers where e308
+            *   is the limit of doubles and the check could move to e150 or so.
+            * -------------------------------------------------------------------- */
 
-
-        // percentile function
-        // excelpercentile is a fraction from 0.0 to 1.0
-        // arrSize     - size of array. It could be 4 or 5, etc.
-        // some adjustments to be sure it works for variable sized arrays and fractional % values
-        // -----------------------------------------------------------------------------
-        public double Percentile
-            (
-            double[] sequence, double excelPercentile, Int32 arrSize
-            )
-        {
-            // limit the percentile to 2 decimal places
-            double[] b = new double[100];  
-            // get just the valid members of the sequence
-            Array.Copy(sequence, 0, b, 0, arrSize);
-            Array.Sort(b, 0, arrSize);  // needs sort for fractional % calcs
-            if (arrSize > 0)
+            if ((Te1 > 1.0e15) || (Te2 > 1.0e15))
             {
-                if (arrSize == 1)
-                    return b[0]; // b.Min();
-                else
+                Te1 = Te1 * 1.0E-10;
+                Te2 = Te2 * 1.0E-10;
+                tem = 1.0E10 * Math.Sqrt(Te1 * Te1 + Te2 * Te2);
+            }
+            else
+                tem = Math.Sqrt(Te1 * Te1 + Te2 * Te2);
+
+            if (Te1 > 0.0)
+            {
+                Te3 = Math.Sqrt(0.5 * (tem + Te1));
+                if (Te2 < 0.0)
+                    Te3 = -Te3;
+                // ----------------- check for zero values of te3 -------------- 
+                try
                 {
-                    int N = arrSize;  //  sequence.Length;
-                    double n = (N - 1) * excelPercentile + 1;
-                    if (n == N)
-                        return b[N];  // b.Max();
-                    else
-                    {
-                        int k = (int)n;
-                        double d = n - k;
-                        return b[k - 1] + d * (b[k] - b[k - 1]);
-                    }
+                    Te4 = 0.5 * Te2 / Te3;
+                }
+                catch
+                {
+                    Te4 = 0.0; // 9999999.0;   // account for small denominator
+                    Console.WriteLine("te3 0.0" + Te3.ToString());
                 }
             }
             else
-                return 0.0;
-        }  // percentile
+            {
+                Te4 = Math.Sqrt(0.5 * (tem - Te1));
+                // --------------------- Check for underflows ------------------ 
+                try
+                {
+                    Te3 = 0.5 * Te2 / Te4;
+                }
+                catch
+                {
+                    Te3 = 0.0; // 9999999.0;    // account for small denominator
+                    Console.WriteLine("te4 0.0" + Te4.ToString());
+                }
+            }
 
+            Te7 = Te13 + Te3;
+            Te8 = Te14 + Te4;
+            Te9 = Te13 - Te3;
+            Te10 = Te14 - Te4;
+            Te1 = 2.0 * Te15;
+            Te2 = 2.0 * Te16;
+
+            if (Te7 * Te7 + Te8 * Te8 - Te9 * Te9 - Te10 * Te10 <= 0.0)
+            {
+                Te7 = Te9;
+                Te8 = Te10;
+            }
+            tem = Te7 * Te7 + Te8 * Te8;
+
+            // ------------- Check for values of almost zero -------------- 
+            try
+            {
+                Te3 = Te1 / tem * Te7 + Te2 / tem * Te8;
+                Te4 = Te2 / tem * Te7 - Te1 / tem * Te8;
+            }
+            catch
+            {
+                Te3 = 0.0; // 9999999.0;   // account for small denominator
+                Te4 = 0.0; // 9999999.0;   
+                Console.WriteLine("tem chk 0.0" + tem.ToString());
+            }
+
+            ALPR[4] = ALPR[3] + Te3 * Te5 - Te4 * Te6;
+            ALPI[4] = ALPI[3] + Te3 * Te6 + Te4 * Te5;
+            //Console.WriteLine(Te1 + " " + Te2 + " " + Te3 + " " + Te4 + " " + Te5 + " " + Te6);
+            //Console.WriteLine(Te7 + " " + Te8 + " " + Te9 + " " + Te10 + " " + Te11);
+            //Console.WriteLine(Te12 + " " + Te13 + " " + Te14 + " " + Te15 + " " + Te16);
+            //Console.WriteLine(ALPR[4] + " " + ALPI[4]);
+            //Console.WriteLine("end dmlrsub");
+
+        }   // DMulRSub
+
+
+
+        /* ------------------------------------------------------------------------------
+        *
+        *                              factor
+        *
+        *  This method is a root finding algorithm. It takes the polynomial and
+        *    returns the roots (real and imaginary) in the RootS array. it works in "most" 
+        *    cases however it misses the correct postive root in some of the angles-only 
+        *    cases so don't use it there, use a Halley iteration.
+        *
+        *  Author        : David Vallado           davallado@gmail.com    1 Mar 2001
+        *
+        *  Inputs Description                                       Range / Units
+        *    Poly        - Array of 16 coefficients
+        *                    representing the polynomial
+        *                    [1] is x^8th, [2] is x^7th, ...
+        *                    others are zero
+        *    nRoots      - Number of roots
+        *
+        *  OutPuts       :
+        *    Roots       - Array[,] containing roots(real, imag)
+        *
+        *  Locals        :
+        *                -
+        *                -
+        *                -
+        *
+        *  Coupling      :
+        *    DMulRSub    -
+        *
+        *  References    :
+        *    Original FORTRAN code from USAFA/DFAS MiniTotal program, author unknown
+        *    This is Bairstows method?
+        *
+         ----------------------------------------------------------------------------- */
+
+        public void factor
+            (
+            double[] Poly, int nRoots, out double[,] RootS
+            )
+        {
+            double small = 1.0e-30;
+            double[] DPoly = new double[17];
+            double[] AlpR = new double[5];
+            double[] Alpi = new double[5];
+            double[] BetR = new double[5];
+            double[] Beti = new double[5];
+            bool skip = false;
+
+            int moder, loopcnt, kk, i, j, L, rootcnt;
+            double temp1, temp2, AXR, AXi, pmax, tem1, tem2,
+            tempreal, tempimag, temp7;
+
+            RootS = new double[,] {  { 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 },
+                 { 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, {0.0, 0.0, 0.0 },
+                 { 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, {0.0, 0.0, 0.0 },
+                 { 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, {0.0, 0.0, 0.0 },
+                 { 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, {0.0, 0.0, 0.0 } };
+
+            temp7 = 0.0;
+            pmax = 0.0;
+            for (kk = 1; kk <= nRoots + 1; kk++)
+                if (Math.Abs(Poly[kk]) > pmax)
+                    pmax = Poly[kk];
+
+            if (Math.Abs(pmax) < small)
+                pmax = 1.0;
+
+            for (kk = 1; kk <= nRoots + 1; kk++)
+                DPoly[kk] = Poly[kk] / pmax;
+            //Console.WriteLine("Dpoly");
+            //Console.WriteLine(DPoly[1] + " " + DPoly[2] + " " + DPoly[3] + " " + DPoly[4]);
+            //Console.WriteLine(DPoly[5] + " " + DPoly[6] + " " + DPoly[7] + " " + DPoly[8]);
+            //Console.WriteLine(DPoly[9]);
+
+
+            if (nRoots > 0)
+            {
+                rootcnt = 0;
+                i = nRoots + 1;
+
+                while ((Math.Abs(DPoly[i]) < small) && (rootcnt != nRoots))
+                {
+                    rootcnt = rootcnt + 1;
+                    RootS[rootcnt, 1] = 0.0;
+                    RootS[rootcnt, 2] = 0.0;
+                    i = i - 1;
+                } //{ While }
+
+                if (rootcnt != nRoots)
+                {
+                    AXR = 0.8;
+                    AXi = 0.0;
+                    L = 1;
+                    loopcnt = 1;
+                    AlpR[1] = AXR;
+                    Alpi[1] = AXi;
+                    moder = 1;
+
+                    while (rootcnt < nRoots)
+                    {
+                        BetR[4] = DPoly[1];
+                        Beti[4] = 0.0;
+                        for (i = 1; i <= nRoots; i++)
+                        {
+                            j = i + 1;
+                            temp1 = BetR[4] * AXR - Beti[4] * AXi;
+                            Beti[4] = Beti[4] * AXR + BetR[4] * AXi;
+                            BetR[4] = temp1 + DPoly[j];
+                        }
+
+                        tempreal = BetR[4];
+                        tempimag = Beti[4];
+
+                        if (rootcnt != 0)
+                        {
+                            for (i = 1; i <= rootcnt; i++)
+                            {
+                                tem1 = AXR - RootS[i, 1];
+                                tem2 = AXi - RootS[i, 2];
+                                temp1 = tem1 * tem1 + tem2 * tem2;
+                                temp2 = (BetR[4] * tem1 + Beti[4] * tem2) / temp1;
+                                Beti[4] = (Beti[4] * tem1 - BetR[4] * tem2) / temp1;
+                                BetR[4] = temp2;
+                            }
+                        }
+                        // yes, the moder value gets changed in the middle - as that was in the original FOR
+                        // poor programming, but it seems to work. 
+                        if (moder == 1)
+                        {
+                            BetR[1] = BetR[4];
+                            Beti[1] = Beti[4];
+                            AXR = 0.85;
+                            AlpR[2] = AXR;
+                            Alpi[2] = AXi;
+                            moder = 2;
+                            //Console.WriteLine("BetR case 1");
+                            //Console.WriteLine(BetR[1] + " " + BetR[2] + " " + BetR[3] + " " + BetR[4]);
+                        }
+                        else if (moder == 2)
+                        {
+                            BetR[2] = BetR[4];
+                            Beti[2] = Beti[4];
+                            AXR = 0.9;
+                            AlpR[3] = AXR;
+                            Alpi[3] = AXi;
+                            moder = 3;
+                            //Console.WriteLine("BetR case 2");
+                            //Console.WriteLine(BetR[1] + " " + BetR[2] + " " + BetR[3] + " " + BetR[4]);
+                        }
+
+                        else if (moder == 5)
+                        {
+                            BetR[1] = BetR[4];
+                            Beti[1] = Beti[4];
+                            AXR = AlpR[2];
+                            AXi = -Alpi[2];
+                            Alpi[2] = -Alpi[2];
+                            moder = 6;
+                            //Console.WriteLine("BetR case 5");
+                            //Console.WriteLine(BetR[1] + " " + BetR[2] + " " + BetR[3] + " " + BetR[4]);
+                        }
+                        else if (moder == 6)
+                        {
+                            BetR[2] = BetR[4];
+                            Beti[2] = Beti[4];
+                            AXR = AlpR[3];
+                            AXi = -Alpi[3];
+                            Alpi[3] = -Alpi[3];
+                            L = 2;
+                            moder = 3;
+                            //Console.WriteLine("BetR case 6");
+                            //Console.WriteLine(BetR[1] + " " + BetR[2] + " " + BetR[3] + " " + BetR[4]);
+                        }
+                        else if (moder == 4)
+                        {
+                            // -------------------  the convergence moder ------------------- 
+                            skip = false;
+                            if (Math.Abs(tempreal) + Math.Abs(tempimag) > 1.0e-40)
+                            {
+                                temp7 = Math.Abs(AlpR[3] - AXR) + Math.Abs(Alpi[3] - AXi);
+                                if (temp7 / (Math.Abs(AXR) + Math.Abs(AXi)) > 1.0e-7)
+                                {
+                                    loopcnt = loopcnt + 1;
+                                    for (i = 1; i <= 3; i++)
+                                    {
+                                        AlpR[i] = AlpR[i + 1];
+                                        Alpi[i] = Alpi[i + 1];
+                                        BetR[i] = BetR[i + 1];
+                                        Beti[i] = Beti[i + 1];
+                                    }
+                                    if (loopcnt < 100)
+                                    {
+                                        DMulRSub(ref AlpR, ref Alpi, BetR, Beti);
+                                        AXR = AlpR[4];
+                                        AXi = Alpi[4];
+                                        moder = 4;
+                                        // Console.WriteLine("goto 80");
+                                        skip = true;  // goto 80
+                                    }
+                                }
+                            }
+                            if (!skip)
+                            {
+                                rootcnt = rootcnt + 1;
+                                RootS[rootcnt, 1] = AlpR[4];
+                                RootS[rootcnt, 2] = Alpi[4];
+                                Console.WriteLine(" found a root " + RootS[rootcnt, 1].ToString() + " " + RootS[rootcnt, 2].ToString());
+                                loopcnt = 0;
+
+                                if (rootcnt < nRoots)
+                                {
+                                    if (Math.Abs(RootS[rootcnt, 2]) > 1.0e-5)
+                                    {
+                                        if (L == 1)
+                                        {
+                                            AXR = AlpR[1];
+                                            AXi = -Alpi[1];
+                                            Alpi[1] = -Alpi[1];
+                                            moder = 5;
+                                        }
+                                        else
+                                        {
+                                            AXR = 0.8;
+                                            AXi = 0.0;
+                                            L = 1;
+                                            loopcnt = 1;
+                                            AlpR[1] = AXR;
+                                            Alpi[1] = AXi;
+                                            moder = 1;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        AXR = 0.8;
+                                        AXi = 0.0;
+                                        L = 1;
+                                        loopcnt = 1;
+                                        AlpR[1] = AXR;
+                                        Alpi[1] = AXi;
+                                        moder = 1;
+                                    }
+                                }
+
+                                //Console.WriteLine("BetR case 4");
+                                //Console.WriteLine(BetR[1] + " " + BetR[2] + " " + BetR[3] + " " + BetR[4]);
+                                //Console.WriteLine(AlpR[1] + " " + AlpR[2] + " " + AlpR[3] + " " + AlpR[4]);
+                            } // if Skip 
+                        }
+                        else if (!skip)  //moder == 3 &&
+                        {
+                            BetR[3] = BetR[4];
+                            Beti[3] = Beti[4];
+                            DMulRSub(ref AlpR, ref Alpi, BetR, Beti);
+                            AXR = AlpR[4];
+                            AXi = Alpi[4];
+                            moder = 4;
+                            //Console.WriteLine("BetR case 3");
+                            //Console.WriteLine(BetR[1] + " " + BetR[2] + " " + BetR[3] + " " + BetR[4]);
+                        }
+                    } // while 
+
+                } // if rootcnt<> nRoots
+
+            } // if nRoots > 0 
+
+        } // factor 
+
+        /* -----------------------------------------------------------------------------
+        *
+        *                           function quadratic
+        *
+        *  this function solves for the two roots of a quadratic equation.  there are
+        *    no restrictions on the coefficients, and imaginary results are passed
+        *    out as separate values.  the general form is y = ax2 + bx + c.
+        *
+        *  author        : david vallado           davallado@gmail.com    1 mar 2001
+        *
+        *  inputs          description                    range / units
+        *    a           - coefficient of x squared term
+        *    b           - coefficient of x term
+        *    c           - constant
+        *    opt         - option for output              I all roots including imaginary
+        *                                                 R only real roots
+        *                                                 U only unique real roots (no repeated)
+        *
+        *  outputs       :
+        *    r1r         - real portion of root 1
+        *    r1i         - imaginary portion of root 1
+        *    r2r         - real portion of root 2
+        *    r2i         - imaginary portion of root 2
+        *
+        *  locals        :
+        *    discrim     - discriminate b2 - 4ac
+        *
+        *  coupling      :
+        *    none.
+        *
+        *  references    :
+        *    vallado       2013, 1027
+        * ----------------------------------------------------------------------------*/
+
+        public void quadratic
+            (
+            double a, double b, double c, char opt,
+            out double r1r, out double r1i, out double r2r, out double r2i
+            )
+        {
+            const double small = 0.0000001;
+            double discrim;
+            // --------------------  implementation   ----------------------
+            r1r = 0.0;
+            r1i = 0.0;
+            r2r = 0.0;
+            r2i = 0.0;
+
+            discrim = b * b - 4.0 * a * c;
+
+            // ---------------------  real roots  --------------------------
+            if (Math.Abs(discrim) < small)
+            {
+                r1r = -b / (2.0 * a);
+                r2r = r1r;
+                if (opt == 'U')
+                    r2r = 99999.9;
+            }
+            else
+            {
+                if (Math.Abs(a) < small)
+                    r1r = -c / b;
+                else
+                {
+                    if (discrim > 0.0)
+                    {
+                        r1r = (-b + Math.Sqrt(discrim)) / (2.0 * a);
+                        r2r = (-b - Math.Sqrt(discrim)) / (2.0 * a);
+                    }
+                    else
+                    {
+                        // ------------------ complex roots --------------------
+                        if (opt == 'I')
+                        {
+                            r1r = -b / (2.0 * a);
+                            r2r = r1r;
+                            r1i = Math.Sqrt(-discrim) / (2.0 * a);
+                            r2i = -Math.Sqrt(-discrim) / (2.0 * a);
+                        }
+                        else
+                        {
+                            r1r = 99999.9;
+                            r2r = 99999.9;
+                        }
+                    }
+                }
+            }
+        }  // quadratic
 
 
         /* -----------------------------------------------------------------------------
         *
-        *                           function factorial
+        *                           function parabolicspl
         *
-        *  this function performs a factorial. note the use of double in the return as the 
-        *  numbers get huge quickly. this is good to about n = 170. 
+        *  this function performs parabolic splining of an 3 input data points. 
+        *  the points do not need to be equally spaced. 
         *
-        *  author        : david vallado                  719-573-2600   11 feb 2016
+        *  author        : david vallado           davallado@gmail.com     20 Oct 2021
         *
         *  revisions
-        *
-        *  inputs          description                    range / units
-        *    n           - order in
+        *                -
+        *  inputs          description                          range / units
+        *    p0,p1,p2    - function values used for splining
+        *    t0,t1,t2    - time values used for splining
         *
         *  outputs       :
-        *    factorial   - result
+        *    ap0..ap2    - splined polynomial coefficients.     ap2 * t1 * t1 + ap1 * t1 + ap0
         *
-        *  locals        :
-        *                -
+        *  locals        : none
         *
         *  coupling      :
         *    none
+        *
+        *  references    :
+        *    vallado       2013, 1034
         * --------------------------------------------------------------------------- */
 
-        public double factorial(int n)
+        public void parabolicspl
+            (
+            double p1, double p2, double p3, double t1, double t2, double t3,
+            out double ap0, out double ap1, out double ap2
+            )
         {
-            if (n == 0)
-                return 1.0;
-            if (n >= 1)
-                return n * factorial(n - 1);
-            else
-                return 0.0;
-        }  // factorial 
+            // be sure time is normalized for the first value
+            t3 = t3 - t1;
+            t2 = t2 - t1;
+            t1 = 0.0;
+
+            // parabolic coefficients
+            ap0 = p1;
+            ap1 = (-1.0 / t2 - 1.0 / t3) * p1 + (-t3 / (t2 * t2 - t2 * t3)) * p2 + (-t2 / (t3 * t3 - t2 * t3)) * p3;
+            ap2 = (-(t2 - t3) / (t2 * t3 * t3 - t2 * t2 * t3)) * p1 + (1.0 / (t2 * t2 - t2 * t3)) * p2 +
+                (t2 / (t2 * t3 * t3 - t2 * t2 * t3)) * p3;
+
+            //// check
+            //double ans1 = ap2 * t1 * t1 + ap1 * t1 + ap0;
+            //double ans2 = ap2 * t2 * t2 + ap1 * t2 + ap0;
+            //double ans3 = ap2 * t3 * t3 + ap1 * t3 + ap0;
+            //Console.WriteLine((ans1-p1).ToString() + " " + (ans2 - p2).ToString() + " "+ (ans3 - p3).ToString() );
+        }  // parabolicspl
+
 
 
         /* -----------------------------------------------------------------------------
@@ -1279,7 +2030,7 @@ namespace MathTimeMethods
         *  this function performs cubic splining of an input zero crossing
         *  function in order to find function values.
         *
-        *  author        : david vallado                  719-573-2600     7 aug 2005
+        *  author        : david vallado           davallado@gmail.com     7 aug 2005
         *
         *  revisions
         *                -
@@ -1321,10 +2072,7 @@ namespace MathTimeMethods
         *    out as separate values.  the general form is y = a3x3 + b2x2 + c1x + d0.  note
         *    that r1i will always be zero Math.Since there is always at least one real root.
         *
-        *  author        : david vallado                  719-573-2600    1 mar 2001
-        *
-        *  revisions
-        *    vallado     - convert to matlab              719-573-2600   18 dec 2002
+        *  author        : david vallado           davallado@gmail.com    1 mar 2001
         *
         *  inputs          description                    range / units
         *    a3          - coefficient of x cubed term
@@ -1456,9 +2204,7 @@ namespace MathTimeMethods
         *
         *  this function performs a cubic spline. four points are needed.
         *
-        *  author        : david vallado                  719-573-2600   1 dec  2005
-        *
-        *  revisions
+        *  author        : david vallado           davallado@gmail.com   1 dec  2005
         *
         *  inputs          description                    range / units
         *    valuein     - kp
@@ -1520,108 +2266,204 @@ namespace MathTimeMethods
             return (ac3 * Math.Pow(value, 3) + ac2 * value * value + ac1 * value + ac0);
         } // cubicinterp   
 
+        // ==============================================================================
+        //                                 Misc routines  
+        // ==============================================================================
 
-        /* -----------------------------------------------------------------------------
-        *
-        *                           function quadratic
-        *
-        *  this function solves for the two roots of a quadratic equation.  there are
-        *    no restrictions on the coefficients, and imaginary results are passed
-        *    out as separate values.  the general form is y = ax2 + bx + c.
-        *
-        *  author        : david vallado                  719-573-2600    1 mar 2001
-        *
-        *  revisions
-        *    vallado     - convert to matlab              719-573-2600    3 dec 2002
-        *
-        *  inputs          description                    range / units
-        *    a           - coefficient of x squared term
-        *    b           - coefficient of x term
-        *    c           - constant
-        *    opt         - option for output              I all roots including imaginary
-        *                                                 R only real roots
-        *                                                 U only unique real roots (no repeated)
-        *
-        *  outputs       :
-        *    r1r         - real portion of root 1
-        *    r1i         - imaginary portion of root 1
-        *    r2r         - real portion of root 2
-        *    r2i         - imaginary portion of root 2
-        *
-        *  locals        :
-        *    discrim     - discriminate b2 - 4ac
-        *
-        *  coupling      :
-        *    none.
-        *
-        *  references    :
-        *    vallado       2013, 1027
-        * ----------------------------------------------------------------------------*/
-
-        public void quadratic
+        // percentile function
+        // excelpercentile is a fraction from 0.0 to 1.0
+        // arrSize     - size of array. It could be 4 or 5, etc.
+        // some adjustments to be sure it works for variable sized arrays and fractional % values
+        // -----------------------------------------------------------------------------
+        public double Percentile
             (
-            double a, double b, double c, char opt,
-            out double r1r, out double r1i, out double r2r, out double r2i
+            double[] sequence, double excelPercentile, Int32 arrSize
             )
         {
-            const double small = 0.0000001;
-            double discrim;
-            // --------------------  implementation   ----------------------
-            r1r = 0.0;
-            r1i = 0.0;
-            r2r = 0.0;
-            r2i = 0.0;
-
-            discrim = b * b - 4.0 * a * c;
-
-            // ---------------------  real roots  --------------------------
-            if (Math.Abs(discrim) < small)
+            // limit the percentile to 2 decimal places
+            double[] b = new double[100];
+            // get just the valid members of the sequence
+            Array.Copy(sequence, 0, b, 0, arrSize);
+            Array.Sort(b, 0, arrSize);  // needs sort for fractional % calcs
+            if (arrSize > 0)
             {
-                r1r = -b / (2.0 * a);
-                r2r = r1r;
-                if (opt == 'U')
-                    r2r = 99999.9;
-            }
-            else
-            {
-                if (Math.Abs(a) < small)
-                    r1r = -c / b;
+                if (arrSize == 1)
+                    return b[0]; // b.minute();
                 else
                 {
-                    if (discrim > 0.0)
-                    {
-                        r1r = (-b + Math.Sqrt(discrim)) / (2.0 * a);
-                        r2r = (-b - Math.Sqrt(discrim)) / (2.0 * a);
-                    }
+                    int N = arrSize;  //  sequence.Length;
+                    double n = (N - 1) * excelPercentile + 1;
+                    if (n == N)
+                        return b[N];  // b.Max();
                     else
                     {
-                        // ------------------ complex roots --------------------
-                        if (opt == 'I')
-                        {
-                            r1r = -b / (2.0 * a);
-                            r2r = r1r;
-                            r1i = Math.Sqrt(-discrim) / (2.0 * a);
-                            r2i = -Math.Sqrt(-discrim) / (2.0 * a);
-                        }
-                        else
-                        {
-                            r1r = 99999.9;
-                            r2r = 99999.9;
-                        }
+                        int k = (int)n;
+                        double d = n - k;
+                        return b[k - 1] + d * (b[k] - b[k - 1]);
                     }
                 }
             }
-        }  // quadratic
+            else
+                return 0.0;
+        }  // percentile
 
 
 
-        // -----------------------------------------------------------------------------------------
-        //                                       time functions
-        // -----------------------------------------------------------------------------------------
+        /* -----------------------------------------------------------------------------
+        *
+        *                           function factorial
+        *
+        *  this function performs a factorial. note the use of double in the return as the 
+        *  numbers get huge quickly. this is good to about n = 170. 
+        *
+        *  author        : david vallado           davallado@gmail.com   11 feb 2016
+        *
+        *  revisions
+        *
+        *  inputs          description                    range / units
+        *    n           - order in
+        *
+        *  outputs       :
+        *    factorial   - result
+        *
+        *  locals        :
+        *                -
+        *
+        *  coupling      :
+        *    none
+        * --------------------------------------------------------------------------- */
+
+        public double factorial(int n)
+        {
+            if (n == 0)
+                return 1.0;
+            if (n >= 1)
+                return n * factorial(n - 1);
+            else
+                return 0.0;
+        }  // factorial 
+
+
+        /* -----------------------------------------------------------------------------
+        *
+        *                           function linearfit
+        *
+        *  this function fits a line to 2 input data points. 
+        *
+        *  author        : david vallado           davallado@gmail.com     21 Oct 2021
+        *
+        *  revisions
+        *                -
+        *  inputs          description                        range / units
+        *    p0,p1       - function values used for fit
+        *    t0,t1       - time values used for fit
+        *
+        *  outputs       :
+        *    al0, al1    - lienar coefficients.                 al0 + al1 * t
+        *
+        *  locals        : none
+        *
+        *  coupling      :
+        *    none
+        *
+        *  references    :
+        *    vallado       2013, 1034
+        * --------------------------------------------------------------------------- */
+
+        public void linearfit
+            (
+            double p1, double p2, double t1, double t2,
+            out double al0, out double al1
+            )
+        {
+            // linear coefficients
+            al1 = (p2 - p1) / (t2 - t1);
+            al0 = -al1 * t1 + p1;
+
+            //// check
+            //double ans1 = al1 * t1 + al0;
+            //double ans2 = al1 * t2 + al0;
+            //Console.WriteLine(al0 + " " + al1 + " " + (ans1 - p1).ToString() + " a " + (ans2 - p2).ToString() );
+        }  // linearfit
+
+        /*
+             // polynomial roots from numerical recipes in f and c 1986
+             public void laguer(double[] poly, int m, ref double[,] rootEst, int its)
+             {
+                 rootEst = new double[2, 2];
+                 int iter, j;
+                 double abx, abp, abm, err;
+                 double[,] dx = new double[2, 2];
+                 double[,] x1 = new double[2, 2];
+                 double[,] b = new double[2, 2];
+                 double[,] d = new double[2, 2];
+                 double[,] f = new double[2, 2];
+                 double[,] g = new double[2, 2];
+                 double[,] h = new double[2, 2];
+                 double[,] sq = new double[2, 2];
+                 double[,] gp = new double[2, 2];
+                 double[,] gm = new double[2, 2];
+                 double[,] g2 = new double[2,2];
+                 double[] frac = new double[] { 0.0, 0.5, 0.25, 0.75, 0.13, 0.38, 0.62, 0.88, 1.0 };
+                 int MAXIT = 80;
+                 int EPSS = 2;
+                 for (iter = 1; iter <= MAXIT; iter++)
+                 {
+                     its = iter;
+                     b[1,1] = poly[m];
+                     err = Math.Abs(b);
+                     //d = f = new Complex ( 0.0, 0.0);
+                     abx = Math.Abs(rootEst);
+                     for (j = m - 1; j >= 0; j--)
+                     {
+                         f = Complex.Add(Complex.Multiply(rootEst, f), d);
+                         d = Complex.Add(Complex.Multiply(rootEst, d), b);
+                         b = Complex.Add(Complex.Multiply(rootEst, b), poly[j]);
+                         err = Complex.Abs(b) + abx * err;
+                     }
+                     err = EPSS * err;
+                     if (Complex.Abs(b) <= err)
+                         return;
+                     g = Complex.Divide(d, b);
+                     g2 = Complex.Multiply(g, g);
+                     h = Complex.Subtract(g2, 2.0 * Complex.Divide(f, b));
+                     sq = Complex.Sqrt((m - 1) * Complex.Subtract(m * h, g2));
+                     gp = Complex.Add(g, sq);
+                     gm = Complex.Subtract(g, sq);
+                     abp = Complex.Abs(gp);
+                     abm = Complex.Abs(gm);
+                     if (abp < abm)
+                         gp = gm;
+                     if (Math.Max(abp, abm) > 0.0)
+                         dx = m / gp;
+                     else
+
+                         dx = Math.Exp((Math.Log(1.0 + abx), iter));
+                     x1 = Complex.Subtract(rootEst, dx);
+                     if (Math.Abs(rootEst - x1.Real) < 0.00001 && Math.Abs(x1.Imaginary) < 0.00001)
+                         return;
+                     if ((iter % 10) != 0)
+                         rootEst = x1.Real;
+                     else
+                     {
+                         Int32 indx = (Int32)(10.0 * Math.Floor(iter / 10.0));
+                         rootEst = Complex.Subtract(rootEst, Complex.Multiply(frac[indx], dx));
+                     }
+                 }
+                 Console.WriteLine("too many iterations in laguer");
+             }  // numerical recipes laguer
+             */
+
+
+        // ==============================================================================
+        //                                   time functions
+        // ==============================================================================
+
 
         // -----------------------------------------------------------------------------------------
         // convert a string month to integer
-        public int convertMonth
+
+        public int getIntMonth
             (
             string monthstr
             )
@@ -1637,8 +2479,137 @@ namespace MathTimeMethods
                     break;
             }
             return strNumber;
-        } // convertMonth
+        } // getIntMonth
 
+
+        /*------------------------------------------------------------------------------
+        *                                JD to STK time 
+        *
+        * converts a julian date into STK time string. use 2 factor julian date to 
+        * preserve milli-second accuracy. remove UTCG first if it's there
+        * 
+        *  author        : david vallado             davallado@gmail.com  10 oct 2019
+        *
+        *  inputs        description                                   range / units
+        *    JD          - julian date (integer part)                    24516800. days
+        *    JDF         - julian date (day fraction part)               0.37184856 days
+        *
+        *  outputs       :
+        *    epoch       - epoch time                                    14 Jul 2012 18:00:00.000 UTCG    
+        *    
+         ------------------------------------------------------------------------------ */
+        public void JD2STKtime
+         (
+            double JD,
+            double JDF,
+            out string epoch
+         )
+        {
+            string[] monstr = new string[13] { "", "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC" };
+
+            int year, mon, day, hr, minute;
+            double second;
+            invjday(JD, JDF, out year, out mon, out day, out hr, out minute, out second);
+            epoch = day.ToString("00") + " " + monstr[mon] + " " + year.ToString() + " " +
+                 hr.ToString("00") + ":" + minute.ToString("00") + ":" + second.ToString("00.000000000");
+        }  // JD2STKtime
+
+
+        /*------------------------------------------------------------------------------
+         *                                STK time to JD
+         *
+         * converts a STK string epoch time into a julian date. use 2 factor julian date to 
+         * preserve milli-second accuracy. remove UTCG first if it's there
+         * 
+         *  author        : david vallado             davallado@gmail.com  10 oct 2019
+         *
+         *  inputs        description                                   range / units
+         *    epoch       - epoch time                                    14 Jul 2012 18:00:00.000 UTCG    
+         *
+         *  outputs       :
+         *    JD          - julian date (integer part)                    24516800. days
+         *    JDF         - julian date (day fraction part)               0.37184856 days
+         *    
+          ------------------------------------------------------------------------------ */
+
+        public void STKtime2JD
+         (
+            string epoch,
+            out double JD,
+            out double JDF
+         )
+        {
+            int year, mon, day, hr, minute;
+            double second;
+
+            if (epoch.Contains("UTCG"))
+                epoch = epoch.Replace("UTCG", "");
+            epoch = epoch.Trim();
+            string[] hms = epoch.Split(':');
+            minute = Convert.ToInt16(hms.GetValue(1).ToString());
+            second = Convert.ToDouble(hms.GetValue(2).ToString());
+            string[] dmy = hms.GetValue(0).ToString().Split(' ');
+            year = Convert.ToInt16(dmy.GetValue(2).ToString());
+            string monthstr = dmy.GetValue(1).ToString();
+            mon = getIntMonth(monthstr);
+            day = Convert.ToInt16(dmy.GetValue(0).ToString());
+            hr = Convert.ToInt16(dmy.GetValue(3).ToString());
+
+            jday(year, mon, day, hr, minute, second, out JD, out JDF);
+            DateTime startday = new DateTime(year, getIntMonth(monthstr), day, hr, minute, Convert.ToInt16(second));
+        }  // STKtime2JD
+
+
+        // -----------------------------------------------------------------------------
+        // one approach using raw variables
+        public void getTimeFromGPS
+            (
+            Int32 weeknumber, Int32 gpstime, Int32 numrollover,
+            out Int32 year, out Int32 mon, out Int32 day, out Int32 hr, out Int32 minute, out double second
+            )
+        {
+            double jd80, jd80f, jd, jdf;
+            jday(1980, 1, 6, 0, 0, 0.0, out jd80, out jd80f);
+
+            jd = jd80 + weeknumber * 7 + 1024 * 7 * numrollover;
+            jdf = jd80f + gpstime / 86400.0;
+            invjday(jd, jdf, out year, out mon, out day, out hr, out minute, out second);
+        }
+
+
+        // -----------------------------------------------------------------------------
+        // another approach using datetime method
+        DateTime getTimeFromGPS1
+            (
+            Int32 weeknumber, Int32 gpstime, Int32 numrollover
+            )
+        {
+            //double jd80, jd80f, jd, jdf;
+            // gps epoch
+            DateTime datum = new DateTime(1980, 1, 6, 0, 0, 0);
+            DateTime week = datum.AddDays(Math.Floor(weeknumber / 10.0) * 7 + weeknumber - Math.Floor(weeknumber / 10.0) * 10.0);
+            DateTime time = week.AddSeconds(gpstime);
+            return time;
+        }
+
+        // -----------------------------------------------------------------------------
+        // get gps weeks from year month day
+        public void getGPSFromTime
+            (
+            Int32 year, Int32 month, Int32 day, out Int32 GPSWeek, out Int32 GPSWeekF
+            )
+        {
+            // int is the same as Int32
+            // gps epoch
+            DateTime datum = new DateTime(1980, 1, 6, 0, 0, 0);
+            DateTime datum1 = new DateTime(year, month, day, 0, 0, 0);
+            TimeSpan days = datum1.Subtract(datum);
+            double weeks = Math.Floor(days.Days / 7.0);
+
+            GPSWeek = Convert.ToInt32(weeks);
+            GPSWeekF = Convert.ToInt32(weeks) * 10 + Convert.ToInt32(days.Days % 7);
+        }
+                
 
         /* -----------------------------------------------------------------------------
         *
@@ -1650,15 +2621,15 @@ namespace MathTimeMethods
         *
         *  algorithm     : calculate the answer in one step for efficiency
         *
-        *  author        : david vallado                  719-573-2600    1 mar 2001
+        *  author        : david vallado           davallado@gmail.com    1 mar 2001
         *
         *  inputs          description                    range / units
         *    year        - year                           1900 .. 2100
         *    mon         - month                          1 .. 12
         *    day         - day                            1 .. 28,29,30,31
         *    hr          - universal time hour            0 .. 23
-        *    min         - universal time min             0 .. 59
-        *    sec         - universal time sec             0.0 .. 59.999
+        *    minute         - universal time minute             0 .. 59
+        *    second        - universal time second            0.0 .. 59.999
         *
         *  outputs       :
         *    jd          - julian date (days only)           days from 4713 bc
@@ -1676,7 +2647,7 @@ namespace MathTimeMethods
 
         public void jday
             (
-            int year, int mon, int day, int hr, int minute, double sec,
+            int year, int mon, int day, int hr, int minute, double second,
             out double jd, out double jdFrac
             )
         {
@@ -1684,7 +2655,7 @@ namespace MathTimeMethods
                  Math.Floor((7 * (year + Math.Floor((mon + 9) / 12.0))) * 0.25) +
                  Math.Floor(275 * mon / 9.0) +
                  day + 1721013.5;  // use - 678987.0 to go to mjd directly
-            jdFrac = (sec + minute * 60.0 + hr * 3600.0) / 86400.0;
+            jdFrac = (second+ minute * 60.0 + hr * 3600.0) / 86400.0;
 
             // check that the day and fractional day are correct
             if (Math.Abs(jdFrac) >= 1.0)
@@ -1711,7 +2682,7 @@ namespace MathTimeMethods
         *                  perform int conversions to the correct day and month
         *                  convert remainder into h m s using type conversions
         *
-        *  author        : david vallado                  719-573-2600    1 mar 2001
+        *  author        : david vallado           davallado@gmail.com    1 mar 2001
         *
         *  inputs          description                    range / units
         *    year        - year                           1900 .. 2100
@@ -1721,8 +2692,8 @@ namespace MathTimeMethods
         *    mon         - month                          1 .. 12
         *    day         - day                            1 .. 28,29,30,31
         *    hr          - hour                           0 .. 23
-        *    min         - minute                         0 .. 59
-        *    sec         - second                         0.0 .. 59.999
+        *    minute         - minute                         0 .. 59
+        *    second      - second                         0.0 .. 59.999
         *
         *  locals        :
         *    dayofyr     - day of year
@@ -1738,7 +2709,7 @@ namespace MathTimeMethods
         public void days2mdhms
             (
             int year, double days,
-            out int mon, out int day, out int hr, out int minute, out double sec
+            out int mon, out int day, out int hr, out int minute, out double second
             )
         {
             int i, inttemp, dayofyr;
@@ -1765,8 +2736,76 @@ namespace MathTimeMethods
             hr = Convert.ToInt16(Math.Floor(temp));
             temp = (temp - hr) * 60.0;
             minute = Convert.ToInt16(Math.Floor(temp));
-            sec = (temp - minute) * 60.0;
+            second= (temp - minute) * 60.0;
         }  //  days2mdhms
+
+
+        /* ------------------------------------------------------------------------------
+        *
+        *                           function finddays
+        *
+        *  this function finds the fractional days through a year given the year,
+        *    month, day, hour, minute and second.
+        *
+        *  author        : david vallado                  719-573-2600   22 jun 2002
+        *
+        *  inputs description                                        range / units
+        *    year        - year                                     1900 .. 2100
+        *    month       - month                                    1 .. 12
+        *    day         - day                                      1 .. 28,29,30,31
+        *    hr          - hour                                     0 .. 23
+        *    min         - minute                                   0 .. 59
+        *    second      - second                                   0.0 .. 59.999
+        *
+        *  outputs       :
+        *    days        - day of year plus fraction of a
+        *                    day days
+        *
+        *  locals        :
+        *    lmonth      - length of months of year
+        *
+        *  references    :
+        *    vallado       2007, 207, ex 3-12
+        *
+        * ----------------------------------------------------------------------------- */
+
+        public void findDays(
+        int year, int month, int day, int hr, int min, double second,
+        out int dayofyr
+        )
+        {
+            int i;
+            // shift index values to be 1-12
+            int[] lmonth = new int[13] {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+
+            for (i = 1; i <= 12; i++)
+            {
+                lmonth[i] = 31;
+                if (i == 2)
+                    lmonth[i] = 28;
+                if (i == 4 || i == 6 || i == 9 || i == 11)
+                    lmonth[i] = 30;
+            }
+
+            if ((year - 1900) % 4 == 0)
+            {
+                lmonth[2] = 29;
+                if (year % 100 == 0 && !(year % 400 == 0))
+                    lmonth[2] = 28;
+            }
+
+            i = 1;
+            dayofyr = 0;
+            while (i < month && i < 12)
+                    {
+                dayofyr = dayofyr + lmonth[i];
+                i = i + 1;
+            }
+
+            dayofyr = dayofyr + day;  // + hr / 24.0 + min / 1440.0 + second / 86400.0;
+        }
+
+
 
         /* -----------------------------------------------------------------------------
         *
@@ -1781,7 +2820,7 @@ namespace MathTimeMethods
         *                  find the elapsed days through the year in a loop
         *                  call routine to find each individual value
         *
-        *  author        : david vallado                  719-573-2600    1 mar 2001
+        *  author        : david vallado           davallado@gmail.com    1 mar 2001
         *
         *  inputs          description                    range / units
         *    jd          - julian date (days only)           days from 4713 bc
@@ -1792,8 +2831,8 @@ namespace MathTimeMethods
         *    mon         - month                          1 .. 12
         *    day         - day                            1 .. 28,29,30,31
         *    hr          - hour                           0 .. 23
-        *    min         - minute                         0 .. 59
-        *    sec         - second                         0.0 .. 59.999
+        *    minute         - minute                         0 .. 59
+        *    second        - second                         0.0 .. 59.999
         *
         *  locals        :
         *    days        - day of year plus fractional
@@ -1865,18 +2904,18 @@ namespace MathTimeMethods
          *  this procedure converts hours, minutes and seconds to seconds from the
          *  beginning of the day.
          *
-         *  author        : david vallado                  719-573-2600   25 jun 2002
+         *  author        : david vallado           davallado@gmail.com   25 jun 2002
          *
          *  revisions
          *                -
          *
          *  inputs          description                    range / units
-         *    utsec       - seconds                        0.0 .. 86400.0
+         *    utsecond    - seconds                        0.0 .. 86400.0
          *
          *  outputs       :
          *    hr          - hours                          0 .. 24
-         *    min         - minutes                        0 .. 59
-         *    sec         - seconds                        0.0 .. 59.99
+         *    minute      - minutes                        0 .. 59
+         *    second      - seconds                        0.0 .. 59.99
          *
          *  locals        :
          *    temp        - temporary variable
@@ -1887,20 +2926,20 @@ namespace MathTimeMethods
 
         public void hms_sec
             (
-            ref int hr, ref int min, ref double sec, Enum direct, ref double utsec
+            ref int hr, ref int minute, ref double second, Enum direct, ref double utsec
             )
         {
             double temp;
 
             // ------------------------  implementation   ------------------
             if (direct.Equals(Edirection.eto))
-                utsec = hr * 3600.0 + min * 60.0 + sec;
+                utsec= hr * 3600.0 + minute * 60.0 + second;
             else
             {
-                temp = utsec / 3600.0;
-                hr = (int)Math.Floor(temp);
-                min = (int)Math.Floor((temp - hr) * 60.0);
-                sec = (temp - hr - min / 60.0) * 3600.0;
+                temp = utsec/ 3600.0;
+                hr = (int)Math.Truncate(temp);
+                minute = (int)Math.Truncate((temp - hr) * 60.0);
+                second= (temp - hr - minute / 60.0) * 3600.0;
             }
         }  // hms_sec
 
@@ -1911,12 +2950,12 @@ namespace MathTimeMethods
         *
         *  this procedure converts hours, minutes and seconds into universal time.
         *
-        *  author        : david vallado                  719-573-2600    1 mar 2001
+        *  author        : david vallado           davallado@gmail.com    1 mar 2001
         *
         *  inputs          description                    range / units
         *    hr          - hours                          0 .. 24
-        *    min         - minutes                        0 .. 59
-        *    sec         - seconds                        0.0 .. 59.99
+        *    minute      - minutes                        0 .. 59
+        *    second      - seconds                        0.0 .. 59.99
         *    direction   - which set of vars to output    from  too
         *
         *  outputs       :
@@ -1934,17 +2973,17 @@ namespace MathTimeMethods
 
         public void hms_ut
             (
-            ref int hr, ref int min, ref double sec, Enum direct, ref double ut
+            ref int hr, ref int minute, ref double second, Enum direct, ref double ut
             )
         {
             // ------------------------  implementation   ------------------
             if (direct.Equals(Edirection.eto))
-                ut = hr * 100.0 + min + sec * 0.01;
+                ut = hr * 100.0 + minute + second* 0.01;
             else
             {
-                hr = (int)Math.Floor(ut * 0.01);
-                min = (int)Math.Floor(ut - hr * 100.0);
-                sec = (ut - hr * 100.0 - min) * 100.0;
+                hr = (int)Math.Truncate(ut * 0.01);
+                minute = (int)Math.Truncate(ut - hr * 100.0);
+                second= (ut - hr * 100.0 - minute) * 100.0;
             }
         }  // hms_ut
 
@@ -1955,12 +2994,12 @@ namespace MathTimeMethods
         *
         *  this procedure converts hours, minutes and seconds into radians.
         *
-        *  author        : david vallado                  719-573-2600    1 mar 2001
+        *  author        : david vallado           davallado@gmail.com    1 mar 2001
         *
         *  inputs          description                    range / units
         *    hr          - hours                          0 .. 24
-        *    min         - minutes                        0 .. 59
-        *    sec         - seconds                        0.0 .. 59.99
+        *    minute      - minutes                        0 .. 59
+        *    second      - seconds                        0.0 .. 59.99
         *    direction   - which set of vars to output    from  too
         *
         *  outputs       :
@@ -1978,7 +3017,7 @@ namespace MathTimeMethods
 
         public void hms_rad
             (
-            ref int hr, ref int min, ref double sec, Enum direct, ref double hms
+            ref int hr, ref int minute, ref double second, Enum direct, ref double hms
             )
         {
             const double rad2deg = 57.29577951308230;
@@ -1987,13 +3026,13 @@ namespace MathTimeMethods
             // ------------------------  implementation   ------------------
             temp = 15.0 / rad2deg;
             if (direct.Equals(Edirection.eto))
-                hms = hr + min / 60.0 + sec / 3600.0;
+                hms = hr + minute / 60.0 + second/ 3600.0;
             else
             {
                 temp = hms / temp;
-                hr = Convert.ToInt32(temp);
-                min = Convert.ToInt32((temp - hr) * 60.0);
-                sec = (temp - hr - min / 60.0) * 3600.0;
+                hr = Convert.ToInt32(Math.Truncate(temp));
+                minute = Convert.ToInt32(Math.Truncate((temp - hr) * 60.0));
+                second= (temp - hr - minute / 60.0) * 3600.0;
             }
         }  // hms_rad
 
@@ -2004,12 +3043,12 @@ namespace MathTimeMethods
         *
         *  this procedure converts degrees, minutes and seconds into radians.
         *
-        *  author        : david vallado                  719-573-2600    1 mar 2001
+        *  author        : david vallado           davallado@gmail.com    1 mar 2001
         *
         *  inputs          description                    range / units
         *    deg         - degrees                        0 .. 360
-        *    min         - minutes                        0 .. 59
-        *    sec         - seconds                        0.0 .. 59.99
+        *    minute      - minutes                        0 .. 59
+        *    second      - seconds                        0.0 .. 59.99
         *    direction   - which set of vars to output    from  too
         *
         *  outputs       :
@@ -2027,7 +3066,7 @@ namespace MathTimeMethods
 
         public void dms_rad
             (
-            ref int deg, ref int min, ref double sec, Enum direct, ref double dms
+            ref int deg, ref int minute, ref double second, Enum direct, ref double dms
             )
         {
             const double rad2deg = 57.29577951308230;
@@ -2035,105 +3074,104 @@ namespace MathTimeMethods
 
             // ------------------------  implementation   ------------------
             if (direct.Equals(Edirection.eto))
-                dms = (deg + min / 60.0 + sec / 3600.0) / rad2deg;
+                dms = (deg + minute / 60.0 + second/ 3600.0) / rad2deg;
             else
             {
                 temp = dms * rad2deg;
-                deg = (int)Math.Floor(temp);
-                min = (int)Math.Floor((temp - deg) * 60.0);
-                sec = (temp - deg - min / 60.0) * 3600.0;
+                deg = (int)Math.Truncate(temp);
+                minute = (int)Math.Truncate((temp - deg) * 60.0);
+                second= (temp - deg - minute / 60.0) * 3600.0;
             }
         }  // dms_rad
 
 
         /* ------------------------------------------------------------------------------
-*
-*                           function convtime
-*
-*  this function finds the time parameters and julian century values for inputs
-*    of utc or ut1.numerous outputs are found as shown in the local variables.
-*    because calucations are in utc, you must include timezone if (you enter a
-*    local time, otherwise it should be zero.
-*
-*  author        : david vallado                  719-573-2600    4 jun 2002
-*
-*  revisions
-*    vallado     - add tcg, tcb, etc                              6 oct 2005
-*    vallado     - fix documentation for dut1                     8 oct 2002
-*
-*  inputs description                                          range / units
-*    year        - year                                         1900 .. 2100
-*    mon         - month                                        1 .. 12
-*    day         - day                                          1 .. 28,29,30,31
-*    hr          - universal time hour                          0 .. 23
-*    min         - universal time min                           0 .. 59
-*    sec         - universal time sec (utc)                     0.0  .. 59.999
-*    timezone    - offset to utc from local site                0 .. 23 hr
-*    dut1        - delta of ut1 - utc sec
-*    dat         - delta of tai - utc sec
-*
-*  outputs       :
-*    ut1         - universal time                               sec
-*    tut1        - julian centuries of ut1
-*    jdut1       - julian date (days only) days from 4713 bc
-*    jdut1Frac   - julian date (fraction of a day)              days from 0 hr of the day
-*    utc         - coordinated universal time                   sec
-*    tai         - atomic time                                  sec
-*    tdt         - terrestrial dynamical time                   sec
-*    ttdt        - julian centuries of tdt
-*    jdtt        - julian date(days only)                       days from 4713 bc
-*    jdttFrac    - julian date(fraction of a day)               days from 0 hr of the day
-*    tdb         - terrestrial barycentric time                 sec
-*    ttdb        - julian centuries of tdb
-*    jdtdb       - julian date of tdb                           days from 4713 bc
-*    tcb         - celestial barycentric time                   sec
-*    tcg         - celestial geocentric time                    sec
-*    jdtdb       - julian date(days only)                       days from 4713 bc
-*    jdtdbFrac   - julian date(fraction of a day)               days from 0 hr of the day
-*
-*  locals        :
-*    hrtemp      - temporary hours                              hr
-*    mintemp     - temporary minutes                            min
-*    sectemp     - temporary seconds                            sec
-*    localhr     - difference to local time                     hr
-*    jd          - julian date of request                       days from 4713 bc
-*    me          - mean anomaly of the earth                    rad
-*
-*  coupling      :
-*    hms_2_sec   - conversion between hr-min-sec.and.seconds
-*    jday        - find the julian date
-*
-*  references    :
-*    vallado       2013, 201, alg 16, ex 3-7
-* ------------------------------------------------------------------------------*/
+        *
+        *                           function convtime
+        *
+        *  this function finds the time parameters and julian century values for inputs
+        *    of utc or ut1.numerous outputs are found as shown in the local variables.
+        *    because calucations are in utc, you must include timezone if (you enter a
+        *    local time, otherwise it should be zero.
+        *
+        *  author        : david vallado           davallado@gmail.com    4 jun 2002
+        *
+        *  revisions
+        *    vallado     - add tcg, tcb, etc                              6 oct 2005
+        *    vallado     - fix documentation for dut1                     8 oct 2002
+        *
+        *  inputs description                                          range / units
+        *    year        - year                                         1900 .. 2100
+        *    mon         - month                                        1 .. 12
+        *    day         - day                                          1 .. 28,29,30,31
+        *    hr          - universal time hour                          0 .. 23
+        *    minute      - universal time minute                           0 .. 59
+        *    second      - universal time second(utc)                     0.0  .. 59.999
+        *    timezone    - offset to utc from local site                0 .. 23 hr
+        *    dut1        - delta of ut1 - utc sec
+        *    dat         - delta of tai - utc sec
+        *
+        *  outputs       :
+        *    ut1         - universal time                               sec
+        *    tut1        - julian centuries of ut1
+        *    jdut1       - julian date (days only) days from 4713 bc
+        *    jdut1Frac   - julian date (fraction of a day)              days from 0 hr of the day
+        *    utc         - coordinated universal time                   sec
+        *    tai         - atomic time                                  sec
+        *    tdt         - terrestrial dynamical time                   sec
+        *    ttdt        - julian centuries of tdt
+        *    jdtt        - julian date(days only)                       days from 4713 bc
+        *    jdttFrac    - julian date(fraction of a day)               days from 0 hr of the day
+        *    tdb         - terrestrial barycentric time                 sec
+        *    ttdb        - julian centuries of tdb
+        *    jdtdb       - julian date of tdb                           days from 4713 bc
+        *    tcb         - celestial barycentric time                   sec
+        *    tcg         - celestial geocentric time                    sec
+        *    jdtdb       - julian date(days only)                       days from 4713 bc
+        *    jdtdbFrac   - julian date(fraction of a day)               days from 0 hr of the day
+        *
+        *  locals        :
+        *    hrtemp      - temporary hours                              hr
+        *    mintemp     - temporary minutes                            minute
+        *    sectemp     - temporary seconds                            sec
+        *    localhr     - difference to local time                     hr
+        *    jd          - julian date of request                       days from 4713 bc
+        *    me          - mean anomaly of the earth                    rad
+        *
+        *  coupling      :
+        *    hms_2_second  - conversion between hr-minute-sec.and.seconds
+        *    jday        - find the julian date
+        *
+        *  references    :
+        *    vallado       2013, 201, alg 16, ex 3-7
+        * ------------------------------------------------------------------------------*/
 
         public void convtime
            (
-            int year, int mon, int day, int hr, int minute, double sec, int timezone, double dut1, int dat,
+            int year, int mon, int day, int hr, int minute, double second, int timezone, double dut1, int dat,
             out double ut1, out double tut1, out double jdut1, out double jdut1frac, out double utc, out double tai,
             out double tt, out double ttt, out double jdtt, out double jdttfrac,
             out double tdb, out double ttdb, out double jdtdb, out double jdtdbfrac
             )
         {
             const double rad2deg = 57.29577951308230;
-            double mjd, mfme, jd, jdfrac, jdtai, jdtaifrac, sectemp, me, tt2, tdb2, ttdb2, jdtdb2, jdtdb2frac, dlje;
+            double mjd, mfme, jd, jdfrac, jdtai, jdtaifrac, sectemp, me, tdb2, ttdb2, jdtdb2, jdtdb2frac, dlje;
                        //tcbmtdb, tcb, ttcb, jdtcb, jdtcbfrac;
-            int localhr, hrtemp, mintemp;
+            int localhr, mintemp;
 
             // initialize
             utc = 0.0;
-            hrtemp = 0;
             mintemp = 0;
             sectemp = 0.0;
 
             // ------------------------  implementation   ------------------
-            jday(year, mon, day, hr + timezone, minute, sec, out jd, out jdfrac);
+            jday(year, mon, day, hr + timezone, minute, second, out jd, out jdfrac);
             mjd = jd + jdfrac - 2400000.5;
-            mfme = hr * 60.0 + minute + sec / 60.0;
+            mfme = hr * 60.0 + minute + second/ 60.0;
 
             // ------------------ start if (ut1 is known ------------------
             localhr = timezone + hr;
-            hms_sec(ref localhr, ref minute, ref sec, Edirection.eto, ref utc);
+            hms_sec(ref localhr, ref minute, ref second, Edirection.eto, ref utc);
 
             ut1 = utc + dut1;
             hms_sec(ref localhr, ref mintemp, ref sectemp, Edirection.efrom, ref ut1);
@@ -2182,19 +3220,19 @@ namespace MathTimeMethods
             ttdb = (jdtdb + jdtdbfrac - 2451545.0) / 36525.0;
 
             //fprintf(1,'usno tdb %8.6f ttdb  %16.12f jdtdb  %18.11f %18.11f \n', tdb, ttdb, jdtdb, jdtdbfrac );
-            //hms_sec(ref localhr, ref minute, ref sec, Edirection.efrom, ref tdb);
+            //hms_sec(ref localhr, ref minute, ref second, Edirection.efrom, ref tdb);
             //        fprintf(1,'hms %3i %3i %8.6f \n', h, m, s);
 
 
             // tcg
             // approx with tai
             //tcg = tt + 6.969290134e-10 * (jdtai - 2443144.5003725) * 86400.0;  // AAS 05-352 (10) and IERS TN(104)
-            //hms_sec(ref localhr, ref minute, ref sec, Edirection.efrom, ref tcg);
+            //hms_sec(ref localhr, ref minute, ref second, Edirection.efrom, ref tcg);
             //jday(year, mon, day, hrtemp, mintemp, sectemp, out jdtcg, out jdtcgfrac);
             //tt2 = tcg - 6.969290134e-10 * (jdtcg + jdtcgfrac - 2443144.5003725) * 86400.0;
 
             //fprintf(1,'tcg %8.6f jdtcg  %18.11f ', tcg, jdtcg );
-            //hms_sec(ref localhr, ref minute, ref sec, Edirection.efrom, ref tcg);
+            //hms_sec(ref localhr, ref minute, ref second, Edirection.efrom, ref tcg);
             //        fprintf(1,'hms %3i %3i %8.6f \n', h, m, s);        
 
             // binomial approach with days
@@ -2205,7 +3243,7 @@ namespace MathTimeMethods
             //        ttx = tt/86400.0 + jdttx-2443144.5003725  % days from the 1977 epoch
             //        tcg2 = (jdttx - 6.969290134e-10*2443144.5003725) / (1.0 - 6.969290134e-10) % days
             //        tcg2 = (tcg2 - jdttx)*86400*86400;
-            // sec from 77
+            // secondfrom 77
             //        ttx = tt + (jdttx-2443144.5003725)*86400.0;  % s from the 1977 epoch
             //        tcg3 = ttx / (1.0 - 6.969290134e-10); % s
             //        tcg3 = tcg3 -(jdttx-2443144.5003725)*86400.0;
@@ -2217,16 +3255,13 @@ namespace MathTimeMethods
             //        difchk = tt2-tt
 
 
-            //tcbmtdb = -1.55051976772e-8 * (jdtai + jdtaifrac - 2443144.5003725) * 86400.0 - 6.55e-5;  // sec, value for de405 AAS 05-352 (10) and IERS TN(104)?
+            //tcbmtdb = -1.55051976772e-8 * (jdtai + jdtaifrac - 2443144.5003725) * 86400.0 - 6.55e-5;  // second, value for de405 AAS 05-352 (10) and IERS TN(104)?
             //tcb = tdb + tcbmtdb;
-            //hms_sec(ref localhr, ref minute, ref sec, Edirection.efrom, ref tcb);
+            //hms_sec(ref localhr, ref minute, ref second, Edirection.efrom, ref tcb);
             //jday(year, mon, day, hrtemp, mintemp, sectemp, out jdtcb, out jdtcbfrac);
             //ttcb = (jdtcb + jdtcbfrac - 2451545.0) / 36525.0;
             //fprintf(1,'     tcb %8.6f ttcb  %16.12f jdtcb  %18.11f %18.11f \n', tcb, ttcb, jdtcb, jdtcbfrac );
         }  // convtime
-
-
-
 
     }  //  class MathTimeLib
 

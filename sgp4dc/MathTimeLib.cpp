@@ -41,22 +41,6 @@
 namespace MathTimeLib
 {
 
-	// -----------------------------------------------------------------------------
-	double sgn
-	(
-		double x
-	)
-	{
-		if (x < 0.0)
-		{
-			return -1.0;
-		}
-		else
-		{
-			return 1.0;
-		}
-	} // sgn
-
 
 	// -----------------------------------------------------------------------------
 	// round a number to the nearest integer
@@ -69,6 +53,39 @@ namespace MathTimeLib
 		temp = floor(x + 0.5);
 		return int(temp);
 	}  // round
+
+/* ------------------------------------------------------------------------------
+*
+*                           function cot
+*
+*  this function finds the cotangent of an input in radians.
+*
+*  author        : david vallado                  719-573-2600    1 Mar 2001
+*
+*  inputs          description                    range / units
+*    xval        - input to take cotangent of        rad
+*
+*  outputs       :
+*    cot         - result
+*
+*  locals        :
+*    temp        - temporary real variable
+ ---------------------------------------------------------------------------- */
+
+	double cot
+	(
+		double xval
+	)
+	{
+		double temp;
+
+		temp = tan(xval);
+		if (fabs(temp) < 0.00000001)
+			return infinite;
+		else
+			return 1.0 / temp;
+	}  // cot
+
 
 /* -----------------------------------------------------------------------------
 *
@@ -137,39 +154,6 @@ namespace MathTimeLib
 	{
 		return log(xval + sqrt(xval*xval + 1.0));
 	}  // asinh
-
-
-/* ------------------------------------------------------------------------------
-*
-*                           function cot
-*
-*  this function finds the cotangent of an input in radians.
-*
-*  author        : david vallado                  719-573-2600    1 Mar 2001
-*
-*  inputs          description                    range / units
-*    xval        - input to take cotangent of        rad
-*
-*  outputs       :
-*    cot         - result
-*
-*  locals        :
-*    temp        - temporary real variable
- ---------------------------------------------------------------------------- */
-
-	double cot
-	(
-		double xval
-	)
-	{
-		double temp;
-
-		temp = tan(xval);
-		if (fabs(temp) < 0.00000001)
-			return infinite;
-		else
-			return 1.0 / temp;
-	}  // cot
 
 
 	   /* -----------------------------------------------------------------------------
@@ -706,6 +690,53 @@ namespace MathTimeLib
 			}
 		}
 	} // vecouter  
+
+
+	   // -----------------------------------------------------------------------------
+		// form a copy of a square matrix
+	void matequal
+	(
+		std::vector< std::vector<double> > mat1, int matr,
+		std::vector< std::vector<double> >& mat2
+	)
+	{
+		int row, col;
+		mat2.resize(matr);  // rows
+		for (std::vector< std::vector<double> >::iterator it = mat2.begin(); it != mat2.end(); ++it)
+			it->resize(matr);
+
+		for (row = 0; row < matr; row++)
+		{
+			for (col = 0; col < matr; col++)
+			{
+				mat2[row][col] = mat1[row][col];
+			}
+		}
+	}  // mattrans 
+
+
+	// -----------------------------------------------------------------------------
+	// multiply a matrix * a scalar
+	void matscale
+	(
+		std::vector< std::vector<double> > mat1, int matr, int matc, double scale,
+		std::vector< std::vector<double> >& mat2
+	)
+	{
+		int row, col;
+		mat2.resize(matr);  // rows
+		for (std::vector< std::vector<double> >::iterator it = mat2.begin(); it != mat2.end(); ++it)
+			it->resize(matc);
+
+		for (row = 0; row < matr; row++)
+		{
+			for (col = 0; col < matc; col++)
+			{
+				mat2[row][col] = mat1[row][col] * scale;
+			}
+		}
+	}  // matscale 
+
 
 
 			// -----------------------------------------------------------------------------
@@ -1246,7 +1277,7 @@ namespace MathTimeLib
 
 	}   // cholesky
 
-
+	
 	void writemat
 	(
 		char matname[30],
@@ -1285,44 +1316,6 @@ namespace MathTimeLib
 		}
 	}  // writeexpmat
 
-/* -----------------------------------------------------------------------------
-*
-*                           function cubicspl
-*
-*  this function performs cubic splining of an input zero crossing
-*  function in order to find function values.
-*
-*  author        : david vallado                  719-573-2600     7 aug 2005
-*
-*  revisions
-*                -
-*  inputs          description                    range / units
-*    p0,p1,p2,p3 - function values used for splining
-*    t0,t1,t2,t3 - time values used for splining
-*
-*  outputs       :
-*    acu0..acu3  - splined polynomial coefficients. acu3 t^3, etc
-*
-*  locals        : none
-*
-*  coupling      :
-*    none
-*
-*  references    :
-*    vallado       2013, 1034
-* --------------------------------------------------------------------------- */
-
-	void cubicspl
-	(
-		double p1, double p2, double p3, double p4,
-		double& acu0, double& acu1, double& acu2, double& acu3
-	)
-	{
-		acu0 = p2;
-		acu1 = -p1 / 3.0 - 0.5 * p2 + p3 - p4 / 6.0;
-		acu2 = 0.5 * p1 - p2 + 0.5 * p3;
-		acu3 = -p1 / 6.0 + 0.5 * p2 - 0.5 * p3 + p4 / 6.0;
-	}  // cubicspl
 
 /* -----------------------------------------------------------------------------
 *
@@ -1375,12 +1368,12 @@ namespace MathTimeLib
 		r2r = 0.0;
 		r2i = 0.0;
 
-		discrim = b * b - 4.0 *a*c;
+		discrim = b * b - 4.0 * a * c;
 
 		// ---------------------  real roots  --------------------------
 		if (fabs(discrim) < small)
 		{
-			r1r = -b / (2.0 *a);
+			r1r = -b / (2.0 * a);
 			r2r = r1r;
 			if (opt == 'U')
 				r2r = 99999.9;
@@ -1393,18 +1386,18 @@ namespace MathTimeLib
 			{
 				if (discrim > 0.0)
 				{
-					r1r = (-b + sqrt(discrim)) / (2.0 *a);
-					r2r = (-b - sqrt(discrim)) / (2.0 *a);
+					r1r = (-b + sqrt(discrim)) / (2.0 * a);
+					r2r = (-b - sqrt(discrim)) / (2.0 * a);
 				}
 				else
 				{
 					// ------------------ complex roots --------------------
 					if (opt == 'I')
 					{
-						r1r = -b / (2.0 *a);
+						r1r = -b / (2.0 * a);
 						r2r = r1r;
-						r1i = sqrt(-discrim) / (2.0 *a);
-						r2i = -sqrt(-discrim) / (2.0 *a);
+						r1i = sqrt(-discrim) / (2.0 * a);
+						r2i = -sqrt(-discrim) / (2.0 * a);
 					}
 					else
 					{
@@ -1415,6 +1408,47 @@ namespace MathTimeLib
 			}
 		}
 	}  // quadratic
+
+
+/* -----------------------------------------------------------------------------
+*
+*                           function cubicspl
+*
+*  this function performs cubic splining of an input zero crossing
+*  function in order to find function values.
+*
+*  author        : david vallado                  719-573-2600     7 aug 2005
+*
+*  revisions
+*                -
+*  inputs          description                    range / units
+*    p0,p1,p2,p3 - function values used for splining
+*    t0,t1,t2,t3 - time values used for splining
+*
+*  outputs       :
+*    acu0..acu3  - splined polynomial coefficients. acu3 t^3, etc
+*
+*  locals        : none
+*
+*  coupling      :
+*    none
+*
+*  references    :
+*    vallado       2013, 1034
+* --------------------------------------------------------------------------- */
+
+	void cubicspl
+	(
+		double p1, double p2, double p3, double p4,
+		double& acu0, double& acu1, double& acu2, double& acu3
+	)
+	{
+		acu0 = p2;
+		acu1 = -p1 / 3.0 - 0.5 * p2 + p3 - p4 / 6.0;
+		acu2 = 0.5 * p1 - p2 + 0.5 * p3;
+		acu3 = -p1 / 6.0 + 0.5 * p2 - 0.5 * p3 + p4 / 6.0;
+	}  // cubicspl
+
 
 
 /* -----------------------------------------------------------------------------
@@ -1602,22 +1636,19 @@ namespace MathTimeLib
 		// use the normalized time first, but at an arbitrary interval
 		cubic(kc3, kc2, kc1, kc0 - valuein, 'R', r1r, r1i, r2r, r2i, r3r, r3i);
 
-		//if ((r1r >= -0.000001) &&(r1r <= 1.001))
-		if (fabs(r1i) < 0.000001)
+		if ((r1r >= -0.000001) &&(r1r <= 1.001))
 		{
 			value = r1r;
 		}
 		else
 		{
-			//if ((r2r >= -0.000001) && (r2r <= 1.001))
-			if (fabs(r2i) < 0.000001)
+			if ((r2r >= -0.000001) && (r2r <= 1.001))
 			{
 				value = r2r;
 			}
 			else
 			{
-				//if ((r3r >= -0.000001) && (r3r <= 1.001))
-				if (fabs(r3i) <= 0.000001)
+				if ((r3r >= -0.000001) && (r3r <= 1.001))
 				{
 					value = r3r;
 				}
@@ -1637,6 +1668,48 @@ namespace MathTimeLib
 		//printf("cubic %lf  %lf  %lf  %lf cubspl  %lf %lf r2 %lf  %lf r3 %lf  %lf \n", kc3, kc2, kc1, kc0 - valuein, r1r, r1i, r2r, r2i, r3r, r3i);
 		return (ac3 * pow(value, 3) + ac2 * value * value + ac1 * value + ac0);
 	} // cubicinterp
+
+
+
+
+
+			// percentile function
+		// excelpercentile is a fraction from 0.0 to 1.0
+		// arrSize     - size of array. It could be 4 or 5, etc.
+		// some adjustments to be sure it works for variable sized arrays and fractional % values
+		// -----------------------------------------------------------------------------
+	double Percentile
+	(
+		double sequence[15], double excelPercentile, int arrSize
+	)
+	{
+		// limit the percentile to 2 decimal places
+		double b[100];
+		// get just the valid members of the sequence
+		//Array.Copy(sequence, 0, b, 0, arrSize);
+		//Array.Sort(b, 0, arrSize);  // needs sort for fractional % calcs
+		if (arrSize > 0)
+		{
+			if (arrSize == 1)
+				return b[0]; // b.Min();
+			else
+			{
+				int N = arrSize;  //  sequence.Length;
+				double n = (N - 1) * excelPercentile + 1;
+				if (n == N)
+					return b[N];  // b.Max();
+				else
+				{
+					int k = (int)n;
+					double d = n - k;
+					return b[k - 1] + d * (b[k] - b[k - 1]);
+				}
+			}
+		}
+		else
+			return 0.0;
+	}  // percentile
+
 
 
 /* -----------------------------------------------------------------------------
@@ -1671,12 +1744,29 @@ namespace MathTimeLib
 	}  // factorial 
 
 
+	// -----------------------------------------------------------------------------
+	double sgn
+	(
+		double x
+	)
+	{
+		if (x < 0.0)
+		{
+			return -1.0;
+		}
+		else
+		{
+			return 1.0;
+		}
+	} // sgn
+
+
 
 	   // -----------------------------------------------------------------------------------------
 	   //                                       time functions
 	   // -----------------------------------------------------------------------------------------
 
-	int getmon
+	int getIntMonth
 	(
 		char instr[3]
 	)
@@ -1704,11 +1794,11 @@ namespace MathTimeLib
 			ktr = ktr + 1;
 
 		return (ktr);
-	} // getmon
+	} // getIntMonth
 
 
 	/*       ----------------------------------------------------------------      */
-	int getday
+	int getIntDay
 	(
 		char instr[3]
 	)
@@ -1731,12 +1821,12 @@ namespace MathTimeLib
 			ktr = ktr + 1;
 
 		return (ktr);
-	} // getday
+	} // getIntDay
 
 
 	/* -----------------------------------------------------------------------------
 	*
-	*                           function dayofweek
+	*                           function getIntDayofweek
 	*
 	*  this function finds the day of the week. integers are used for the days,
 	*    1 = 'Sun', 2 = 'Mon', ... 7 = 'Sat'.
@@ -1758,7 +1848,7 @@ namespace MathTimeLib
 	*  References    :
 	* --------------------------------------------------------------------------- */
 
-	int dayofweek
+	int getIntDayofweek
 	(
 		double jd
 	)
@@ -1769,7 +1859,7 @@ namespace MathTimeLib
 
 		temp = int(floor(jd - 7 * floor((jd + 1) / 7) + 2));
 		return temp;
-	}  // function dayofweek
+	}  // getIntDayofweek
 
 
 	/* -----------------------------------------------------------------------------
@@ -2094,8 +2184,12 @@ namespace MathTimeLib
 		int lmonth[] = { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 		int i;
 
-		if (((year - 1900) % 4) == 0)
-			lmonth[2] = 29;
+                if ((year - 1900) % 4 == 0)
+                {
+                    lmonth[2] = 29;
+                    if (year % 100 == 0 && !(year % 400 == 0))
+                        lmonth[2] = 28;
+                }
 
 		i = 1;
 		days = 0.0;

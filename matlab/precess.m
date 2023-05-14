@@ -48,6 +48,8 @@
     ttt2= ttt * ttt;
     ttt3= ttt2 * ttt;
 
+    prec = eye(3);
+    
     % ------------------- fk4 b1950 precession angles --------------------
     if (opt == '50')
 
@@ -153,7 +155,7 @@
         fprintf(1,'pr %11.7f  %11.7f  %11.7fdeg \n',zeta*180/pi,theta*180/pi,z*180/pi );
     end;
 
-    if (strcmp(opt,'80')==1) || (strcmp(opt,'06') == 1)
+    if ( strcmp(opt,'80')==1 || strcmp(opt,'06') == 1)
         coszeta  = cos(zeta);
         sinzeta  = sin(zeta);
         costheta = cos(theta);

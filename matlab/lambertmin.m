@@ -19,7 +19,7 @@
 %    tminabs     - time min energy - parabolic    km / s
 %
 %
-function [v, aminenergy, tminenergy, tminabs] = lambertmin ( r1, r2, df, nrev )
+function [v, aminenergy, tminenergy, tminabs] = lambertmin ( r1, r2, dm, nrev )
         mu = 398600.4418;  % gravitational parameter km/s^2
          
         % ---- find parameters that are constant for the initial geometry
@@ -34,7 +34,7 @@ function [v, aminenergy, tminenergy, tminabs] = lambertmin ( r1, r2, df, nrev )
         alphae = pi;
         betae = 2.0*asin( sqrt((s-c)/s) );
         
-        if (df == 'd')
+        if (dm == 'L')
             tminenergy = sqrt(aminenergy^3/mu)*(2.0*nrev*pi + alphae - (betae-sin(betae)));
             %tminabs1 = sqrt(s^3/(8.0*mu))*(alphae - (betae-sin(betae)))
         else
@@ -50,7 +50,7 @@ function [v, aminenergy, tminenergy, tminabs] = lambertmin ( r1, r2, df, nrev )
         rcrossr = cross( r1,r2 );
         magrcrossr = mag(rcrossr);
         pmin = magr1*magr2/c*(1.0 - cosdeltanu);
-        if df == 'd'
+        if dm == 'S'
             sindeltanu= magrcrossr/(magr1*magr2);
         else
             sindeltanu= -magrcrossr/(magr1*magr2);            

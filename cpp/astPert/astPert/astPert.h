@@ -41,7 +41,7 @@ typedef struct gravityModelData
 	double cNor[2200][2200]; double sNor[2200][2200];
 	double cSig[2200][2200]; double sSig[2200][2200];
 	int numrecsobs; 
-	double mu, re;
+	double mu_, re_;
 } gravityModelData;
 
 const int gravsize = 2202; // 2202

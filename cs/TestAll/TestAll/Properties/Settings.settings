@@ -1,7 +1,60 @@
 ﻿<?xml version='1.0' encoding='utf-8'?>
-<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)">
-  <Profiles>
-    <Profile Name="(Default)" />
-  </Profiles>
-  <Settings />
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="TestAll.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="trtasc1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">0.939913</Value>
+    </Setting>
+    <Setting Name="tdecl1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">18.667717</Value>
+    </Setting>
+    <Setting Name="trtasc2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">45.025748</Value>
+    </Setting>
+    <Setting Name="tdecl2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">35.664741</Value>
+    </Setting>
+    <Setting Name="trtasc3" Type="System.String" Scope="User">
+      <Value Profile="(Default)">67.886655 </Value>
+    </Setting>
+    <Setting Name="tdecl3" Type="System.String" Scope="User">
+      <Value Profile="(Default)">36.996583</Value>
+    </Setting>
+    <Setting Name="time1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">20 Aug 2012 11:40:28.000</Value>
+    </Setting>
+    <Setting Name="time2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">20 Aug 2012 11:48:28.000</Value>
+    </Setting>
+    <Setting Name="time3" Type="System.String" Scope="User">
+      <Value Profile="(Default)">20 Aug 2012 11:52:28.000</Value>
+    </Setting>
+    <Setting Name="lat1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">40.0</Value>
+    </Setting>
+    <Setting Name="lon1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">-110.0</Value>
+    </Setting>
+    <Setting Name="alt1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">2.0</Value>
+    </Setting>
+    <Setting Name="lat2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">40.0</Value>
+    </Setting>
+    <Setting Name="lon2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">-110.0</Value>
+    </Setting>
+    <Setting Name="alt2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">2.0</Value>
+    </Setting>
+    <Setting Name="lat3" Type="System.String" Scope="User">
+      <Value Profile="(Default)">40.0</Value>
+    </Setting>
+    <Setting Name="lon3" Type="System.String" Scope="User">
+      <Value Profile="(Default)">-110.0</Value>
+    </Setting>
+    <Setting Name="alt3" Type="System.String" Scope="User">
+      <Value Profile="(Default)">2.0</Value>
+    </Setting>
+  </Settings>
 </SettingsFile>

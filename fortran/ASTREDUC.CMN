@@ -1,4 +1,3 @@
-*
 * ---------------------------------------------------------------------
 *
 *                              ASTREDUC.CMN
@@ -12,10 +11,10 @@
 *
 *                          Companion code for
 *             Fundamentals of Astrodynamics and Applications
-*                                  2007
+*                                  2022
 *                            by David Vallado
 *
-*     (W) 719-573-2600, email dvallado@agi.com
+*     email dvallado@comspoc.com, davallado@gmail.com
 *
 *     *****************************************************************
 *
@@ -29,7 +28,6 @@
 *     *****************************************************************
 
         COMMON  /astreduc/   IAR80,    RAR80
-
 c     &   ,         IAR00,    RAR00,    IAR96,    RAR96,
 c     &             pIAR96,   pRAR96
 

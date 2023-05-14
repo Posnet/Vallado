@@ -67,13 +67,15 @@ function [rho,az,el,drho,daz,del] = rv2razel ( reci,veci, latgd,lon,alt,ttt,jdut
 
     % --------------------- implementation ------------------------
     % ----------------- get site vector in ecef -------------------
-    [rs,vs] = site ( latgd,lon,alt );
-
+    [rsecef,vsecef] = site ( latgd,lon,alt );
+    %fprintf(1,'rsecef    %14.7f %14.7f %14.7f \n',rsecef );
+    
     % -------------------- convert eci to ecef --------------------
     a = [0;0;0];
     [recef,vecef,aecef] = eci2ecef(reci,veci,a,ttt,jdut1,lod,xp,yp,terms,ddpsi,ddeps);
+    %fprintf(1,'sat recef    %14.7f %14.7f %14.7f \n',recef );
     % simplified - just use sidereal time rotation
-    % thetasa= 7.29211514670698e-05 * (1.0  - 0.0/86400.0 );
+    % thetasa= earthrot * (1.0  - 0.0/86400.0 );
     % omegaearth = [0; 0; thetasa;];
     % [deltapsi,trueeps,meaneps,omega,nut] = nutation(ttt,ddpsi,ddeps);
     % [st,stdot] = sidereal(jdut1,deltapsi,meaneps,omega,0,0 );
@@ -82,7 +84,7 @@ function [rho,az,el,drho,daz,del] = rv2razel ( reci,veci, latgd,lon,alt,ttt,jdut
 
 
     % ------- find ecef range vector from site to satellite -------
-    rhoecef  = recef - rs;
+    rhoecef  = recef - rsecef;
     drhoecef = vecef;
     rho      = mag(rhoecef);
 

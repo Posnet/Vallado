@@ -57,6 +57,8 @@ function [rs,vs] = site ( latgd,lon,alt );
         rs = rs';
         
         % ---------------  find site velocity vector  -----------------
-        ome = [0; 0; omegaearth];
-        [vs] = cross(ome, rs);
+        %ome = [0.0; 0.0; omegaearth];
+        %[vs] = cross(ome, rs);
+        
+        vs = [0.0; 0.0; 0.0];
 

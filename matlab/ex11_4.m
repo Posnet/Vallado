@@ -59,11 +59,11 @@
         anomper = pnodal * (1.0 / (1.0 + 0.75 * j2 * (re/p)^2 * (sqrt(1.0 - ecc*ecc) * (2.0 - 3.0 * sin(incl)^2) + (4.0 - 5.0 * sin(incl)^2 ) ) ) );
    fprintf(1,'anomper %11.7f s %11.7f min \n',anomper, anomper/60.0);
 
-        dellon = (omegaearth - raanrate)*anomper;
+        dellon = (earthrot - raanrate)*anomper;
    fprintf(1,'dellon %11.7f  %11.7f \n',dellon, dellon*re);
-        dlpa = re * (omegaearth - raanrate) * deltatoa - deltaOdotoa * re * anomper;
+        dlpa = re * (earthrot - raanrate) * deltatoa - deltaOdotoa * re * anomper;
    fprintf(1,'dlpa %11.7f  %11.7f \n',dlpa, dlpa);
-        dlpi = re * (omegaearth - raanrate) * deltapoi - deltaraanoi * re * anomper;
+        dlpi = re * (earthrot - raanrate) * deltapoi - deltaraanoi * re * anomper;
    fprintf(1,'dlpi %11.7f  %11.7f \n',dlpi, dlpi);
 
 % osculating values from stk

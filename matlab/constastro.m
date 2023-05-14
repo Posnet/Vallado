@@ -33,7 +33,7 @@
         % EGM-08 constants used here
         re         = 6378.1363;         % km
         flat       = 1.0/298.257223563;
-        omegaearth = 7.292115e-5;     % rad/s
+        earthrot   = 7.292115e-5;     % rad/s  old 7.29211514670698e-05
         mu         = 398600.4415;      % km3/s2
         mum        = 3.986004415e14;   % m3/s2
 
@@ -49,8 +49,8 @@
         tuday = tusec / 86400.0;
         tudaysid = tusec / 86164.090524;
 
-        omegaearthradptu  = omegaearth * tusec;
-        omegaearthradpmin = omegaearth * 60.0;
+        omegaearthradptu  = earthrot * tusec;
+        omegaearthradpmin = earthrot * 60.0;
 
         velkmps = sqrt(mu / re);
         velftps = velkmps * 1000.0/ft2m;

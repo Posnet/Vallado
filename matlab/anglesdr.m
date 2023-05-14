@@ -9,21 +9,23 @@
 %
 %   8 oct 2007
 %
-%  inputs          description                    range / units
-%    rtasc1       - right ascension #1            rad
-%    rtasc2       - right ascension #2            rad
-%    rtasc3       - right ascension #3            rad
-%    decl1        - declination #1                rad
-%    decl2        - declination #2                rad
-%    decl3        - declination #3                rad
-%    jd1          - julian date of 1st sighting   days from 4713 bc
-%    jd2          - julian date of 2nd sighting   days from 4713 bc
-%    jd3          - julian date of 3rd sighting   days from 4713 bc
-%    rs           - ijk site position vector      km
+%  inputs          description                               range / units
+%    rtasc1       - right ascension #1                          rad
+%    rtasc2       - right ascension #2                          rad
+%    rtasc3       - right ascension #3                          rad
+%    decl1        - declination #1                              rad
+%    decl2        - declination #2                              rad
+%    decl3        - declination #3                              rad
+%    jd1, jdf1    - julian date of 1st sighting                 days from 4713 bc
+%    jd2, jdf2    - julian date of 2nd sighting                 days from 4713 bc
+%    jd3, jdf3    - julian date of 3rd sighting                 days from 4713 bc
+%    rsite1       - eci site position vector                    km
+%    rsite2       - eci site position vector                    km
+%    rsite3       - eci site position vector                    km
 %
 %  outputs        :
-%    r            - ijk position vector at t2     km
-%    v            - ijk velocity vector at t2     km / s
+%    r2           - eci position vector at t2                   km
+%    v2           - eci velocity vector at t2                   km / s
 %
 %  locals         :
 %    l1           - line of sight vector for 1st
@@ -34,12 +36,9 @@
 %    tausqr       - tau squared
 %    i            - index
 %    d            -
-%    rho          - range from site to sat at t2  km
+%    rho          - range from site to sat at t2                km
 %    rhodot       -
 %    dmat         -
-%    rs1          - site vectors
-%    rs2          -
-%    rs3          -
 %    earthrate    - velocity of earth rotation
 %    p            -
 %    q            -
@@ -59,11 +58,11 @@
 %  references     :
 %    vallado       2007, 439-443
 %
-% [r2,v2] = anglesdr ( decl1,decl2,decl3,rtasc1,rtasc2,rtasc3,jd1,jd2,jd3,latgd,lon,alt );
+% [r2,v2] = anglesdr ( decl1,decl2,decl3,rtasc1,rtasc2,rtasc3,jd1,jdf1, jd2,jdf2, jd3, jdf3,rsite1,rsite2,rsite3, re, mu );
 % ------------------------------------------------------------------------------  
 
 function [r2,v2] = anglesdr ( decl1,decl2,decl3,rtasc1,rtasc2, ...
-                              rtasc3,jd1,jd2,jd3,rsite1,rsite2,rsite3, re, mu, tu );
+                              rtasc3,jd1,jdf1, jd2,jdf2, jd3, jdf3,rsite1,rsite2,rsite3, re, mu );
 
 % -------------------------  implementation   -------------------------
 %   constastro;
@@ -74,15 +73,16 @@ function [r2,v2] = anglesdr ( decl1,decl2,decl3,rtasc1,rtasc2, ...
    rad = 180.0 / pi;
    
    magr1in = 2.0*re;
-   magr2in = 2.01*re;
+   magr2in = 2.04*re;
    direct  = 'y';
 
    tol    = 1e-8*re;   % km
    pctchg = 0.005;
  
    % subtract dates and convert fraction of day to seconds
-   t1 = (jd1 - jd2)*tu;  % secs
-   t3 = (jd3 - jd2)*tu;
+   tau12 = (jd1 - jd2) * 86400.0 + (jdf1 - jdf2) * 86400.0; % days to sec
+   tau13 = (jd1 - jd3) * 86400.0 + (jdf1 - jdf3) * 86400.0;
+   tau32 = (jd3 - jd2) * 86400.0 + (jdf3 - jdf2) * 86400.0;
 
    % form line of sight vectors
    los1 = [cos(decl1)*cos(rtasc1) cos(decl1)*sin(rtasc1) sin(decl1)]';
@@ -106,11 +106,11 @@ function [r2,v2] = anglesdr ( decl1,decl2,decl3,rtasc1,rtasc2, ...
        ktr = ktr + 1;
        fprintf(1,'%2i ',ktr);
        [r2,r3,f1,f2,q1,magr1,magr2,a,deltae32] = doubler( cc1,cc2,magrsite1,magrsite2,magr1in,magr2in,...
-                       los1,los2,los3,rsite1,rsite2,rsite3,t1,t3,direct, re, mu);
+                       los1,los2,los3,rsite1,rsite2,rsite3,tau12,tau32,direct, re, mu);
 
        % check intermediate status
        f  = 1.0 - a/magr2*(1.0-cos(deltae32));
-       g  = t3 - sqrt(a^3/mu)*(deltae32-sin(deltae32));
+       g  = tau32 - sqrt(a^3/mu)*(deltae32-sin(deltae32));
        v2 = (r3 - f*r2)/g;
        [p,a,ecc,incl,omega,argp,nu,m,arglat,truelon,lonper ] = rv2coeh (r2,v2, re, mu);
        fprintf(1,'coes %11.4f%11.4f%13.9f%13.7f%11.5f%11.5f%11.5f%11.5f\n',...
@@ -118,21 +118,20 @@ function [r2,v2] = anglesdr ( decl1,decl2,decl3,rtasc1,rtasc2, ...
 
        % -------------- re-calculate f1 and f2 with r1 = r1 + delta r1
        magr1o = magr1in;
-       magr1in = (1.0+pctchg)*magr1in;
        deltar1 = pctchg*magr1in;
+       magr1in = magr1in + deltar1;
        [r2,r3,f1delr1,f2delr1,q2,magr1,magr2,a,deltae32] = doubler( cc1,cc2,magrsite1,magrsite2,magr1in,magr2in,...
-                              los1,los2,los3,rsite1,rsite2,rsite3,t1,t3,direct, re, mu);
+                              los1,los2,los3,rsite1,rsite2,rsite3,tau12,tau32,direct, re, mu);
        pf1pr1 = (f1delr1-f1)/deltar1;
        pf2pr1 = (f2delr1-f2)/deltar1;
     
        % ----------------  re-calculate f1 and f2 with r2 = r2 + delta r2
        magr1in = magr1o;
-       deltar1 = pctchg*magr1in;
        magr2o = magr2in;
-       magr2in = (1.0+pctchg)*magr2in;
        deltar2 = pctchg*magr2in;
+       magr2in = magr2in + deltar2;
        [r2,r3,f1delr2,f2delr2,q3,magr1,magr2,a,deltae32] = doubler( cc1,cc2,magrsite1,magrsite2,magr1in,magr2in,...
-                              los1,los2,los3,rsite1,rsite2,rsite3,t1,t3,direct, re, mu);
+                              los1,los2,los3,rsite1,rsite2,rsite3,tau12,tau32,direct, re, mu);
        pf1pr2 = (f1delr2-f1)/deltar2;
        pf2pr2 = (f2delr2-f2)/deltar2;
 
@@ -146,7 +145,6 @@ function [r2,v2] = anglesdr ( decl1,decl2,decl3,rtasc1,rtasc2, ...
 
        % ------------ now calculate an update
        magr2in = magr2o;
-       deltar2 = pctchg*magr2in;
 
        delta  = pf1pr1*pf2pr2 - pf2pr1*pf1pr2;
        delta1 = pf2pr2*f1 - pf1pr2*f2;
@@ -186,13 +184,13 @@ function [r2,v2] = anglesdr ( decl1,decl2,decl3,rtasc1,rtasc2, ...
        fprintf(1,'=============================================== \n');
 
      pause;
-   end;
+   end
 
    % needed to get the r2 set properly since the last one was moving r2
    [r2,r3,f1,f2,q1,magr1,magr2,a,deltae32] = doubler( cc1,cc2,magrsite1,magrsite2,magr1in,magr2in,...
-                          los1,los2,los3,rsite1,rsite2,rsite3,t1,t3,direct, re, mu);
+                          los1,los2,los3,rsite1,rsite2,rsite3,tau12,tau32,direct, re, mu);
 
    f  = 1.0 - a/magr2*(1.0-cos(deltae32));
-   g  = t3 - sqrt(a^3/mu)*(deltae32-sin(deltae32));
+   g  = tau32 - sqrt(a^3/mu)*(deltae32-sin(deltae32));
    v2 = (r3 - f*r2)/g;
 

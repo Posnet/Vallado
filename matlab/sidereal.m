@@ -44,7 +44,7 @@
 % ----------------------------------------------------------------------------
 
 function [st,stdot]  = sidereal (jdut1, deltapsi, meaneps, omega, lod, eqeterms )
-
+constastro;
         % ------------------------ find gmst --------------------------
         gmst= gstime( jdut1 );
 
@@ -59,7 +59,7 @@ function [st,stdot]  = sidereal (jdut1, deltapsi, meaneps, omega, lod, eqeterms 
         end
 
         ast = rem (ast, 2.0*pi);
-        thetasa    = 7.29211514670698e-05 * (1.0  - lod/86400.0 );
+        thetasa    = earthrot * (1.0  - lod/86400.0 );
         omegaearth = thetasa;
 
 %fprintf(1,'st gmst %11.8f ast %11.8f ome  %11.8f \n', gmst*180/pi, ast*180/pi, omegaearth*180/pi );

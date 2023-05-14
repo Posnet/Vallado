@@ -4,7 +4,7 @@
 %  inputs          description                    range / units
 %    r1          - ijk position vector 1             km
 %    r2          - ijk position vector 2             km
-%    dm          - direction of motion (long/short)  'l','s'
+%    dm          - direction of motion (long/short)  'L','S'
 %    you could maybe pass in the max number of revs you're willing to
 %    consider...
 %    nrev        - multiple revoluions                0, 1, ...
@@ -14,7 +14,7 @@
 %    nrev = 1, 2, 3, ...
 %
 
-function [psib, tof] = lambertumins( r1, r2, nrev, df )
+function [psib, tof] = lambertumins( r1, r2, nrev, dm )
     small = 0.00000001;
     mu = 398600.4418;  % km/s^2
     oomu = 1.0 / sqrt(mu);  % for speed
@@ -26,7 +26,7 @@ function [psib, tof] = lambertumins( r1, r2, nrev, df )
     magr2 = mag(r2);
 
     cosdeltanu = dot(r1,r2)/(magr1*magr2);  
-    if ( df == 'r' )
+    if ( dm == 'L' )
         vara = -sqrt( magr1*magr2*(1.0+cosdeltanu) );
     else
         vara =  sqrt( magr1*magr2*(1.0+cosdeltanu) );

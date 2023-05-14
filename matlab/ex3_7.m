@@ -37,7 +37,8 @@
     timezone= 6;
 
     % -------- convtime    - convert time from utc to all the others
-    [ut1, tut1, jdut1, jdut1frac, utc, tai, tt, ttt, jdtt, jdttfrac, tdb, ttdb, jdtdb, jdtdbfrac, tcg, jdtcg,jdtcgfrac, tcb, jdtcb,jdtcbfrac ] ...
+    %, tcg, jdtcg,jdtcgfrac, tcb, jdtcb,jdtcbfrac 
+    [ut1, tut1, jdut1, jdut1frac, utc, tai, tt, ttt, jdtt, jdttfrac, tdb, ttdb, jdtdb, jdtdbfrac] ...
         = convtime ( year, mon, day, hr, min, sec, timezone, dut1, dat );
 
     fprintf(1,'ut1 %8.6f tut1 %16.12f jdut1 %18.11f\n',ut1,tut1,jdut1+jdut1frac );

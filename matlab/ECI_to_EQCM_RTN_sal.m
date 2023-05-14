@@ -109,7 +109,12 @@ function [r_int_EQCM, v_int_EQCM] = ECI_to_EQCM_RTN_sal(r_tgt_ECI, v_tgt_ECI, r_
         [F0, E0] = elliptic12( ea0, ecc_tgt^2 );
         [F1, E1] = elliptic12( ea1, ecc_tgt^2 );  % with implied tol of 1e-22, no error. Shows up at about 1e-5
 
-        r_int_EQCM(2,1) = (a_tgt * (E1 - E0));  % arc length value
+        fixit = 0.0;
+        if E1-E0 < 0.0
+            fixit = pi;
+        end
+
+        r_int_EQCM(2,1) = (a_tgt * (E1 - E0+fixit));  % arc length value
 %        fprintf(1,'elliptic integral, %14.6f, %14.8f, %14.6f, %12.5f, %12.5f, ANS %12.6f  %12.6f \n', ...
 %                      a_tgt, ecc_tgt, b, m0*rad, m1*rad, arclength, r_int_EQCM(2,1) );
    

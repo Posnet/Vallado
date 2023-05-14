@@ -17,8 +17,8 @@
     %    ttt         - julian centuries of tt         centuries
     %    jdut1       - julian date of ut1             days from 4713 bc
     %    lod         - excess length of day           sec
-    %    xp          - polar motion coefficient       arc sec
-    %    yp          - polar motion coefficient       arc sec
+    %    xp          - polar motion coefficient       rad
+    %    yp          - polar motion coefficient       rad
     %    option      - which approach to use          a-2000a, b-2000b, c-2000xys
     %    ddx         - eop correction for x           rad
     %    ddy         - eop correction for y           rad
@@ -45,7 +45,7 @@
     % ----------------------------------------------------------------------------
 
     function [recef,vecef,aecef] = eci2ecefiau06( reci,veci,aeci,ttt,jdut1,lod,xp,yp,option, ddx, ddy )
-
+constastro;
     %      sethelp;
 
     % ---- ceo based, iau2000
@@ -75,7 +75,7 @@
     [pm] = polarm(xp,yp,ttt,'01');
 
     % ---- setup parameters for velocity transformations
-    thetasa= 7.29211514670698e-05 * (1.0  - lod/86400.0 );
+    thetasa= earthrot * (1.0  - lod/86400.0 );
     omegaearth = [0; 0; thetasa;];
 
     rpef  = st'*pnb'*reci;
@@ -88,8 +88,8 @@
     aecef = pm'*(st'*pnb'*aeci - cross(omegaearth,temp) - 2.0*cross(omegaearth,vpef));
 
     %        if iauhelp == 'y'
-    rire  = pnb'*reci;
-    vire  = pnb'*veci;
+    rtirs  = pnb'*reci;
+    vtirs  = pnb'*veci;
     if (option == 'a') || (option == 'b')
         rmod20  = prec'*reci;
         vmod20  = prec'*veci;
@@ -97,12 +97,12 @@
         fprintf(1,'MOD           IAU-2006 %c   %14.7f %14.7f %14.7f',option, rmod20 );
         fprintf(1,' v %14.9f %14.9f %14.9f',vmod20 );
         fprintf(1,' a %14.9f %14.9f %14.9f\n',aeci );
-        fprintf(1,'ERS           IAU-2006 %c   %14.7f %14.7f %14.7f',option, rire );
+        fprintf(1,'ERS           IAU-2006 %c   %14.7f %14.7f %14.7f',option, rtirs );
     end;
     if option == 'c'
-        fprintf(1,'CIRS          IAU-2006 CIO %14.7f %14.7f %14.7f',rire );
+        fprintf(1,'CIRS          IAU-2006 CIO %14.7f %14.7f %14.7f',rtirs );
     end;
-    fprintf(1,' v %14.9f %14.9f %14.9f\n',vire );
+    fprintf(1,' v %14.9f %14.9f %14.9f\n',vtirs );
     fprintf(1,'TIRS          IAU-2006 %c   %14.7f %14.7f %14.7f',option, rpef );
     fprintf(1,' v %14.9f %14.9f %14.9f\n',vpef );
     %          end;

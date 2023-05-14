@@ -153,9 +153,10 @@
                         [year,mon,day,hr,minute,sec] = invjday ( jdutc, jdutcfrac );
 
                         fprintf(outfile,...
-                            ' %16.8f %16.8f %16.8f %16.8f %12.9f %12.9f %12.9f %5i%3i%3i %2i:%2i:%9.6f %16.8f%16.8f%16.8%12.9f%12.9f%12.9f \r\n',...
+                            ' %16.8f %16.8f %16.8f %16.8f %12.9f %12.9f %12.9f %5i%3i%3i %2i:%2i:%9.6f  \n',...
                             tsince,rteme(1),rteme(2),rteme(3),vteme(1),vteme(2),vteme(3),year,mon,day,hr,minute,sec );
-
+                        % %16.8f%16.8f%16.8%12.9f%12.9f%12.9f and \r
+                        
                         % demo getting lat lon
                         % set the EOP parameters. normally this would be at each time instant in the loop, but
                         % we'll keep it constant here for illustration
@@ -167,8 +168,8 @@
                         jdut1frac = jdutcfrac + dut1/86400.0;
                         ttt = (jdut1-2451545.0)/36525.0;
                         [recef, vecef, aecef] = teme2ecef( rteme', vteme', ateme', ttt, jdut1, lod, xp, yp, eqeterms );
-                        [latgc,latgd,lon,hellp] = ijk2ll ( recef );
-                        fprintf(1,' lat lon %11.7f  %11.7f \n', latgc*rad, lon*rad);
+                        %[latgc,latgd,lon,hellp] = ecef2ll ( recef );
+                        %fprintf(1,' lat lon %11.7f  %11.7f \n', latgc*rad, lon*rad);
                     else
                         jdutc = satrec.jdsatepoch;
                         jdutcfrac = satrec.jdsatepochf + tsince/1440.0;
@@ -198,8 +199,8 @@
                         jdut1frac = jdutcfrac + dut1/86400.0;
                         ttt = (jdut1-2451545.0)/36525.0;
                         [recef, vecef, aecef] = teme2ecef( rteme', vteme', ateme', ttt, jdut1, lod, xp, yp, eqeterms );
-                        [latgc,latgd,lon,hellp] = ijk2ll ( recef );
-                        fprintf(1,' lat lon %11.7f  %11.7f \n', latgc*rad, lon*rad);
+                        %[latgc,latgd,lon,hellp] = ecef2ll ( recef );
+                        %fprintf(1,' lat lon %11.7f  %11.7f \n', latgc*rad, lon*rad);
                     end
                 end % if satrec.error == 0
 

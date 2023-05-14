@@ -55,6 +55,7 @@
 
 function [v2, theta,theta1,copa, error] = gibbsh( r1,r2,r3, re, mu);
 
+constastro;
        % -------------------------  implementation   -------------------------
         small= 0.000001;
         theta= 0.0;

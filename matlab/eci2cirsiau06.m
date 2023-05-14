@@ -37,7 +37,7 @@
     % [rcirs,vcirs,acirs] = eci2cirsiau06  ( reci,veci,aeci,ttt,option, ddx, ddy );
     % ----------------------------------------------------------------------------
 
-    function [rcirs,vcirs,acirs] = eci2cirsiau06( reci,veci,aeci,ttt,option, ddx, ddy )
+    function [rcirs,vcirs,acirs, pnb] = eci2cirsiau06( reci,veci,aeci,ttt,option, ddx, ddy )
 
     %      sethelp;
 

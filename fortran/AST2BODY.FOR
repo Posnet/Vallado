@@ -1644,7 +1644,7 @@ c          ENDIF
                 XNew = XOld + ( DSQRT(mu)*dtsec - DtNew ) / Rval
 
 				! ----- check if the univ param goes negative. if so, use bissection
-				IF (XNew < 0.0D0) THEN
+				IF (XNew < 0.0D0 .and. dtsec > 0.0D0) THEN
 					XNew = XOld*0.5D0
     			ENDIF
 

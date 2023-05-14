@@ -149,7 +149,11 @@ namespace SGP4Program
                     jd = satrec.jdsatepoch;
                     outfilenameE = longstr2.Substring(2, 5).ToString() + ".e";
                     SGP4Libr.invjday(satrec.jdsatepoch, satrec.jdsatepochF, out year, out mon, out day, out hr, out min, out sec);
-                    string datestr = String.Format(" {0,2}{1,4}{2,5} {3,2}:{4,2}:{5} ", day, monstr[mon], year, hr, min, sec);
+                    //string datestr = String.Format(" {0,2}{1,4}{2,5} {3,2}:{4,2}:{5} ", day, monstr[mon], year, hr, min, sec);
+                    // add datetime support 29 Jul 2022 dav
+                    DateTime dt = new DateTime(year, mon, day, hr, min, 0); // TS
+                    dt = dt.AddSeconds(sec); // TS: Supports double seconds
+                    string datestr = $"{dt:dd MMM yyyy HH:mm:ss.fff}"; // TS
 
                     strbuildE.AppendLine("stk.v.10.0\n");
                     strbuildE.AppendLine("BEGIN Ephemeris\n");

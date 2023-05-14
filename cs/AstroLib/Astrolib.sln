@@ -10,6 +10,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AstroLib", "Astrolib\AstroL
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EOPSPWLib", "..\EOPSPWLib\EOPSPWLib\EOPSPWLib.csproj", "{B64E8863-15B0-4D1D-A48D-DEBEA17469B8}"
+	ProjectSection(ProjectDependencies) = postProject
+		{106694E6-9585-487E-9904-E4CCC344DD69} = {106694E6-9585-487E-9904-E4CCC344DD69}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MathTimeLib", "..\MathTimeLib\MathTimeLib\MathTimeLib.csproj", "{106694E6-9585-487E-9904-E4CCC344DD69}"
 EndProject

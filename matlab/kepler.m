@@ -82,6 +82,7 @@
     errork = '      ok';
     dtsec = dtseco;
     nrev = 0;
+    smu = sqrt(mu);
 
     if ( abs( dtseco ) > small )
         magro = mag( ro );
@@ -118,7 +119,7 @@
                 dtsec = rem( dtseco, period );
                 nrev = floor(dtseco/period);
             end;
-            xold = sqrt(mu)*dtsec * alpha;
+            xold = smu *dtsec * alpha;
         else
             % --------------------  parabola  ---------------------
             if ( abs( alpha ) < small )
@@ -141,7 +142,7 @@
         ktr= 1;
         dtnew = -10.0;
         % conv for dtsec to x units
-        tmp = 1.0 / sqrt(mu);
+        tmp = 1.0 / smu;
 
         while ((abs(dtnew*tmp - dtsec) >= small) && (ktr < numiter))
             xoldsqrd = xold*xold;
@@ -157,19 +158,19 @@
                 magro*xold*( 1.0  - znew*c3new );
 
             % ------------- calculate new value for x -------------
-            temp1 = ( dtsec*sqrt(mu) - dtnew ) / rval;
+            temp1 = ( dtsec*smu - dtnew ) / rval;
             xnew = xold + temp1;
 
             % ----- check if the univ param goes negative. if so, use bissection
-            if xnew < 0.0
+            if (xnew < 0.0 && dtsec > 0.0)
                 xnew = xold*0.5;
             end
              
             if show =='y'
                 fprintf(1,'kep %3i %11.7f %11.7f %11.7f %11.7f %11.7f \n', ...
                     ktr,xold,znew,rval,xnew,dtnew*tmp);
-                fprintf(1,'%3i %11.7f %11.7f %11.7f %11.7f %11.7f \n', ...
-                    ktr,xold/sqrt(re),znew,rval/re,xnew/sqrt(re),dtnew/sqrt(mu));
+                fprintf(1,'%3i %11.7f %11.7f %11.7f %11.7f %11.7f %11.7f %11.7f \n', ...
+                    ktr,xold/sqrt(re),znew,c2new, c3new, rval/re,xnew/sqrt(re),dtnew/sqrt(mu));
             end
   
             ktr = ktr + 1;

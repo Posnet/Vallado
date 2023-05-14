@@ -38,6 +38,7 @@
   // " " tells the compiler to look in this directory first, usually the parent directory
   // you can leave generic as MathTimeLib.h, but you have to set the include directory in the property pages
 #include "D:/Codes/LIBRARY/CPP/Libraries/MathTimeLib/MathTimeLib/MathTimeLib.h"  // globals, edirection
+#include "D:/Codes/LIBRARY/CPP/Libraries/eopspw/eopspw/eopspw.h"  // eopdata, spwdata, eopsize, spwsize
 
 
 #pragma once
@@ -50,36 +51,6 @@ typedef enum
 	e00b,
 	e00cio
 } eOpt;
-
-
-typedef struct iau80data
-{
-	int    iar80[107][6];
-	double rar80[107][5];
-} iau80data;
-
-typedef struct iau00data
-{
-	double axs0[1600][2];  // reals
-	int a0xi[1600][14];  // integers
-	double ays0[1275][2];  // reals
-	int a0yi[1275][14];  // integers
-	double ass0[66][2];  // reals
-	int a0si[66][14];  // integers
-
-	double agst[35][2];  // reals
-	int agsti[35][14];  // integers
-
-	double apn[1358][2];  // reals
-	int apni[1358][14];  // integers
-	double ape[1056][2];  // reals
-	int apei[1056][14];  // integers
-
-	double appn[678][8];  // reals
-	int appni[678][5];  // integers
-	double apln[687][5];  // reals
-	int aplni[687][14];  // integers
-} iau00data;
 
 
 const int jpldesize = 60000; // 60000 if from 1957-2100
@@ -103,6 +74,14 @@ typedef enum
 
 namespace AstroLib
 {
+// note these should be consistent with each gravity field used, here, EGM-08
+#define mum 3.986004415e14        // m^3/s^2 stk uses .4415
+#define mu 398600.4415            // km^3/s^2 stk uses .4415
+#define re 6378.1363              // km  stk uses .1363
+#define velkmps 7.905366149846074
+#define earthrot 7.292115e-05  // 7.29211514670698e-05 older rad/s
+#define speedoflight 2.99792458e8       // speed of light m/s
+
 	void sethelp
 	(
 		char& iauhelp, char iauopt
@@ -120,17 +99,22 @@ namespace AstroLib
 		double& dx, double& dy
 	);
 
-	void iau80in
+	void gstime00
 	(
-		std::string EopLoc,
-		iau80data& iau80rec
+		double jdut1, double deltapsi, double ttt, const iau00data &iau00arr, eOpt opt, double& gst,
+		std::vector< std::vector<double> > &st
 	);
 
-	void iau00in
+	double  gstime
 	(
-		std::string EopLoc,
-		iau00data& iau00arr
+		double jdut1
 	);
+
+	void    lstime
+	(
+		double lon, double jdut1, double& lst, double& gst
+	);
+
 
 	void fundarg
 	(
@@ -152,25 +136,9 @@ namespace AstroLib
 	void iau00pn
 	(
 		double ttt, double ddx, double ddy, eOpt opt,
-		const iau00data &iau00arr,
+		iau00data &iau00arr,
 		double x, double y, double s,
 		std::vector< std::vector<double> > &nut
-	);
-
-	void gstime00
-	(
-		double jdut1, double deltapsi, double ttt, const iau00data &iau00arr, eOpt opt, double& gst,
-		std::vector< std::vector<double> > &st
-	);
-
-	double  gstime
-	(
-		double jdut1
-	);
-
-	void    lstime
-	(
-		double lon, double jdut1, double& lst, double& gst
 	);
 
 	void precess
@@ -214,14 +182,15 @@ namespace AstroLib
 		double& term1, double& term2, double& term3, std::vector< std::vector<double> > &fb
 	);
 
-	void itrf_gcrf
+	void eci_ecef
 	(
-		double ritrf[3], double vitrf[3], double aitrf[3],
+		double reci[3], double veci[3], double aeci[3],
 		MathTimeLib::edirection direct,
-		double rgcrf[3], double vgcrf[3], double agcrf[3],
-		const iau80data &iau80rec, eOpt opt,
-		double ttt, double jdut1, double lod, double xp,
-		double yp, int eqeterms, double ddpsi, double ddeps,
+		double recef[3], double vecef[3], double aecef[3],
+		eOpt opt,
+		const iau80data &iau80arr, const iau00data &iau00arr,
+		double ttt, double jdut1,
+		double lod, double xp, double yp, double ddpsi, double ddeps, double ddx, double ddy,
 		std::vector< std::vector<double> > &trans
 	);
 
@@ -246,7 +215,7 @@ namespace AstroLib
 		std::vector< std::vector<double> > &trans
 	);
 
-	void itrf_mod
+	void ecef_mod
 	(
 		double ritrf[3], double vitrf[3], double aitrf[3],
 		MathTimeLib::edirection direct,
@@ -257,7 +226,7 @@ namespace AstroLib
 		std::vector< std::vector<double> > &trans
 	);
 
-	void itrf_tod
+	void ecef_tod
 	(
 		double ritrf[3], double vitrf[3], double aitrf[3],
 		MathTimeLib::edirection direct,
@@ -268,7 +237,7 @@ namespace AstroLib
 		std::vector< std::vector<double> > &trans
 	);
 
-	void itrf_pef
+	void ecef_pef
 	(
 		double ritrf[3], double vitrf[3], double aitrf[3],
 		MathTimeLib::edirection direct,
@@ -277,30 +246,30 @@ namespace AstroLib
 		std::vector< std::vector<double> > &trans
 	);
 
-	void pef_gcrf
+	void eci_pef
 	(
-		double rpef[3], double vpef[3], double apef[3],
-		MathTimeLib::edirection direct,
 		double rgcrf[3], double vgcrf[3], double agcrf[3],
+		MathTimeLib::edirection direct,
+		double rpef[3], double vpef[3], double apef[3],
 		const iau80data &iau80rec, eOpt opt,
 		double ttt, double jdut1, double lod, int eqeterms,
 		double ddpsi, double ddeps
 	);
 
-	void tod_gcrf
+	void eci_tod
 	(
-		double rtod[3], double vtod[3], double atod[3],
-		MathTimeLib::edirection direct,
 		double rgcrf[3], double vgcrf[3], double agcrf[3],
+		MathTimeLib::edirection direct,
+		double rtod[3], double vtod[3], double atod[3],
 		const iau80data &iau80rec, eOpt opt,
 		double ttt, double ddpsi, double ddeps
 	);
 
-	void mod_gcrf
+	void eci_mod
 	(
-		double rmod[3], double vmod[3], double amod[3],
-		MathTimeLib::edirection direct,
 		double rgcrf[3], double vgcrf[3], double agcrf[3],
+		MathTimeLib::edirection direct,
+		double rmod[3], double vmod[3], double amod[3],
 		double ttt
 	);
 
@@ -378,6 +347,11 @@ namespace AstroLib
 		double altPad, double r1[3], double v1t[3], double r2[3], double v2t[3], int nrev, char& hitearth
 	);
 
+	void checkhitearthc
+	(
+		double altPadc, double r1c[3], double v1tc[3], double r2c[3], double v2tc[3], int nrev, char& hitearth
+	);
+
 	void kepler
 	(
 		double ro[3], double vo[3], double dtseco, double r[3], double v[3]
@@ -427,6 +401,16 @@ namespace AstroLib
 		double&    latgc,
 		MathTimeLib::edirection direct,
 		double&    latgd
+	);
+
+	void checkhitearth
+	(
+		double altPad, double r1[3], double v1t[3], double r2[3], double v2t[3], int nrev, char& hitearth
+	);
+
+	void checkhitearthc
+	(
+		double altPadc, double r1c[3], double v1tc[3], double r2c[3], double v2tc[3], int nrev, char& hitearth
 	);
 
 	void ecef2ll
@@ -528,7 +512,7 @@ namespace AstroLib
 
 	void rv_razel
 	(
-		double recef[3], double vecef[3], double rsecef[3], double latgd, double lon,
+		double recef[3], double vecef[3], double latgd, double lon, double alt,
 		MathTimeLib::edirection direct,
 		double& rho, double& az, double& el, double& drho, double& daz, double& del
 	);
@@ -551,46 +535,46 @@ namespace AstroLib
 	void gibbs
 	(
 		double r1[3], double r2[3], double r3[3],
-		double v2[3], double& theta, double& theta1, double& copa, char error[12]
+		double v2[3], double& theta, double& theta1, double& copa, char error[15]
 	);
 
 	void herrgibbs
 	(
 		double r1[3], double r2[3], double r3[3], double jd1, double jd2, double jd3,
-		double v2[3], double& theta, double& theta1, double& copa, char error[12]
+		double v2[3], double& theta, double& theta1, double& copa, char error[15]
 	);
 
 	void lambertumins
 	(
-		double r1[3], double r2[3], int nrev, char df,
+		double r1[3], double r2[3], int nrev, char dm,
 		double& kbi, double& tof
 	);
 
 	void lambertminT
 	(
-		double r1[3], double r2[3], char dm, char df, int nrev,
+		double r1[3], double r2[3], char dm, char de, int nrev,
 		double& tmin, double& tminp, double& tminenergy
+	);
+
+	void lambertuniv
+	(
+		double r1[3], double r2[3], double v1[3], char dm, char de, int nrev, double dtsec, double tbi, double altpad,
+		double v1t[3], double v2t[3], char& hitearth, int& error, FILE *outfile
 	);
 
 	void lambhodograph
 	(
-		double r1[3], double v1[3], double r2[3], double p, double ecc, double dnu, double dtsec,
+		double r1[3], double r2[3], double v1[3], double p, double ecc, double dnu, double dtsec,
 		double v1t[3], double v2t[3]
 	);
 
 	static double kbattin(double v);
 
-	static double seebattin(double v);
-
-	void lambertuniv
-	(
-		double r1[3], double r2[3], char dm, char df, int nrev, double dtsec, double tbi[5][5], double altpad,
-		double v1t[3], double v2t[3], char& hitearth, int& error, FILE *outfile
-	);
+	static double seebattin(double v2);
 
 	void lambertbattin
 	(
-		double r1[3], double r2[3], double v1[3], char dm, char df, int nrev, double dtsec, double tbi[5][5], double altpad,
+		double r1[3], double r2[3], double v1[3], char dm, char de, int nrev, double dtsec, double altpad,
 		double v1t[3], double v2t[3], char& hitearth, int& error, FILE *outfile
 	);
 

@@ -41,18 +41,55 @@
     %  references    :
     %    vallado       2001, 216-219, eq 3-654
     %
-    % [rtod,vtod,atod] = eci2tod  ( reci,veci,aeci,ttt,ddpsi,ddeps );
+    % [rtod,vtod,atod] = eci2tod  ( reci,veci,aeci,opt, ttt,ddpsi,ddeps, ddx, ddy );
     % ----------------------------------------------------------------------------
 
-    function [rtod,vtod,atod] = eci2tod  ( reci,veci,aeci,ttt,ddpsi,ddeps );
+    function [rtod,vtod,atod] = eci2tod  ( reci,veci,aeci,opt, ttt,ddpsi,ddeps, ddx, ddy );
 
-    [prec,psia,wa,ea,xa] = precess ( ttt, '80' );
+    showit = 'n';
+    
+        [prec,psia,wa,ea,xa] = precess ( ttt, opt );
 
-    [deltapsi,trueeps,meaneps,omega,nut] = nutation(ttt,ddpsi,ddeps);
+        if opt == '80'
+            [deltapsi,trueeps,meaneps,omega,nut] = nutation(ttt,ddpsi,ddeps);
+        else
+            % ---- ceo based, iau2006
+            if opt == '6c'
+                [x,y,s,pnb] = iau06xys (ttt, ddx, ddy);
+            end
 
+            % ---- class equinox based, 2000a
+            if opt == '6a'
+                [ deltapsi, pnb, prec, nut, l, l1, f, d, omega, ...
+                    lonmer, lonven, lonear, lonmar, lonjup, lonsat, lonurn, lonnep, precrate ...
+                    ] = iau06pna (ttt);
+            end
+
+            % ---- class equinox based, 2000b
+            if opt == '6b'
+                [ deltapsi, pnb, prec, nut, l, l1, f, d, omega, ...
+                    lonmer, lonven, lonear, lonmar, lonjup, lonsat, lonurn, lonnep, precrate ...
+                    ] = iau06pnb (ttt);
+            end
+            prec = eye(3);
+            nut = pnb;
+        end
+        
+    if showit == 'y'
+        conv = pi / (180.0*3600.0);
+        fprintf(1,'dpsi %11.7f trueeps %11.7f mean eps %11.7f deltaeps %11.7f \n', deltapsi/conv, trueeps/conv, meaneps/conv, (trueeps-meaneps)/conv); 
+        fprintf(1,'nut iau 76 \n');
+        fprintf(1,'%20.14f %20.14f %20.14f \n',nut );
+    end
+    
     rtod=nut'*prec'*reci;
 
     vtod=nut'*prec'*veci;
 
     atod=nut'*prec'*aeci;
+
+    if showit == 'y'
+        fprintf(1,'pn iau 76 \n');
+        fprintf(1,'%20.14f %20.14f %20.14f \n',nut * prec);
+    end
 

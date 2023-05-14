@@ -58,6 +58,7 @@
         ] = iau06pna (ttt);
 
     sethelp;
+    showit = 'y';
 
     % " to rad
     convrt  = pi / (180.0*3600.0);
@@ -107,6 +108,9 @@
     %  add planetary and luni-solar components.
     deltapsi = pnsum + pplnsum;  % rad
     deltaeps = ensum + eplnsum;
+    if showit == 'y'
+        fprintf(1,'dpsi %11.7f deltaeps %11.7f \n', deltapsi/convrt, deltaeps/convrt); 
+    end
 
 
     % iau2006 approach - does not seem to be correct, close though
@@ -144,9 +148,15 @@
     j2d = -2.7774e-6 * ttt * convrt;  % rad
     deltapsi = deltapsi + deltapsi * (0.4697e-6 + j2d);  % rad
     deltaeps = deltaeps + deltaeps * j2d;
-
+    if showit == 'y'
+        fprintf(1,'dpsi %11.7f deltaeps %11.7f \n', deltapsi/convrt, deltaeps/convrt); 
+    end
 
     [prec,psia,wa,ea,xa] = precess ( ttt, '06' );
+    if showit == 'y'
+        fprintf(1,'prec iau 06 \n');
+        fprintf(1,'%20.14f %20.14f %20.14f \n',prec );
+    end
 
     oblo = 84381.406 * convrt; % " to rad or 448 - 406 for iau2006????
 
@@ -184,80 +194,26 @@
 
     pnb = a10*a9*a8*a7*a6*a5*a4*a3*a2*a1;
 
-    prec = a10*a9*a8*a7*a6*a5*a4;
-
+       
+    prec = a7*a6*a5*a4;
+    if showit == 'y'
+        fprintf(1,'prec iau 06a alt \n');
+        fprintf(1,'%20.14f %20.14f %20.14f \n',prec );
+    end
+    
     nut = a3*a2*a1;
+    if showit == 'y'
+        fprintf(1,'nut iau 06a \n');
+        fprintf(1,'%20.14f %20.14f %20.14f \n',nut );
+    end
 
-    % ---------------------- this is extra not needed for pna. finds
-    % xys from equinox parameters
-    if (iaupnhelp == 'y')
-        p = psia + ( deltapsi*sin(ea)*cos(xa) - deltaeps*sin(xa) ) / sin(wa);  % rad
-        w = wa + deltapsi*sin(ea)*sin(xa) + deltaeps*cos(xa);
+    frb = a10*a9*a8;
+    if showit == 'y'
+        fprintf(1,'frb iau 06a \n');
+        fprintf(1,'%20.14f %20.14f %20.14f \n',frb );
+    end
 
-        xbar = sin(w)*sin(p);  % rad
-        ybar = -sin(oblo)*cos(w) + cos(oblo)*sin(w)*cos(p);
 
-        x = xbar + (-0.0166170 + 0.01460*ybar)*convrt;  % rad
-        %            x = xbar + (-0.0417750 + 0.01460*ybar)*convrt;  % rad
-        y = ybar + (-0.0068192 - 0.01460*xbar)*convrt;
-
-        % -------- now find a
-        a = 0.5 + 0.125*(x*x + y*y);
-
-        % -------- now find s
-        ssum0 = 0.0;
-        for i = 33: -1 : 1
-            tempval = a0si(i,1)*l + a0si(i,2)*l1 + a0si(i,3)*f + a0si(i,4)*d + a0si(i,5)*omega + ...
-                a0si(i,6)*lonmer  + a0si(i,7)*lonven  + a0si(i,8)*lonear  + a0si(i,9)*lonmar + ...
-                a0si(i,10)*lonjup + a0si(i,11)*lonsat + a0si(i,12)*lonurn + a0si(i,13)*lonnep + a0si(i,14)*precrate;
-            ssum0 = ssum0 + ass0(i,1)*sin(tempval) + ass0(i,2)*cos(tempval);
-        end;
-        ssum1 = 0.0;
-        for j = 3: -1 : 1
-            i = 33 + j;
-            tempval = a0si(i,1)*l + a0si(i,2)*l1 + a0si(i,3)*f + a0si(i,4)*d + a0si(i,5)*omega + ...
-                a0si(i,6)*lonmer  + a0si(i,7)*lonven  + a0si(i,8)*lonear  + a0si(i,9)*lonmar + ...
-                a0si(i,10)*lonjup + a0si(i,11)*lonsat + a0si(i,12)*lonurn + a0si(i,13)*lonnep + a0si(i,14)*precrate;
-            ssum1 = ssum1 + ass0(i,1)*sin(tempval) + ass0(i,2)*cos(tempval);
-        end;
-        ssum2 = 0.0;
-        for j = 25: -1 : 1
-            i = 33 + 3 + j;
-            tempval = a0si(i,1)*l + a0si(i,2)*l1 + a0si(i,3)*f + a0si(i,4)*d + a0si(i,5)*omega + ...
-                a0si(i,6)*lonmer  + a0si(i,7)*lonven  + a0si(i,8)*lonear  + a0si(i,9)*lonmar + ...
-                a0si(i,10)*lonjup + a0si(i,11)*lonsat + a0si(i,12)*lonurn + a0si(i,13)*lonnep + a0si(i,14)*precrate;
-            ssum2 = ssum2 + ass0(i,1)*sin(tempval) + ass0(i,2)*cos(tempval);
-        end;
-        ssum3 = 0.0;
-        for j = 4: -1 : 1
-            i = 33 + 3 + 25 + j;
-            tempval = a0si(i,1)*l + a0si(i,2)*l1 + a0si(i,3)*f + a0si(i,4)*d + a0si(i,5)*omega + ...
-                a0si(i,6)*lonmer  + a0si(i,7)*lonven  + a0si(i,8)*lonear  + a0si(i,9)*lonmar + ...
-                a0si(i,10)*lonjup + a0si(i,11)*lonsat + a0si(i,12)*lonurn + a0si(i,13)*lonnep + a0si(i,14)*precrate;
-            ssum3 = ssum3 + ass0(i,1)*sin(tempval) + ass0(i,2)*cos(tempval);
-        end;
-        ssum4 = 0.0;
-        for j = 1: -1 : 1
-            i = 33 + 3 + 25 + 4 + j;
-            tempval = a0si(i,1)*l + a0si(i,2)*l1 + a0si(i,3)*f + a0si(i,4)*d + a0si(i,5)*omega + ...
-                a0si(i,6)*lonmer  + a0si(i,7)*lonven  + a0si(i,8)*lonear  + a0si(i,9)*lonmar + ...
-                a0si(i,10)*lonjup + a0si(i,11)*lonsat + a0si(i,12)*lonurn + a0si(i,13)*lonnep + a0si(i,14)*precrate;
-            ssum4 = ssum4 + ass0(i,1)*sin(tempval) + ass0(i,2)*cos(tempval);
-        end;
-
-        s = 0.000094 + 0.00380835*ttt - 0.00011994*ttt2 ...
-            - 0.07257409*ttt3 + 0.00002770*ttt4 + 0.00001561*ttt5; % ...
-        %                 + 0.00000171*ttt*sin(omega) + 0.00000357*ttt*cos(2.0*omega) ...
-        %                 + 0.00074353*ttt2*sin(omega) + 0.00005691*ttt2*sin(2.0*(f-d+omega)) ...
-        %                 + 0.00000984*ttt2*sin(2.0*(f+omega)) - 0.00000885*ttt2*sin(2.0*omega);
-        s = -x*y*0.5 + s*convrt + ssum0 + ssum1*ttt + ssum2*ttt2 + ssum3*ttt3 + ssum4*ttt4;  % rad
-
-        if iauhelp == 'x'
-            fprintf(1,'06pna  x  %14.12f" y  %14.12f" s %14.12f" a %14.12fdeg \n',x/deg2rad*3600,y/deg2rad*3600,s/deg2rad*3600,a/deg2rad );
-            %                fprintf(1,'p %11.7f w %11.7f xbar %11.7f ybar %11.7f deg \n',p*180/pi,w*180/pi,xbar*180/pi,ybar*180/pi );
-        end;
-
-    end;
 
 
 

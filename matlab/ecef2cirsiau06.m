@@ -41,7 +41,7 @@
     % ----------------------------------------------------------------------------
 
     function [rcirs,vcirs,acirs] = ecef2cirsiau06 ( recef,vecef,aecef,ttt,jdut1,lod,xp,yp,option );
-
+constastro;
     sethelp;
      
     % ---- ceo based, iau2006
@@ -64,7 +64,7 @@
     [pm] = polarm(xp,yp,ttt,'06');
 
     % ---- setup parameters for velocity transformations
-    thetasa= 7.29211514670698e-05 * (1.0  - lod/86400.0 );
+    thetasa= earthrot * (1.0  - lod/86400.0 );
     omegaearth = [0; 0; thetasa;];
 
     % ---- perform transformations

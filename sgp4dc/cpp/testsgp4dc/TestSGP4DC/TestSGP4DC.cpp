@@ -160,9 +160,10 @@ int main()
 	
 	// -------------------- initialize all the EOP data once at the beginning -------------------
 	// initialize FK5 nutation values
-	std::string Nut80Loc = "../nut80.dat";  //D:/Codes/LIBRARY/CPP/TestSGP4DC/
+	std::string Nut80Loc = "D:/Codes/LIBRARY/DataLib/";
+	std::string Nut00Loc = "D:/Codes/LIBRARY/DataLib/";  // all other files are here
 	iau80data iau80arr;
-	AstroLib::iau80in(Nut80Loc, iau80arr);
+	EopSpw::iau80in(Nut80Loc, iau80arr);
 
 	// initialize EOP file
 	double jdeopstart, jdeopstartf;
@@ -188,7 +189,7 @@ int main()
 
 	// ------ setup run
 	batchmode = 'n';   // set this to 'n' for debugging mode in the compiler
-	typeans = 's';     // bksub or svd b, s
+	typeans = 'b';     // bksub or svd b, s
 
 	// ephemeris to tle
 	//typeodrun = 't';   
@@ -627,7 +628,7 @@ void readobs
 /*       ----------------------------------------------------------------     */
 void processrazel
 (
-	char batchmode, char proptype, int derivType, double cdam, double cram, 
+	char batchmode, char proptype, int derivType, double cdam, double cram,
 	iau80data iau80rec,
 	const std::vector<eopdata> eoparr,
 	double jdeopstart, double jdeopstartf,
@@ -643,7 +644,7 @@ void processrazel
 )
 {
 	FILE *infile, *outfile, *outfile1;
-	std::vector<obsrec> obsrecarr; 
+	std::vector<obsrec> obsrecarr;
 	elsetrec satrec;
 	long search_satno = 0;
 	char longstr1[140], longstr2[140];
@@ -669,9 +670,9 @@ void processrazel
 
 	double rngest, zrng, zaz, zel, zrtasc, zdecl,
 		theta, theta1, copa, rsum[3], vsum[3];
-	char error[12];
+	char error[15];
 	int ii, j, skipped, eqeterms;
-	double rpos[3], vpos[3], rnomTEME[3], vnomTEME[3], dr[3], dv[3], r1[3], r2[3], r3[3], v1[3], v2[3], v3[3],  
+	double rpos[3], vpos[3], rnomTEME[3], vnomTEME[3], dr[3], dv[3], r1[3], r2[3], r3[3], v1[3], v2[3], v3[3],
 		rteme[3], vteme[3], ateme[3], aitrf[3], dtmin, jd, jdf,
 		r1teme[3], v1teme[3], r2teme[3], v2teme[3], r3teme[3], v3teme[3];
 	obsrec currobsrec;
@@ -716,15 +717,15 @@ void processrazel
 		percentchg = 0.001;  // percent to change components for finite differencing
 		printf("input percentchg for finite differencing (.001) \n");
 		//scanf_s("%lf", &percentchg);
-		
+
 		deltaamtchg = 0.0000001;  // delta amt to change components for finite differencing
 		printf("input deltaamtchg to chk in finite differencing (.0000001) \n");
 		//scanf_s("%lf", &deltaamtchg);
-		
+
 		rmsepsilon = 0.0002;  // percent to change components for finite differencing
 		printf("input rmsepsilon to quit (.02) \n");
 		//scanf_s("%lf", &rmsepsilon);
-		
+
 		statesize = 7;        // solve for bstar or not
 		printf("input statesize (6 or 7) \n");
 		//scanf_s("%i", &statesize);
@@ -763,8 +764,8 @@ void processrazel
 		// ----------------------- read obs from the input file -------------------------
 		strcpy_s(coords, "Fixed");  // assume earth fixed observations unless specified otherwise
 		ii = 0;
+		// limit to obsread?/?????????
 		while (feof(infile) == 0)
-			// limit to obsread?/?????????
 		{
 			if (ii != 0)
 				fgets(longstr2, 120, infile);
@@ -780,46 +781,46 @@ void processrazel
 				{
 				case 0:
 				{
-						  sscanf_s(longstr2, "%d %d %d %d %d %d %d %d %lf %lf ",
-							  &currobsrec.obstype, &currobsrec.satnum, &currobsrec.sennum,
-							  &currobsrec.year, &currobsrec.mon, &currobsrec.day,
-							  &currobsrec.hr, &currobsrec.min, &currobsrec.sec,
-							  &currobsrec.rng);
+					sscanf_s(longstr2, "%d %d %d %d %d %d %d %d %lf %lf ",
+						&currobsrec.obstype, &currobsrec.satnum, &currobsrec.sennum,
+						&currobsrec.year, &currobsrec.mon, &currobsrec.day,
+						&currobsrec.hr, &currobsrec.min, &currobsrec.sec,
+						&currobsrec.rng);
 				}
-					break;
+				break;
 				case 1:
 				{
-						  sscanf_s(longstr2, "%d %d %d %d %d %d %d %d %lf %lf %lf ",
-							  &currobsrec.obstype, &currobsrec.satnum, &currobsrec.sennum,
-							  &currobsrec.year, &currobsrec.mon, &currobsrec.day,
-							  &currobsrec.hr, &currobsrec.min, &currobsrec.sec,
-							  &currobsrec.az, &currobsrec.el);
-						  currobsrec.az = currobsrec.az / rad;
-						  currobsrec.el = currobsrec.el / rad;
+					sscanf_s(longstr2, "%d %d %d %d %d %d %d %d %lf %lf %lf ",
+						&currobsrec.obstype, &currobsrec.satnum, &currobsrec.sennum,
+						&currobsrec.year, &currobsrec.mon, &currobsrec.day,
+						&currobsrec.hr, &currobsrec.min, &currobsrec.sec,
+						&currobsrec.az, &currobsrec.el);
+					currobsrec.az = currobsrec.az / rad;
+					currobsrec.el = currobsrec.el / rad;
 				}
-					break;
+				break;
 				case 2:
 				{
-						  sscanf_s(longstr2, "%d %d %d %d %d %d %d %d %lf %lf %lf %lf ",
-							  &currobsrec.obstype, &currobsrec.satnum, &currobsrec.sennum,
-							  &currobsrec.year, &currobsrec.mon, &currobsrec.day,
-							  &currobsrec.hr, &currobsrec.min, &currobsrec.sec,
-							  &currobsrec.rng, &currobsrec.az, &currobsrec.el);
-						  currobsrec.az = currobsrec.az / rad;
-						  currobsrec.el = currobsrec.el / rad;
+					sscanf_s(longstr2, "%d %d %d %d %d %d %d %d %lf %lf %lf %lf ",
+						&currobsrec.obstype, &currobsrec.satnum, &currobsrec.sennum,
+						&currobsrec.year, &currobsrec.mon, &currobsrec.day,
+						&currobsrec.hr, &currobsrec.min, &currobsrec.sec,
+						&currobsrec.rng, &currobsrec.az, &currobsrec.el);
+					currobsrec.az = currobsrec.az / rad;
+					currobsrec.el = currobsrec.el / rad;
 				}
-					break;
+				break;
 				case 3:
 				{
-						  sscanf_s(longstr2, "%d %d %d %d %d %d %d %d %lf %lf %lf ",
-							  &currobsrec.obstype, &currobsrec.satnum, &currobsrec.sennum,
-							  &currobsrec.year, &currobsrec.mon, &currobsrec.day,
-							  &currobsrec.hr, &currobsrec.min, &currobsrec.sec,
-							  &currobsrec.trtasc, &currobsrec.tdecl);
-						  currobsrec.trtasc = currobsrec.trtasc / rad;
-						  currobsrec.tdecl = currobsrec.tdecl / rad;
+					sscanf_s(longstr2, "%d %d %d %d %d %d %d %d %lf %lf %lf ",
+						&currobsrec.obstype, &currobsrec.satnum, &currobsrec.sennum,
+						&currobsrec.year, &currobsrec.mon, &currobsrec.day,
+						&currobsrec.hr, &currobsrec.min, &currobsrec.sec,
+						&currobsrec.trtasc, &currobsrec.tdecl);
+					currobsrec.trtasc = currobsrec.trtasc / rad;
+					currobsrec.tdecl = currobsrec.tdecl / rad;
 				}
-					break;
+				break;
 				} // case obstype
 
 				year = currobsrec.year;
@@ -829,7 +830,8 @@ void processrazel
 				min = currobsrec.min;
 				sec = currobsrec.sec;
 				mfme = hr * 60 + min + sec / 60.0;
-				MathTimeLib::jday(year, mon, day, hr, min, sec, currobsrec.jd, currobsrec.jdf);  // not 0.0 for utc
+				// not 0.0 for utc
+				MathTimeLib::jday(year, mon, day, hr, min, sec, currobsrec.jd, currobsrec.jdf);  
 				if (ii == 1) // need the second one since it uses gibbs and thus the middle vector
 				{
 					MathTimeLib::jday(year, mon, day, hr, min, sec, satrec.jdsatepoch, satrec.jdsatepochF);
@@ -841,18 +843,19 @@ void processrazel
 				SGP4DC::getsensorparams(currobsrec.sennum, currsenrec);
 				AstroLib::site(currsenrec.senlat, currsenrec.senlon, currsenrec.senalt,
 					currobsrec.rsecef, currobsrec.vsecef);
-				
+
 				dtmin = ((currobsrec.jd + currobsrec.jdf) - (jdepoch + jdepochf)) * 1440.0;  // satrec.jdepoch
-				if (ii == 0)
-					currobsrec.dtmin = 0.0;  // first state is the epoch
+				if (ii == 1)
+					currobsrec.dtmin = 0.0;  // second state is the epoch
 				else
-				    currobsrec.dtmin = dtmin;
+					currobsrec.dtmin = dtmin;
 				obsrecarr[ii] = currobsrec;
 				ii = ii + 1;
-				if (fmod(ii, 30) == 0)
-					printf("over 30 obs \n");
 			}   // if strr
 		} // while ii through producing the observation vectors
+
+
+		printf("over 30 obs %3i \n", ii-1);
 
 		// setup nominal vector -----------------------------------------
 		satrec.bstar = 0.0001;  // set a deafult
@@ -879,7 +882,7 @@ void processrazel
 		keepit = 'y';
 
 		// try averaging the first 10 observations to get a value
-		for (ktr = 0; ktr < 10; ktr++)     // 10
+		for (ktr = 1; ktr < 10; ktr++)     // 10
 		{
 			switch (currobsrec.obstype)
 			{
@@ -892,11 +895,11 @@ void processrazel
 			case 2:  // very simplistic iod here just gets 3 position vectors in ecef,
 				// obs are in topocentric (sez) coordinates (ecef) range az el obs
 			{
-				AstroLib::rv_razel(r1, v1, obsrecarr[ktr].rsecef, currsenrec.senlat, currsenrec.senlon, MathTimeLib::eFrom,
+				AstroLib::rv_razel(r1, v1, currsenrec.senlat, currsenrec.senlon, currsenrec.senalt, MathTimeLib::eFrom,
 					obsrecarr[ktr].rng, obsrecarr[ktr].az, obsrecarr[ktr].el, zrng, zaz, zel);
-				AstroLib::rv_razel(r2, v2, obsrecarr[ktr + 1].rsecef, currsenrec.senlat, currsenrec.senlon, MathTimeLib::eFrom,
+				AstroLib::rv_razel(r2, v2, currsenrec.senlat, currsenrec.senlon, currsenrec.senalt, MathTimeLib::eFrom,
 					obsrecarr[ktr + 1].rng, obsrecarr[ktr + 1].az, obsrecarr[ktr + 1].el, zrng, zaz, zel);
-				AstroLib::rv_razel(r3, v3, obsrecarr[ktr + 2].rsecef, currsenrec.senlat, currsenrec.senlon, MathTimeLib::eFrom,
+				AstroLib::rv_razel(r3, v3, currsenrec.senlat, currsenrec.senlon, currsenrec.senalt, MathTimeLib::eFrom,
 					obsrecarr[ktr + 2].rng, obsrecarr[ktr + 2].az, obsrecarr[ktr + 2].el, zrng, zaz, zel);
 			}
 			break;
@@ -909,20 +912,18 @@ void processrazel
 			break;
 			} // case obstype
 
-			// perform iod (in earth inertial, use teme as approx eci)
+			// convert to eci  perform iod (in earth inertial, use teme as approx eci)
 			jd = obsrecarr[ktr].jd;
 			jdf = (obsrecarr[ktr].hr * 60.0 + obsrecarr[ktr].min + obsrecarr[ktr].sec / 60.0) * dayconv;
 			EopSpw::findeopparam(jd, jdf, 's', eoparr, jdeopstart, dut1, dat, lod, xp, yp, ddpsi, ddeps,
 				iaudx, dy, icrsx, y, s);
 			MathTimeLib::convtime(obsrecarr[ktr].year, obsrecarr[ktr].mon, obsrecarr[ktr].day, obsrecarr[ktr].hr, obsrecarr[ktr].min, obsrecarr[ktr].sec,
 				timezone, dut1, dat, ut1, tut1, jdut1, jdut1f, utc, tai, tt, ttt, jdtt, jdttf, tcg, tdb, ttdb, jdtdb, jdtdbf, tcb);
-						
 			// itrf to teme
 			//AstroLib::teme_ecef(r1teme, v1teme, ateme, MathTimeLib::eFrom, r1, v1, aitrf, ttt, xp, yp, jdut1, lod, eqeterms);
 			// these will actually be regular eci
-			AstroLib::itrf_gcrf(r1teme, v1teme, ateme, MathTimeLib::eFrom, r1, v1, aitrf,
-				iau80rec, e80, ttt, jdut1 + jdut1, lod, xp, yp, eqeterms, ddpsi, ddeps, trans);
-
+			AstroLib::itrf_gcrf(r1, v1, aitrf, MathTimeLib::eTo, r1teme, v1teme, ateme,
+				iau80rec, e80, ttt, jdut1 + jdut1f, lod, xp, yp, eqeterms, ddpsi, ddeps, trans);
 
 			jd = obsrecarr[ktr + 1].jd;
 			jdf = (obsrecarr[ktr + 1].hr * 60.0 + obsrecarr[ktr + 1].min + obsrecarr[ktr + 1].sec / 60.0) * dayconv;
@@ -932,8 +933,8 @@ void processrazel
 				timezone, dut1, dat, ut1, tut1, jdut1, jdut1f, utc, tai, tt, ttt, jdtt, jdttf, tcg, tdb, ttdb, jdtdb, jdtdbf, tcb);
 			// itrf to teme
 			//AstroLib::teme_ecef(r2teme, v2teme, ateme, MathTimeLib::eFrom, r2, v2, aitrf, ttt, xp, yp, jdut1, lod, eqeterms);
-			AstroLib::itrf_gcrf(r2teme, v2teme, ateme, MathTimeLib::eFrom, r2, v2, aitrf,
-				iau80rec, e80, ttt, jdut1+jdut1f, lod, xp, yp, eqeterms, ddpsi, ddeps, trans);
+			AstroLib::itrf_gcrf(r2, v2, aitrf, MathTimeLib::eTo, r2teme, v2teme, ateme,
+				iau80rec, e80, ttt, jdut1 + jdut1f, lod, xp, yp, eqeterms, ddpsi, ddeps, trans);
 
 			jd = obsrecarr[ktr + 2].jd;
 			jdf = (obsrecarr[ktr + 2].hr * 60.0 + obsrecarr[ktr + 2].min + obsrecarr[ktr + 2].sec / 60.0) * dayconv;
@@ -943,17 +944,16 @@ void processrazel
 				timezone, dut1, dat, ut1, tut1, jdut1, jdut1f, utc, tai, tt, ttt, jdtt, jdttf, tcg, tdb, ttdb, jdtdb, jdtdbf, tcb);
 			// itrf to teme
 			//AstroLib::teme_ecef(r3teme, v3teme, ateme, MathTimeLib::eFrom, r3, v3, aitrf, ttt, xp, yp, jdut1, lod, eqeterms);
-			AstroLib::itrf_gcrf(r3teme, v3teme, ateme, MathTimeLib::eFrom, r3, v3, aitrf,
-				iau80rec, e80, ttt, jdut1 + jdut1, lod, xp, yp, eqeterms, ddpsi, ddeps, trans);
+			AstroLib::itrf_gcrf(r3, v3, aitrf, MathTimeLib::eTo, r3teme, v3teme, ateme,
+				iau80rec, e80, ttt, jdut1 + jdut1f, lod, xp, yp, eqeterms, ddpsi, ddeps, trans);
 
 			// these are really eci here for now
 			AstroLib::gibbs(r1teme, r2teme, r3teme, v2teme, theta, theta1, copa, error);
 			fprintf(outfile1, " gibbs  %11.5lf  %11.5lf  %11.5lf %11.7lf %11.7lf %11.7lf \n", r2teme[0], r2teme[1], r2teme[2], v2teme[0], v2teme[1], v2teme[2]);
 			// most of these angles are just 0.72 deg apart
 			// the times in herrgibbs need to be in increasing order...
-			AstroLib::herrgibbs(r1teme, r2teme, r3teme, 0.0,
-				obsrecarr[ktr + 1].dtmin / 1440 - obsrecarr[ktr].dtmin / 1440,
-				obsrecarr[ktr + 2].dtmin / 1440 - obsrecarr[ktr].dtmin / 1440,
+			AstroLib::herrgibbs(r1teme, r2teme, r3teme, obsrecarr[ktr - 1].jd + obsrecarr[ktr - 1].jdf,
+				obsrecarr[ktr].jd + obsrecarr[ktr].jdf, obsrecarr[ktr + 1].jd + obsrecarr[ktr + 1].jdf,
 				v2teme, theta, theta1, copa, error);   // this is earth fixed
 			fprintf(outfile1, "hgibbs  %11.5lf  %11.5lf  %11.5lf %11.7lf %11.7lf %11.7lf ", r2[0], r2[1], r2[2], v2[0], v2[1], v2[2]);
 			fprintf(outfile1, "hgibbs  %11.5lf  %11.5lf  %11.5lf %11.7lf %11.7lf %11.7lf \n", obsrecarr[ktr].dtmin - obsrecarr[ktr].dtmin,
@@ -964,7 +964,7 @@ void processrazel
 			// now sum up the vector in teme to get an initial guess
 			// use two-body for simplicity and since short time span for iod
 			// move vectors back to middle vector time which is one ahead
-			AstroLib::kepler(r2teme, v2teme, obsrecarr[ktr + 1].dtmin*60.0, r1, v1);  // these will be all in teme
+			AstroLib::kepler(r2teme, v2teme, obsrecarr[ktr + 1].dtmin*60.0, r1, v1);  // these will be all in eci/teme
 
 			//                  if (ktr > 0) // don't ask for the first one
 			//                    {
@@ -997,6 +997,14 @@ void processrazel
 		vteme[1] = vsum[1] / ktr;
 		vteme[2] = vsum[2] / ktr;
 
+        // set it outright for testing =================================================
+		rteme[0] = 5975.2904;  
+		rteme[1] = 2568.6400;
+		rteme[2] = 3120.5845;
+		vteme[0] = 3.983846;
+		vteme[1] = -2.071159;
+		vteme[2] = -5.917095;
+
 		for (i = 0; i < 6; i++)
 		{
 			if (i < 3)
@@ -1022,6 +1030,10 @@ void processrazel
 			satrec.ndot, satrec.nddot, satrec.ecco, satrec.argpo, satrec.inclo, satrec.mo, satrec.no_kozai,
 			satrec.nodeo, satrec);
 
+
+		printf("rteme  %11.5lf  %11.5lf  %11.5lf %11.7lf %11.7lf %11.7lf \n", rteme[0], rteme[1], rteme[2], vteme[0], vteme[1], vteme[2]);
+		printf("coe  %11.5lf  %11.5lf  %11.5lf %11.7lf %11.7lf %11.7lf %11.7lf \n", satrec.a*6378.135, satrec.ecco, satrec.inclo*rad,
+			satrec.nodeo*rad, satrec.argpo*rad, satrec.mo*rad, satrec.no_kozai);
 		fprintf(outfile1, "rteme  %11.5lf  %11.5lf  %11.5lf %11.7lf %11.7lf %11.7lf \n", rteme[0], rteme[1], rteme[2], vteme[0], vteme[1], vteme[2]);
 		fprintf(outfile1, "coe  %11.5lf  %11.5lf  %11.5lf %11.7lf %11.7lf %11.7lf %11.7lf \n", satrec.a*6378.135, satrec.ecco, satrec.inclo*rad,
 			satrec.nodeo*rad, satrec.argpo*rad, satrec.mo*rad, satrec.no_kozai);
@@ -1061,7 +1073,7 @@ void processrazel
 		SGP4DC::leastsquares(percentchg, deltaamtchg, rmsepsilon, whichconst, interp, jdeopstart, satrec, typeans,
 			statetype, proptype, firstob, obsread, statesize, obsrecarr, loops,
 			xnom, jdepoch, jdepochf, derivType, cdam, cram, jplopt, jpldearr, jdjpldestart, iau80rec, eoparr, x, dx, atwai, atwa, atwb, outfile, outfile1);
-	
+
 		SGP4Funcs::sgp4(satrec, 0.0, rnomTEME, vnomTEME);
 		rpos[0] = obsrecarr[0].x;
 		rpos[1] = obsrecarr[0].y;

@@ -38,9 +38,9 @@ function [st]  = iau06era (jdut1 );
         era = twopi * ( 0.7790572732640 + 1.00273781191135448 * tut1d );
         era = rem (era,twopi);
 
-        if iauhelp == 'y'
+        %if iauhelp == 'y'
             fprintf(1,'era%11.7f  \n',era*180/pi );
-          end;
+        %  end;
 
         % transformation matrix
         st(1,1) =  cos(era);

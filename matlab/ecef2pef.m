@@ -31,12 +31,12 @@
 %  references    :
 %    vallado       2001, 219, eq 3-65 to 3-66
 %
-% [rpef,vpef,apef] = ecef2pef  ( recef,vecef,aecef, xp, yp, ttt )
+% [rpef,vpef,apef] = ecef2pef  ( recef,vecef,aecef, opt, xp, yp, ttt )
 % ----------------------------------------------------------------------------
 
-function [rpef,vpef,apef] = ecef2pef  ( recef,vecef,aecef, xp, yp, ttt )
+function [rpef,vpef,apef] = ecef2pef  ( recef,vecef,aecef, opt, xp, yp, ttt )
 
-        [pm] = polarm(xp,yp,ttt,'80');
+        [pm] = polarm(xp,yp,ttt,opt);
 
         rpef = pm*recef;
 

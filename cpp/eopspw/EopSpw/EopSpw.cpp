@@ -1,4 +1,4 @@
-/* ---------------------------------------------------------------------
+﻿/* ---------------------------------------------------------------------
 *
 *                              EopSpw.cpp
 *
@@ -31,6 +31,430 @@
 
 namespace EopSpw 
 {
+
+	/* -----------------------------------------------------------------------------
+	*
+	*                           function iau80in
+	*
+	*  this function initializes the nutation matricies needed for reduction
+	*    calculations. the routine needs the filename of the files as input.
+	*
+	*  author        : david vallado                  719-573-2600   27 may 2002
+	*
+	*  revisions
+	*    vallado     - conversion to c++                             21 feb 2005
+	*
+	*  inputs          description                    range / units
+	*    EopLoc      - location of data input file
+	*  outputs       :
+	*    iau80arr    - record containing the iau80 constants rad
+	*
+	*  locals        :
+	*    convrt      - conversion factor milli arcsec to radians
+	*    i,j         - index
+	*
+	*  coupling      :
+	*    none        -
+	*
+	*  references    :
+	* --------------------------------------------------------------------------- */
+
+	void iau80in
+	(
+		std::string EopLoc,
+		iau80data& iau80arr
+	)
+	{
+		FILE *infile;
+		double convrt;
+		int i, j, ret;
+
+		// ------------------------  implementation   -------------------
+		convrt = 0.0001 * pi / (180 * 3600.0); 	// 0.0001" to rad
+
+#ifdef _MSC_VER
+		infile = fopen((EopLoc+"nut80.dat").c_str(), "r");
+#else
+		infile = fopen(EopLoc, "r");
+#endif
+
+		for (i = 0; i < 106; i++)
+		{
+#ifdef _MSC_VER
+			ret = fscanf_s(infile, "%d %d %d %d %d %lf %lf %lf %lf %d \n ",
+				&iau80arr.iar80[i][0], &iau80arr.iar80[i][1], &iau80arr.iar80[i][2],
+				&iau80arr.iar80[i][3], &iau80arr.iar80[i][4],
+				&iau80arr.rar80[i][0], &iau80arr.rar80[i][1], &iau80arr.rar80[i][2],
+				&iau80arr.rar80[i][3], &j);
+#else
+			ret = fscanf(infile, "%d %d %d %d %d %lf %lf %lf %lf %d \n ",
+				&iau80arr.iar80[i][0], &iau80arr.iar80[i][1], &iau80arr.iar80[i][2],
+				&iau80arr.iar80[i][3], &iau80arr.iar80[i][4],
+				&iau80arr.rar80[i][0], &iau80arr.rar80[i][1], &iau80arr.rar80[i][2],
+				&iau80arr.rar80[i][3], &j);
+#endif
+			if (ret == EOF)
+			{
+				break;      /* get out of loop reading lines � found end of file prematurely */
+			}
+
+			for (j = 0; j < 4; j++)
+				iau80arr.rar80[i][j] = iau80arr.rar80[i][j] * convrt;
+		}
+		fclose(infile);
+	}  // procedure iau80in
+
+
+		/* ----------------------------------------------------------------------------
+		*
+		*                           function iau00in
+		*
+		*  this function initializes the matricies needed for iau 2000 reduction
+		*    calculations. the routine uses the files listed as inputs, but they are
+		*    are not input to the routine as they are static files.
+		*
+		*  author        : david vallado                  719-573-2600   16 jul 2004
+		*
+		*  revisions
+		*    dav 14 apr 11  update for iau2010 conventions
+		*
+		*  inputs description                                      range / units
+		*    none
+		*    iau00x.dat  - file for x coefficient
+		*    iau00y.dat  - file for y coefficient
+		*    iau00s.dat  - file for s coefficient
+		*    iau00n.dat  - file for nutation coefficients
+		*    iau00pl.dat notused - file for planetary nutation coefficients
+		*    iau00gs.dat - file for gmst coefficients
+		*
+		*  outputs       :
+		*    axs0        - real coefficients for x                     rad
+		*    a0xi        - integer coefficients for x
+		*    ays0        - real coefficients for y                     rad
+		*    a0yi        - integer coefficients for y
+		*    ass0        - real coefficients for s                     rad
+		*    a0si        - integer coefficients for s
+		*    apn         - real coefficients for nutation              rad
+		*    apni        - integer coefficients for nutation
+		*    ape         - real coefficients for obliquity             rad
+		*    apei        - integer coefficients for obliquity
+		*    agst        - real coefficients for gst                   rad
+		*    agsti       - integer coefficients for gst
+		*
+		*  locals        :
+		*    convrt      - conversion factor to radians
+		*    i           - index
+		*
+		*  coupling      :
+		*    none        -
+		*
+		*  references    :
+		*    vallado     2013, pg 205-219, 910-912
+		* ----------------------------------------------------------------------------- */
+
+	void iau00in
+	(
+		std::string EopLoc,
+		iau00data& iau00arr
+	)
+	{
+		FILE *infile;
+		// string line;
+		int i, j, ret, tmpint;
+		double tmpdbl;
+		char longstr1[180];
+		// int k, numsegs, ktr;
+
+		// ------------------------  implementation   -------------------
+		// " to rad
+		double convrtu = (0.000001 * pi) / (180.0 * 3600.0);  // if micro arcsecond
+		double convrtm = (0.001 * pi) / (180.0 * 3600.0);     // if milli arcsecond
+
+		// ------------------------------
+		//  note that since all these coefficients have only a single decimal place, one could store them as integers, and then simply
+		//  divide by one additional power of ten. it would make memory storage much smaller and potentially faster.
+
+		// xys values
+		// tab5.2a.txt in IERS
+		// find first data point, and number for the segment
+		//ktr = 0;  // ktr going through the file
+		//k = 0;    // ktr through array of values
+		//while (ktr < fileData.Count())
+		//{
+		//    while (!(fileData[ktr][0] == 'j'))
+		//        ktr = ktr + 1;
+		//    numsegs = Convert.ToInt32(fileData[ktr].Split('=')[2]);
+		//    ktr = ktr + 2;
+		//    for (i = 0; i < numsegs; i++)
+		//    {
+		//        //line = Regex.Replace(fileData[i], @"\s+", "|");
+		//        //string[] linedata = line.Split('|');
+		//        // reals
+		//        string[] linedata = Regex.Split(fileData[ktr], pattern);
+		//        iau00arr.axs0[k, 0] = Convert.ToDouble(linedata[2]) * convrtu;  // rad
+		//        iau00arr.axs0[k, 1] = Convert.ToDouble(linedata[3]) * convrtu;  // rad
+		//                                                                        // integers
+		//        for (j = 0; j < 13; j++)
+		//            iau00arr.a0xi[k, j] = Convert.ToInt32(linedata[j + 4]);
+		//        k = k + 1;
+		//        ktr = ktr + 1;
+		//    }
+		//}
+
+			// iau00x.txt in IERS
+#ifdef _MSC_VER
+		infile = fopen((EopLoc + "iau06xtab5.2.a.dat").c_str(), "r");
+#else
+		infile = fopen(EopLoc, "r");
+#endif
+		// read header lines
+		fgets(longstr1, 160, infile);
+		fgets(longstr1, 160, infile);
+		for (i = 0; i < 1600; i++)
+		{
+#ifdef _MSC_VER
+			ret = fscanf_s(infile, "%d %lf %lf %d %d %d %d %d %d %d %d %d %d %d %d %d %d \n ",
+				&tmpint, &iau00arr.axs0[i][0], &iau00arr.axs0[i][1],
+				&iau00arr.a0xi[i][0], &iau00arr.a0xi[i][1], &iau00arr.a0xi[i][2], &iau00arr.a0xi[i][3],
+				&iau00arr.a0xi[i][4], &iau00arr.a0xi[i][5], &iau00arr.a0xi[i][6], &iau00arr.a0xi[i][7],
+				&iau00arr.a0xi[i][8], &iau00arr.a0xi[i][9], &iau00arr.a0xi[i][10], &iau00arr.a0xi[i][11],
+				&iau00arr.a0xi[i][12], &iau00arr.a0xi[i][13]);
+#else
+			ret = fscanf(infile, "%d %lf %lf %d %d %d %d %d %d %d %d %d %d %d %d %d %d \n ",
+				&tmpint, &iau00arr.axs0[i][0], &iau00arr.axs0[i][1],
+				&iau00arr.a0xi[i][0], &iau00arr.a0xi[i][1], &iau00arr.a0xi[i][2], &iau00arr.a0xi[i][3],
+				&iau00arr.a0xi[i][4], &iau00arr.a0xi[i][5], &iau00arr.a0xi[i][6], &iau00arr.a0xi[i][7],
+				&iau00arr.a0xi[i][8], &iau00arr.a0xi[i][9], &iau00arr.a0xi[i][10], &iau00arr.a0xi[i][11],
+				&iau00arr.a0xi[i][12], &iau00arr.a0xi[i][13]);
+#endif
+
+			for (j = 0; j <= 1; j++)
+				iau00arr.axs0[i][j] = iau00arr.axs0[i][j] * convrtu;   // rad
+		}
+
+		// tab5.2b.txt in IERS
+#ifdef _MSC_VER
+		infile = fopen((EopLoc + "iau06ytab5.2.b.dat").c_str(), "r");
+#else
+		infile = fopen(EopLoc, "r");
+#endif
+		// read header lines
+		fgets(longstr1, 160, infile);
+		fgets(longstr1, 160, infile);
+		for (i = 0; i < 1275; i++)
+		{
+#ifdef _MSC_VER
+			ret = fscanf_s(infile, "%d %lf %lf %d %d %d %d %d %d %d %d %d %d %d %d %d %d \n ",
+				&tmpint, &iau00arr.ays0[i][0], &iau00arr.ays0[i][1],
+				&iau00arr.a0yi[i][0], &iau00arr.a0yi[i][1], &iau00arr.a0yi[i][2], &iau00arr.a0yi[i][3],
+				&iau00arr.a0yi[i][4], &iau00arr.a0yi[i][5], &iau00arr.a0yi[i][6], &iau00arr.a0yi[i][7],
+				&iau00arr.a0yi[i][8], &iau00arr.a0yi[i][9], &iau00arr.a0yi[i][10], &iau00arr.a0yi[i][11],
+				&iau00arr.a0yi[i][12], &iau00arr.a0yi[i][13]);
+#else
+			ret = fscanf(infile, "%d %lf %lf %d %d %d %d %d %d %d %d %d %d %d %d %d %d \n ",
+				&tmpint, &iau00arr.ays0[i][0], &iau00arr.ays0[i][1],
+				&iau00arr.a0yi[i][0], &iau00arr.a0yi[i][1], &iau00arr.a0yi[i][2], &iau00arr.a0yi[i][3],
+				&iau00arr.a0yi[i][4], &iau00arr.a0yi[i][5], &iau00arr.a0yi[i][6], &iau00arr.a0yi[i][7],
+				&iau00arr.a0yi[i][8], &iau00arr.a0yi[i][9], &iau00arr.a0yi[i][10], &iau00arr.a0yi[i][11],
+				&iau00arr.a0yi[i][12], &iau00arr.a0yi[i][13]);
+#endif
+
+			for (j = 0; j <= 1; j++)
+				iau00arr.ays0[i][j] = iau00arr.ays0[i][j] * convrtu;   // rad
+		}
+
+		// tab5.2d.txt in IERS
+#ifdef _MSC_VER
+		infile = fopen((EopLoc + "iau06stab5.2.d.dat").c_str(), "r");
+#else
+		infile = fopen(EopLoc, "r");
+#endif
+		// read header lines
+		fgets(longstr1, 160, infile);
+		fgets(longstr1, 160, infile);
+		for (i = 0; i < 66; i++)
+		{
+#ifdef _MSC_VER
+			ret = fscanf_s(infile, "%d %lf %lf %d %d %d %d %d %d %d %d %d %d %d %d %d %d \n ",
+				&tmpint, &iau00arr.ass0[i][0], &iau00arr.ass0[i][1],
+				&iau00arr.a0si[i][0], &iau00arr.a0si[i][1], &iau00arr.a0si[i][2], &iau00arr.a0si[i][3],
+				&iau00arr.a0si[i][4], &iau00arr.a0si[i][5], &iau00arr.a0si[i][6], &iau00arr.a0si[i][7],
+				&iau00arr.a0si[i][8], &iau00arr.a0si[i][9], &iau00arr.a0si[i][10], &iau00arr.a0si[i][11],
+				&iau00arr.a0si[i][12], &iau00arr.a0si[i][13]);
+#else
+			ret = fscanf(infile, "%d %lf %lf %d %d %d %d %d %d %d %d %d %d %d %d %d %d \n ",
+				&tmpint, &iau00arr.ass0[i][0], &iau00arr.ass0[i][1],
+				&iau00arr.a0si[i][0], &iau00arr.a0si[i][1], &iau00arr.a0si[i][2], &iau00arr.a0si[i][3],
+				&iau00arr.a0si[i][4], &iau00arr.a0si[i][5], &iau00arr.a0si[i][6], &iau00arr.a0si[i][7],
+				&iau00arr.a0si[i][8], &iau00arr.a0si[i][9], &iau00arr.a0si[i][10], &iau00arr.a0si[i][11],
+				&iau00arr.a0si[i][12], &iau00arr.a0si[i][13]);
+#endif
+
+			for (j = 0; j <= 1; j++)
+				iau00arr.ass0[i][j] = iau00arr.ass0[i][j] * convrtu;   // rad
+		}
+
+		//     // nutation values old approach iau2000a
+#ifdef _MSC_VER
+		infile = fopen((EopLoc + "iau00ansofa.dat").c_str(), "r");
+#else
+		infile = fopen(EopLoc, "r");
+#endif
+		// read header lines
+		fgets(longstr1, 160, infile);
+		fgets(longstr1, 160, infile);
+		for (i = 0; i < 678; i++)
+		{
+#ifdef _MSC_VER
+			ret = fscanf_s(infile, "%d %d %d %d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf \n",
+				&iau00arr.appni[i][0], &iau00arr.appni[i][1], &iau00arr.appni[i][2], &iau00arr.appni[i][3], &iau00arr.appni[i][4],
+				&tmpdbl,
+				&iau00arr.appn[i][0], &iau00arr.appn[i][1], &iau00arr.appn[i][2], &iau00arr.appn[i][3],
+				&iau00arr.appn[i][4], &iau00arr.appn[i][5], &iau00arr.appn[i][6], &iau00arr.appn[i][7]);
+#else
+			ret = fscanf(infile, "%d %d %d %d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf \n",
+				&iau00arr.appni[i][0], &iau00arr.appni[i][1], &iau00arr.appni[i][2], &iau00arr.appni[i][3], &iau00arr.appni[i][4],
+				&tmpdbl,
+				&iau00arr.appn[i][0], &iau00arr.appn[i][1], &iau00arr.appn[i][2], &iau00arr.appn[i][3],
+				&iau00arr.appn[i][4], &iau00arr.appn[i][5], &iau00arr.appn[i][6], &iau00arr.appn[i][7]);
+#endif
+
+			for (j = 0; j < 8; j++)
+				iau00arr.appn[i][j] = iau00arr.appn[i][j] * convrtm;   // rad
+		}
+
+		//     // planetary nutation values
+#ifdef _MSC_VER
+		infile = fopen((EopLoc + "iau00anplsofa.dat").c_str(), "r");
+#else
+		infile = fopen(EopLoc, "r");
+#endif
+		// read header lines
+		fgets(longstr1, 160, infile);
+		fgets(longstr1, 160, infile);
+		for (i = 0; i < 687; i++)
+		{
+#ifdef _MSC_VER
+			ret = fscanf_s(infile, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %lf %lf %lf %lf %lf %lf \n",
+				&tmpint,
+				&iau00arr.aplni[i][0], &iau00arr.aplni[i][1], &iau00arr.aplni[i][2], &iau00arr.aplni[i][3], &iau00arr.aplni[i][4],
+				&iau00arr.aplni[i][5], &iau00arr.aplni[i][6], &iau00arr.aplni[i][7], &iau00arr.aplni[i][8], &iau00arr.aplni[i][9],
+				&iau00arr.aplni[i][10], &iau00arr.aplni[i][11], &iau00arr.aplni[i][12], &iau00arr.aplni[i][13],
+				&tmpdbl, &iau00arr.apln[i][0], &iau00arr.apln[i][1],
+				&iau00arr.apln[i][2], &iau00arr.apln[i][3], &iau00arr.apln[i][4]);
+#else
+			ret = fscanf(infile, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %lf %lf %lf %lf %lf %lf \n",
+				&tmpint,
+				&iau00arr.aplni[i][0], &iau00arr.aplni[i][1], &iau00arr.aplni[i][2], &iau00arr.aplni[i][3], &iau00arr.aplni[i][4],
+				&iau00arr.aplni[i][5], &iau00arr.aplni[i][6], &iau00arr.aplni[i][7], &iau00arr.aplni[i][8], &iau00arr.aplni[i][9],
+				&iau00arr.aplni[i][10], &iau00arr.aplni[i][11], &iau00arr.aplni[i][12], &iau00arr.aplni[i][13],
+				&tmpdbl, &iau00arr.apln[i][0], &iau00arr.apln[i][1],
+				&iau00arr.apln[i][2], &iau00arr.apln[i][3], &iau00arr.apln[i][4]);
+#endif
+			for (j = 0; j < 5; j++)
+				iau00arr.apln[i][j] = iau00arr.apln[i][j] * convrtm;   // rad
+		}
+
+
+		// tab5.3a.txt in IERS
+		// nutation values planetary now included new iau2006
+		// nutation in longitude
+#ifdef _MSC_VER
+		infile = fopen((EopLoc + "iau06nlontab5.3.a.dat").c_str(), "r");
+#else
+		infile = fopen(EopLoc, "r");
+#endif
+		// read header lines
+		fgets(longstr1, 160, infile);
+		fgets(longstr1, 160, infile);
+		for (i = 0; i < 1358; i++)
+		{
+#ifdef _MSC_VER
+			ret = fscanf_s(infile, "%d %lf %lf %d %d %d %d %d %d %d %d %d %d %d %d %d %d \n",
+				&tmpint,
+				&iau00arr.apn[i][0], &iau00arr.apn[i][1],
+				&iau00arr.apni[i][0], &iau00arr.apni[i][1], &iau00arr.apni[i][2], &iau00arr.apni[i][3], &iau00arr.apni[i][4],
+				&iau00arr.apni[i][5], &iau00arr.apni[i][6], &iau00arr.apni[i][7], &iau00arr.apni[i][8], &iau00arr.apni[i][9],
+				&iau00arr.apni[i][10], &iau00arr.apni[i][11], &iau00arr.apni[i][12], &iau00arr.apni[i][13]);
+#else
+			ret = fscanf(infile, "%d %lf %lf %d %d %d %d %d %d %d %d %d %d %d %d %d %d \n",
+				&tmpint,
+				&iau00arr.apn[i][0], &iau00arr.apn[i][1],
+				&iau00arr.apni[i][0], &iau00arr.apni[i][1], &iau00arr.apni[i][2], &iau00arr.apni[i][3], &iau00arr.apni[i][4],
+				&iau00arr.apni[i][5], &iau00arr.apni[i][6], &iau00arr.apni[i][7], &iau00arr.apni[i][8], &iau00arr.apni[i][9],
+				&iau00arr.apni[i][10], &iau00arr.apni[i][11], &iau00arr.apni[i][12], &iau00arr.apni[i][13]);
+#endif
+			for (j = 0; j < 1; j++)
+				iau00arr.apn[i][j] = iau00arr.apn[i][j] * convrtu;   // rad
+		}
+
+
+		// tab5.3b.txt in IERS
+	// nutation in obliquity
+#ifdef _MSC_VER
+		infile = fopen((EopLoc + "iau06nobltab5.3.b.dat").c_str(), "r");
+#else
+		infile = fopen(EopLoc, "r");
+#endif
+		// read header lines
+		fgets(longstr1, 160, infile);
+		fgets(longstr1, 160, infile);
+		for (i = 0; i < 1056; i++)
+		{
+#ifdef _MSC_VER
+			ret = fscanf_s(infile, "%d %lf %lf %d %d %d %d %d %d %d %d %d %d %d %d %d %d \n",
+				&tmpint,
+				&iau00arr.ape[i][0], &iau00arr.ape[i][1],
+				&iau00arr.apei[i][0], &iau00arr.apei[i][1], &iau00arr.apei[i][2], &iau00arr.apei[i][3], &iau00arr.apei[i][4],
+				&iau00arr.apei[i][5], &iau00arr.apei[i][6], &iau00arr.apei[i][7], &iau00arr.apei[i][8], &iau00arr.apei[i][9],
+				&iau00arr.apei[i][10], &iau00arr.apei[i][11], &iau00arr.apei[i][12], &iau00arr.apei[i][13]);
+#else
+			ret = fscanf(infile, "%d %lf %lf %d %d %d %d %d %d %d %d %d %d %d %d %d %d \n",
+				&tmpint,
+				&iau00arr.ape[i][0], &iau00arr.ape[i][1],
+				&iau00arr.apei[i][0], &iau00arr.apei[i][1], &iau00arr.apei[i][2], &iau00arr.apei[i][3], &iau00arr.apei[i][4],
+				&iau00arr.apei[i][5], &iau00arr.apei[i][6], &iau00arr.apei[i][7], &iau00arr.apei[i][8], &iau00arr.apei[i][9],
+				&iau00arr.apei[i][10], &iau00arr.apei[i][11], &iau00arr.apei[i][12], &iau00arr.apei[i][13]);
+#endif
+			for (j = 0; j < 1; j++)
+				iau00arr.ape[i][j] = iau00arr.ape[i][j] * convrtu;   // rad
+		}
+
+
+		// tab5.2e.txt in IERS
+		// gmst values
+		// note - these are very similar to the first 34 elements of iau00s.dat,
+		// but they are not the same.
+#ifdef _MSC_VER
+		infile = fopen((EopLoc + "iau06gsttab5.2.e.dat").c_str(), "r");
+#else
+		infile = fopen(EopLoc, "r");
+#endif
+		// read header lines
+		fgets(longstr1, 160, infile);
+		fgets(longstr1, 160, infile);
+		for (i = 0; i < 34; i++)
+		{
+#ifdef _MSC_VER
+			ret = fscanf_s(infile, "%d %lf %lf %d %d %d %d %d %d %d %d %d %d %d %d %d %d \n",
+				&tmpint,
+				&iau00arr.agst[i][0], &iau00arr.agst[i][1],
+				&iau00arr.agsti[i][0], &iau00arr.agsti[i][1], &iau00arr.agsti[i][2], &iau00arr.agsti[i][3], &iau00arr.agsti[i][4],
+				&iau00arr.agsti[i][5], &iau00arr.agsti[i][6], &iau00arr.agsti[i][7], &iau00arr.agsti[i][8], &iau00arr.agsti[i][9],
+				&iau00arr.agsti[i][10], &iau00arr.agsti[i][11], &iau00arr.agsti[i][12], &iau00arr.agsti[i][13]);
+#else
+			ret = fscanf(infile, "%d %lf %lf %d %d %d %d %d %d %d %d %d %d %d %d %d %d \n",
+				&tmpint,
+				&iau00arr.agst[i][0], &iau00arr.agst[i][1],
+				&iau00arr.agsti[i][0], &iau00arr.agsti[i][1], &iau00arr.agsti[i][2], &iau00arr.agsti[i][3], &iau00arr.agsti[i][4],
+				&iau00arr.agsti[i][5], &iau00arr.agsti[i][6], &iau00arr.agsti[i][7], &iau00arr.agsti[i][8], &iau00arr.agsti[i][9],
+				&iau00arr.agsti[i][10], &iau00arr.agsti[i][11], &iau00arr.agsti[i][12], &iau00arr.agsti[i][13]);
+#endif
+			for (j = 0; j <= 1; j++)
+				iau00arr.agst[i][j] = iau00arr.agst[i][j] * convrtu;   // rad
+		}
+
+	}    // iau00in
 
 	/* -----------------------------------------------------------------------------
 	*
@@ -618,14 +1042,14 @@ namespace EopSpw
 		*  -------------------------------------------------------------------------- */
 
 	void findspwparam
-		(
+	(
 		double jdutc, double jdutcF, char interp, char fluxtype, char f81type, char inputtype,
 		const std::vector<spwdata> spwarr,  // pass by ref, not modify
 		double jdspwstart,
 		double& f107, double& f107bar,
 		double& ap, double& avgap, double aparr[8],
 		double& kp, double& sumkp, double kparr[8]
-		)
+	)
 	{
 		int     recnum, idx, i, j, off1, off2;
 		double  jd1, mfme, jdspwstarto, fluxtime, fixf, tf107, tf107bar;
@@ -700,120 +1124,119 @@ namespace EopSpw
 			kp = spwrec.kparr[idx] * 0.1;
 
 			// ------------------------ do interpolations ------------------------
-				if (interp == 'l')
+			if (interp == 'l')
+			{
+				if (jdutcF * 1440.0 > fluxtime - 720.0) // go 12 hrs before...
 				{
-					if (jdutcF * 1440.0 > fluxtime - 720.0) // go 12 hrs before...
-					{
-						if (jdutcF * 1440.0 > fluxtime)
-							tempspwrec = nextspwrec;
-						else
-							tempspwrec = lastspwrec;
-						fixf = (fluxtime - jdutcF * 1440.0) / 1440.0;
-					}
+					if (jdutcF * 1440.0 > fluxtime)
+						tempspwrec = nextspwrec;
 					else
-					{
 						tempspwrec = lastspwrec;
-						fixf = (jdutcF * 1440.0 + (1440 - fluxtime)) / 1440.0;
-					}
-					if (fluxtype == 'a') // adjusted or observed values
-					{
-						tf107 = tempspwrec.adjf10;
-						if (f81type == 'l')
-							tf107bar = tempspwrec.adjlstf81;
-						else
-							tf107bar = tempspwrec.adjctrf81;
-					}
+					fixf = (fluxtime - jdutcF * 1440.0) / 1440.0;
+				}
+				else
+				{
+					tempspwrec = lastspwrec;
+					fixf = (jdutcF * 1440.0 + (1440 - fluxtime)) / 1440.0;
+				}
+				if (fluxtype == 'a') // adjusted or observed values
+				{
+					tf107 = tempspwrec.adjf10;
+					if (f81type == 'l')
+						tf107bar = tempspwrec.adjlstf81;
 					else
-					{
-						tf107 = tempspwrec.obsf10;
-						if (f81type == 'l')
-							tf107bar = tempspwrec.obslstf81;
-						else
-							tf107bar = tempspwrec.obsctrf81;
-					}
-					// ---- perform simple linear interpolation
-					if (jdutcF * 1440.0 <= fluxtime)
-					{
-						if (jdutcF * 1440.0 > fluxtime - 720.0)
-						{
-							f107 = f107 + (tf107 - f107) * fixf;
-							f107bar = f107bar + (tf107bar - f107bar) * fixf;
-						}
-						else
-						{
-							f107 = tf107 + (f107 - tf107) * fixf;
-							f107bar = tf107bar + (f107bar - tf107bar) * fixf;
-						}
-					}
+						tf107bar = tempspwrec.adjctrf81;
+				}
+				else
+				{
+					tf107 = tempspwrec.obsf10;
+					if (f81type == 'l')
+						tf107bar = tempspwrec.obslstf81;
 					else
+						tf107bar = tempspwrec.obsctrf81;
+				}
+				// ---- perform simple linear interpolation
+				if (jdutcF * 1440.0 <= fluxtime)
+				{
+					if (jdutcF * 1440.0 > fluxtime - 720.0)
 					{
 						f107 = f107 + (tf107 - f107) * fixf;
 						f107bar = f107bar + (tf107bar - f107bar) * fixf;
 					}
-
-					// ---- do spline interpolations
-					if (interp == 's')
+					else
 					{
-						off1 = 1;
-						off2 = 2;
-						fixf = mfme / 1440.0;  // days for mjd
-						// setup so the interval is in between points 2 and 3
-						if (fluxtype == 'a') // adjusted 
-						{
-							f107 = MathTimeLib::cubicinterp(
-								lastspwrec.adjf10, spwrec.adjf10, nextspwrec.adjf10, spwarr[recnum + off2].adjf10,
-								lastspwrec.mjd, spwrec.mjd, nextspwrec.mjd, spwarr[recnum + off2].mjd,
-								spwrec.mjd + fixf);
-							if (f81type == 'l')
-								f107bar = MathTimeLib::cubicinterp(
-									lastspwrec.adjlstf81, spwrec.adjlstf81, nextspwrec.adjlstf81, spwarr[recnum + off2].adjlstf81,
-									lastspwrec.mjd, spwrec.mjd, nextspwrec.mjd, spwarr[recnum + off2].mjd,
-									spwrec.mjd + fixf);
-							else
-								f107bar = MathTimeLib::cubicinterp(
-									lastspwrec.adjctrf81, spwrec.adjctrf81, nextspwrec.adjctrf81, spwarr[recnum + off2].adjctrf81,
-									lastspwrec.mjd, spwrec.mjd, nextspwrec.mjd, spwarr[recnum + off2].mjd,
-									spwrec.mjd + fixf);
-						}
-						else  // observed values
-						{
-							f107 = MathTimeLib::cubicinterp(
-								lastspwrec.obsf10, spwrec.obsf10, nextspwrec.obsf10, spwarr[recnum + off2].obsf10,
-								lastspwrec.mjd, spwrec.mjd, nextspwrec.mjd, spwarr[recnum + off2].mjd,
-								spwrec.mjd + fixf);
-							if (f81type == 'l')
-								f107bar = MathTimeLib::cubicinterp(
-									lastspwrec.obslstf81, spwrec.obslstf81, nextspwrec.obslstf81, spwarr[recnum + off2].obslstf81,
-									lastspwrec.mjd, spwrec.mjd, nextspwrec.mjd, spwarr[recnum + off2].mjd,
-									spwrec.mjd + fixf);
-							else
-								f107bar = MathTimeLib::cubicinterp(
-									lastspwrec.obsctrf81, spwrec.obsctrf81, nextspwrec.obslstf81, spwarr[recnum + off2].obslstf81,
-									lastspwrec.mjd, spwrec.mjd, nextspwrec.mjd, spwarr[recnum + off2].mjd,
-									spwrec.mjd + fixf);
-						}
+						f107 = tf107 + (f107 - tf107) * fixf;
+						f107bar = tf107bar + (f107bar - tf107bar) * fixf;
+					}
+				}
+				else
+				{
+					f107 = f107 + (tf107 - f107) * fixf;
+					f107bar = f107bar + (tf107bar - f107bar) * fixf;
+				}
+			}
+			// ---- do spline interpolations
+			if (interp == 's')
+			{
+				off1 = 1;
+				off2 = 2;
+				fixf = mfme / 1440.0;  // days for mjd
+				// setup so the interval is in between points 2 and 3
+				if (fluxtype == 'a') // adjusted 
+				{
+					f107 = MathTimeLib::cubicinterp(
+						lastspwrec.adjf10, spwrec.adjf10, nextspwrec.adjf10, spwarr[recnum + off2].adjf10,
+						lastspwrec.mjd, spwrec.mjd, nextspwrec.mjd, spwarr[recnum + off2].mjd,
+						spwrec.mjd + fixf);
+					if (f81type == 'l')
+						f107bar = MathTimeLib::cubicinterp(
+							lastspwrec.adjlstf81, spwrec.adjlstf81, nextspwrec.adjlstf81, spwarr[recnum + off2].adjlstf81,
+							lastspwrec.mjd, spwrec.mjd, nextspwrec.mjd, spwarr[recnum + off2].mjd,
+							spwrec.mjd + fixf);
+					else
+						f107bar = MathTimeLib::cubicinterp(
+							lastspwrec.adjctrf81, spwrec.adjctrf81, nextspwrec.adjctrf81, spwarr[recnum + off2].adjctrf81,
+							lastspwrec.mjd, spwrec.mjd, nextspwrec.mjd, spwarr[recnum + off2].mjd,
+							spwrec.mjd + fixf);
+				}
+				else  // observed values
+				{
+					f107 = MathTimeLib::cubicinterp(
+						lastspwrec.obsf10, spwrec.obsf10, nextspwrec.obsf10, spwarr[recnum + off2].obsf10,
+						lastspwrec.mjd, spwrec.mjd, nextspwrec.mjd, spwarr[recnum + off2].mjd,
+						spwrec.mjd + fixf);
+					if (f81type == 'l')
+						f107bar = MathTimeLib::cubicinterp(
+							lastspwrec.obslstf81, spwrec.obslstf81, nextspwrec.obslstf81, spwarr[recnum + off2].obslstf81,
+							lastspwrec.mjd, spwrec.mjd, nextspwrec.mjd, spwarr[recnum + off2].mjd,
+							spwrec.mjd + fixf);
+					else
+						f107bar = MathTimeLib::cubicinterp(
+							lastspwrec.obsctrf81, spwrec.obsctrf81, nextspwrec.obslstf81, spwarr[recnum + off2].obslstf81,
+							lastspwrec.mjd, spwrec.mjd, nextspwrec.mjd, spwarr[recnum + off2].mjd,
+							spwrec.mjd + fixf);
+				}
 
-					}  // spline interpolation
+			}  // spline interpolation
 
-				} // if interp = f
-		}
+		} // if interp = f
 		else
 			// ---- user input data
-		if (inputtype == 'u')
-		{
-			// this is for data that may be simulated, or otherwise different from
-			// the current noaa data
+			if (inputtype == 'u')
+			{
+				// this is for data that may be simulated, or otherwise different from
+				// the current noaa data
 
-			// there could also be the interpolation stuff from above
+				// there could also be the interpolation stuff from above
 
-		}
-		else
-			// ---- constant data
-		if (inputtype == 'c')
-		{
-			// this data is the same all the time
-			// leave the same as when it enters
-		}
+			}
+			else
+				// ---- constant data
+				if (inputtype == 'c')
+				{
+					// this data is the same all the time
+					// leave the same as when it enters
+				}
 
 	}   // findatmosparam
 

@@ -41,13 +41,6 @@ namespace MathTimeLib
 #define twopi 2.0 * pi
 #define infinite  999999.9
 #define undefined 999999.1
-#define mum 3.986004415e14        // m^3/s^2 stk uses .4415
-#define mu 398600.4415            // km^3/s^2 stk uses .4415
-#define re 6378.1363              // km  stk uses .1363
-#define velkmps 7.9053657160394282
-#define earthrot 7.29211514670698e-05  // older rad/s
-#define spdLit 2.99792458e8       // speed of light m/s
-//#define  earthrot 7.292115e-05  // rad/s
 
 
 // global object definitions
@@ -73,14 +66,14 @@ namespace MathTimeLib
 	*/
 	// typedef matrix (std::vector< std::vector<double> >);
 
-	double  sgn
+	double round
 	(
 		double x
 	);
 
-	double round
+	double  cot
 	(
-		double x
+		double xval
 	);
 
 	double  acosh
@@ -89,11 +82,6 @@ namespace MathTimeLib
 	);
 
 	double  asinh
-	(
-		double xval
-	);
-
-	double  cot
 	(
 		double xval
 	);
@@ -213,6 +201,20 @@ namespace MathTimeLib
 		std::vector< std::vector<double> >& mat
 	);
 
+	void matequal
+	(
+		std::vector< std::vector<double> > mat1, int matr,
+		std::vector< std::vector<double> >& mat2
+	);
+
+
+	void matscale
+	(
+		std::vector< std::vector<double> > mat1, int matr, int matc, double scale,
+		std::vector< std::vector<double> >& mat2
+	);
+
+
 	void matadd
 	(
 		std::vector< std::vector<double> > mat1,
@@ -268,8 +270,9 @@ namespace MathTimeLib
 	(
 		std::vector< std::vector<double> > a,
 		int n,
-		std::vector< std::vector<double> >& ret
+		std::vector< std::vector<double> > &ret
 	);
+
 
 	void  writemat
 	(
@@ -309,27 +312,38 @@ namespace MathTimeLib
 		double p2c, double p2d, double valuein
 	);
 
+	double Percentile
+	(
+		double sequence, double excelPercentile, int arrSize
+	);
+
 	double factorial
 	(
 		long n
 	);
+
+	double  sgn
+	(
+		double x
+	);
+
 
 
 	// -----------------------------------------------------------------------------------------
 	//                                       time functions
 	// -----------------------------------------------------------------------------------------
 
-	int getmon
+	int getIntMonth
 	(
 		char instr[3]
 	);
 
-	int getday
+	int getIntDay
 	(
 		char instr[3]
 	);
 
-	int dayofweek
+	int getIntDayofweek
 	(
 		double jd
 	);

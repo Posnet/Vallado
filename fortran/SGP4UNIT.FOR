@@ -1242,7 +1242,7 @@ c       sgp4fix modern approach to finding sidereal time
 
 c      write(*,*) Satn,'  gst delta ', gsto-gsto1
 
-        INCLUDE 'debug5.for' 
+c        INCLUDE 'debug5.for' 
 
       RETURN
       END  ! end initl
@@ -1550,7 +1550,7 @@ c           sgp4fix for divide by zero with xinco = 180 deg
 
       CALL SGP4(whichconst, 0.0D0, r, v, error)
 
-        INCLUDE 'debug6.for'
+c        INCLUDE 'debug6.for'
 
       RETURN
       END  ! end sgp4init

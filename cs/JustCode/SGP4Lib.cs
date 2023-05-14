@@ -2179,6 +2179,7 @@ namespace SGP4Methods
         *    included at the end of the second line of data. this only works with the
         *    verification mode. the catalog mode simply propagates from -1440 to 1440 min
         *    from epoch and is useful when performing entire catalog runs.
+        *    Update for Alhpa 5 numbering system, 4 mar 2021. 
         *
         *  author        : david vallado                  719-573-2600    1 mar 2001
         *
@@ -2241,9 +2242,18 @@ namespace SGP4Methods
             //1 00005U 58002B   00179.78495062  .00000023  00000-0  28098-4 0  4753
             //2 00005  34.2682 348.7242 1859667 331.7664  19.3264 10.82419157413667 
             // sscanf(longstr1, "%2d %5ld %1c %10s %2d %12lf %11lf %7lf %2d %7lf %2d %2d %6ld ",
-            string[] linedata = Regex.Split(longstr1, "^([0-9 ]{2})([0-9 ]{5})([a-zA-Z]{1})([A-Z,a-z,0-9 ]{10})([-0-9 ]{2})([-0-9. ]{12})([-0-9. +]{11})" +
-                                                      "([-0-9. +]{7})([-0-9 +]{2})([-0-9. +]{7})([-0-9. +]{2})([-0-9. +]{2})([-0-9. ]{6})");
+            string[] linedata = new string[75];
 
+            if (longstr1.Length <= 67)
+                linedata = Regex.Split(longstr1, "^([0-9 ]{2})([0-9 A-Z]{5})([a-zA-Z]{1})([A-Z,a-z,0-9 ]{10})([-0-9 ]{2})([-0-9. ]{12})([-0-9. +]{11})" +
+                                         "([-0-9. +]{7})([-0-9 +]{2})([-0-9. +]{7})([-0-9. +]{2})([-0-9. +]{2})([-0-9. ]{6})");
+            else
+            {
+                // old tle format (one character shorter)
+                linedata = Regex.Split(longstr1, "^([0-9 ]{2})([0-9 A-Z]{5})([a-zA-Z]{1})([A-Z,a-z,0-9 ]{10})([-0-9 ]{2})([-0-9. ]{12})([-0-9. +]{11})" +
+                                         "([-0-9. +]{7})([-0-9 +]{2})([-0-9. +]{7})([-0-9. +]{2})([-0-9. +]{2})([-0-9. ]{5})");
+            }
+            
             cardnumb = Convert.ToInt16(linedata[1]);
             satrec.satnum = linedata[2];  // now a string for alpha5 or 9-digit
             satrec.classification = Convert.ToChar(linedata[3]);
@@ -2284,16 +2294,34 @@ namespace SGP4Methods
             {
                 if (longstr2[52].Equals(" "))
                 {
-                    //sscanf(longstr2, "%2d %5ld %9lf %9lf %8lf %9lf %9lf %10lf %6ld %lf %lf %lf \n",
+                    if (longstr2.Length < 68)
+                    {
+                        //sscanf(longstr2, "%2d %5ld %9lf %9lf %8lf %9lf %9lf %10lf %6ld %lf %lf %lf \n",
 
-                    linedata = Regex.Split(longstr2, "^([0-9 ]{2})([0-9 ]{5})([-0-9. ]{9})([-0-9. ]{9})([-0-9. ]{8})" +
+                        linedata = Regex.Split(longstr2, "^([0-9 ]{2})([0-9 A-Z]{5})([-0-9. ]{9})([-0-9. ]{9})([-0-9. ]{8})" +
                                                      @"([-0-9. ]{9})([-0-9. ]{9})([-0-9. ]{12})([-0-9 ]{6})\s+(\S+)\s+(\S+)\s+(\S+)");
+                    }
+                    else
+                    {
+                        // old tle format (one character shorter)
+                        linedata = Regex.Split(longstr2, "^([0-9 ]{2})([0-9 A-Z]{5})([-0-9. ]{9})([-0-9. ]{9})([-0-9. ]{8})" +
+                                                     @"([-0-9. ]{9})([-0-9. ]{9})([-0-9. ]{12})([-0-9 ]{5})\s+(\S+)\s+(\S+)\s+(\S+)");
+                    }
                 }
                 else
                 {
-                    //sscanf(longstr2, "%2d %5ld %9lf %9lf %8lf %9lf %9lf %11lf %6ld %lf %lf %lf \n",
-                    linedata = Regex.Split(longstr2, "^([0-9 ]{2})([0-9 ]{5})([-0-9. ]{9})([-0-9. ]{9})([-0-9. ]{8})" +
-                                                       @"([-0-9. ]{9})([-0-9. ]{9})([-0-9. ]{12})([-0-9 ]{6})\s+(\S+)\s+(\S+)\s+(\S+)");
+                    if (longstr2.Length < 68)
+                    {
+                        //sscanf(longstr2, "%2d %5ld %9lf %9lf %8lf %9lf %9lf %11lf %6ld %lf %lf %lf \n",
+                        linedata = Regex.Split(longstr2, "^([0-9 ]{2})([0-9 A-Z]{5})([-0-9. ]{9})([-0-9. ]{9})([-0-9. ]{8})" +
+                                                           @"([-0-9. ]{9})([-0-9. ]{9})([-0-9. ]{12})([-0-9 ]{6})\s+(\S+)\s+(\S+)\s+(\S+)");
+                    }
+                    else
+                    {
+                        // old tle format (one character shorter)
+                        linedata = Regex.Split(longstr2, "^([0-9 ]{2})([0-9 A-Z]{5})([-0-9. ]{9})([-0-9. ]{9})([-0-9. ]{8})" +
+                                                           @"([-0-9. ]{9})([-0-9. ]{9})([-0-9. ]{12})([-0-9 ]{5})\s+(\S+)\s+(\S+)\s+(\S+)");
+                    }
                 }
                 cardnumb = Convert.ToInt16(linedata[1]);
                 satrec.satnum = linedata[2];    // now a string for alpha5 or 9-digit
@@ -2313,14 +2341,29 @@ namespace SGP4Methods
             {
                 if (longstr2[52].Equals(" "))
                 {
-
-                    linedata = Regex.Split(longstr2, "^([0-9 ]{2})([0-9 ]{5})([-0-9. ]{9})([-0-9. ]{9})([-0-9. ]{8})" +
+                    if (longstr2.Length < 68)
+                        linedata = Regex.Split(longstr2, "^([0-9 ]{2})([0-9 A-Z]{5})([-0-9. ]{9})([-0-9. ]{9})([-0-9. ]{8})" +
                                                      @"([-0-9. ]{9})([-0-9. ]{9})([-0-9. ]{10})([-0-9 ]{6})");
+                    else
+                    {
+                        // old tle format (one character shorter)
+                        linedata = Regex.Split(longstr2, "^([0-9 ]{2})([0-9 A-Z]{5})([-0-9. ]{9})([-0-9. ]{9})([-0-9. ]{8})" +
+                                                     @"([-0-9. ]{9})([-0-9. ]{9})([-0-9. ]{10})([-0-9 ]{5})");
+                    }
                 }
                 else
                 {
-                    linedata = Regex.Split(longstr2, "^([0-9 ]{2})([0-9 ]{5})([-0-9. ]{9})([-0-9. ]{9})([-0-9. ]{8})" +
+                    if (longstr2.Length < 68)
+                    {
+                        linedata = Regex.Split(longstr2, "^([0-9 ]{2})([0-9 A-Z]{5})([-0-9. ]{9})([-0-9. ]{9})([-0-9. ]{8})" +
                                                        @"([-0-9. ]{9})([-0-9. ]{9})([-0-9. ]{12})([-0-9 ]{6})");
+                    }
+                    else
+                    {
+                        // old tle format (one character shorter)
+                        linedata = Regex.Split(longstr2, "^([0-9 ]{2})([0-9 A-Z]{5})([-0-9. ]{9})([-0-9. ]{9})([-0-9. ]{8})" +
+                                                       @"([-0-9. ]{9})([-0-9. ]{9})([-0-9. ]{12})([-0-9 ]{5})");
+                    }
                 }
                 cardnumb = Convert.ToInt16(linedata[1]);
                 satrec.satnum = linedata[2];   // now a string for alpha5 or 9-digit

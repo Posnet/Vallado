@@ -1028,12 +1028,13 @@ solution.
 				//}
 				break;
 			default:  // Kepler 2-body
+				double dtsec = (currobsrec.jd + currobsrec.jdf - obsrecarr[1].jd - obsrecarr[1].jdf) * 86400.0;  // s
 				for (ii = 0; ii < 3; ii++)
 				{
 					rnom[ii] = X[ii][0];
 					vnom[ii] = X[ii + 3][0];
 				}
-				AstroLib::kepler(rnom, vnom, currobsrec.dtmin*60.0, recinom, vecinom);
+				AstroLib::kepler(rnom, vnom, dtsec, recinom, vecinom);
 				for (ii = 0; ii < 3; ii++)
 				{
 					Xf[ii][0] = recinom[ii];
@@ -1054,7 +1055,7 @@ solution.
 				jdttf = jdf + dat + 32.184;   // sec 
 				ttt = (currobsrec.jd + jdf + (dat + 32.184 + jdttf) * dayconv - 2451545.0) * jdyconv;
 				eOpt opt = e80;
-				AstroLib::itrf_gcrf(ritrf, vitrf, aitrf, MathTimeLib::eFrom, recinom, vecinom, aeci, iau80rec, opt, ttt,
+				AstroLib::eci_ecef::itrf_gcrf(ritrf, vitrf, aitrf, MathTimeLib::eFrom, recinom, vecinom, aeci, iau80rec, opt, ttt,
 					jdut1, lod, xp, yp, 2, ddpsi, ddeps, trans);
 			} // if obstype
 
@@ -1072,7 +1073,7 @@ solution.
 			if (currobsrec.obstype == 4)
 				bstarnom = satrec.bstar;
 			else
-				AstroLib::rv_razel(ritrf, vitrf, rs, currsenrec.senlat, currsenrec.senlon, MathTimeLib::eTo, rngnom, aznom, elnom,
+				AstroLib::rv_razel(ritrf, vitrf, currsenrec.senlat, currsenrec.senlon, currsenrec.senalt, MathTimeLib::eTo, rngnom, aznom, elnom,
 					drngnom, daznom, delnom);
 
 			switch (currobsrec.obstype)
@@ -1131,10 +1132,10 @@ solution.
 				// turn off for 2 body???????
 				//if (proptype == 'n')
 				//{
-				// initialize the entrie vector
+				// initialize the entire vector
 				// finitediff changes only 1 component
-					for (ii = 0; ii < 6; ii++)
-						xpert[ii][0] = xnom[ii];
+				for (ii = 0; ii < 6; ii++)
+					xpert[ii][0] = xnom[ii];
 				//}
 
 				finitediff(whichconst, j, percentchg, deltaamtchg, statetype, statesize, proptype, satrecp, xnom, jd, jdf, xpert, deltaamt);
@@ -1183,7 +1184,7 @@ solution.
 						rpert[ii] = xpert[ii][0];
 						vpert[ii] = xpert[ii + 3][0];
 					}
-					AstroLib::kepler(rpert, vpert, currobsrec.dtmin*60.0, recipert, vecipert);
+					AstroLib::kepler(rpert, vpert, currobsrec.dtmin * 60.0, recipert, vecipert);
 					for (ii = 0; ii < 3; ii++)
 					{
 						Xf[ii][0] = recipert[ii];
@@ -1204,40 +1205,40 @@ solution.
 					double jdttf = currobsrec.jdf + dat + 32.184;   // sec
 					ttt = (currobsrec.jd + currobsrec.jdf + (dat + 32.184 + jdttf) * dayconv - 2451545.0) * jdyconv;
 					eOpt opt = e80;
-					AstroLib::itrf_gcrf(ritrf, vitrf, aitrf, MathTimeLib::eFrom, r3, v3, aeci, iau80rec, opt, ttt,
+					AstroLib::eci_ecef::itrf_gcrf(ritrf, vitrf, aitrf, MathTimeLib::eFrom, r3, v3, aeci, iau80rec, opt, ttt,
 						jdut1, lod, xp, yp, 2, ddpsi, ddeps, trans);
 				} // if obstype
 
 				if (currobsrec.obstype == 3)
 					AstroLib::rv_tradec(ritrf, vitrf, rs, MathTimeLib::eTo, rngpert, trtascpert, tdeclpert, drngpert, dtrtascpert, dtdeclpert);
 				else
-				if (currobsrec.obstype == 4)
-					bstarpert = satrec.bstar*(1.0 + percentchg);
-				else  // currobsrec.obstype = 0 or 1 or 2
-					AstroLib::rv_razel(ritrf, vitrf, rs, currsenrec.senlat, currsenrec.senlon, MathTimeLib::eTo,
-					    rngpert, azpert, elpert, drngpert, dazpert, delpert);
+					if (currobsrec.obstype == 4)
+						bstarpert = satrec.bstar * (1.0 + percentchg);
+					else  // currobsrec.obstype = 0 or 1 or 2
+						AstroLib::rv_razel(ritrf, vitrf, currsenrec.senlat, currsenrec.senlon, currsenrec.senalt, MathTimeLib::eTo,
+							rngpert, azpert, elpert, drngpert, dazpert, delpert);
 				switch (currobsrec.obstype)
 				{
 				case 0: {
 					a[0][j] = (rngpert - rngnom) / deltaamt;
 				}
-						break;
+					  break;
 				case 1: {
 					a[0][j] = (azpert - aznom) / deltaamt;
 					a[1][j] = (elpert - elnom) / deltaamt;
 				}
-						break;
+					  break;
 				case 2: {
 					a[0][j] = (rngpert - rngnom) / deltaamt;
 					a[1][j] = (azpert - aznom) / deltaamt;
 					a[2][j] = (elpert - elnom) / deltaamt;
 				}
-						break;
+					  break;
 				case 3: {
 					a[0][j] = (trtascpert - trtascnom) / deltaamt;
 					a[1][j] = (tdeclpert - tdeclnom) / deltaamt;
 				}
-						break;
+					  break;
 				case 4: {
 					a[0][j] = (recipert[0] - recinom[0]) / deltaamt;
 					a[1][j] = (recipert[1] - recinom[1]) / deltaamt;
@@ -1247,7 +1248,7 @@ solution.
 					a[5][j] = (vecipert[2] - vecinom[2]) / deltaamt;
 					a[6][j] = (bstarpert - bstarnom) / deltaamt;
 				}
-						break;
+					  break;
 				} // case
 
 //printf( "rpert %11.5f %11.5f %11.5f %8.3f %8.3f %8.3f \n",
@@ -1257,6 +1258,7 @@ solution.
 
 				// ----------------- reset the modified vector --------------------
 				satrecp = satrec;
+
 			}  // for j = 0 to statesize
 
 			// reset state for numerical cases to avoid starting from scratch each time

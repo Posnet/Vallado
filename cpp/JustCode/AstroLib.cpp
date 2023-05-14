@@ -11,6 +11,10 @@
 *
 *       (w) 719-573-2600, email dvallado@agi.com, davallado@gmail.com
 *
+* MSVS Note: I have not enabled some of the MSVS only attributes, like fopen_s because they are non-standard c++
+* To change, Select "Properties" in the context menu. Then in the dialog, chose Configuration Properties 
+* and -> C/C++ -> Preprocessor. In the field PreprocessorDefinitions add ;_CRT_SECURE_NO_WARNINGS.
+*
 *    current :
 *              15 jan 19  david vallado
 *                           combine with astiod etc
@@ -59,6 +63,7 @@ namespace AstroLib
 	// -----------------------------------------------------------------------------------------
 	//                                       coordinate functions
 	// -----------------------------------------------------------------------------------------
+
 
 	/* ----------------------------------------------------------------------------
 	*
@@ -133,405 +138,207 @@ namespace AstroLib
 	}   // procedure ddpsiddeps_dxdy
 
 
-
-/* -----------------------------------------------------------------------------
+	/* -----------------------------------------------------------------------------
 *
-*                           function iau80in
+*                           function gstime00
 *
-*  this function initializes the nutation matricies needed for reduction
-*    calculations. the routine needs the filename of the files as input.
+*  this function finds the greenwich sidereal time (iau-2010).
 *
-*  author        : david vallado                  719-573-2600   27 may 2002
+*  author        : david vallado                  719-573-2600    1 mar 2001
 *
 *  revisions
-*    vallado     - conversion to c++                             21 feb 2005
+*    vallado     - conversion to c#                              16 Nov 2011
 *
 *  inputs          description                    range / units
-*    EopLoc      - location of data input file
+*    jdut1       - julian date in ut1             days from 4713 bc
+*
 *  outputs       :
-*    iau80arr    - record containing the iau80 constants rad
+*    gstime      - greenwich sidereal time        0 to 2pi rad
 *
 *  locals        :
-*    convrt      - conversion factor milli arcsec to radians
-*    i,j         - index
+*    temp        - temporary variable for doubles   rad
+*    tut1        - julian centuries from the
+*                  jan 1, 2000 12 h epoch (ut1)
 *
 *  coupling      :
-*    none        -
+*    none
 *
 *  references    :
+*    vallado       2013, 188, eq 3-47
 * --------------------------------------------------------------------------- */
 
-	void iau80in
+	void gstime00
 	(
-		std::string EopLoc,
-		iau80data& iau80arr
+		double jdut1, double deltapsi, double ttt, const iau00data &iau00arr, eOpt opt, double& gst,
+		std::vector< std::vector<double> > &st
 	)
 	{
-		FILE *infile;
-		double convrt;
-		int i, j, ret;
+		st.resize(3);  // rows
+		for (std::vector< std::vector<double> >::iterator it = st.begin(); it != st.end(); ++it)
+			it->resize(3);
+		const double deg2rad = pi / 180.0;
+		double convrt, ttt2, ttt3, ttt4, ttt5, epsa, tempval, gstsum0, gstsum1;
+		double l, l1, f, d, lonmer, lonven, lonear, lonmar, lonjup, lonsat, lonurn, lonnep, precrate, raan,
+			eect2000, ee2000, tut1d, era, gmst2000;
+		int i, j;
 
-		// ------------------------  implementation   -------------------
-		convrt = 0.0001 * pi / (180 * 3600.0); 	// 0.0001" to rad
-
-#ifdef _MSC_VER
-		infile = fopen(EopLoc.c_str(), "r");
-#else
-		infile = fopen(EopLoc, "r");
-#endif
-
-		for (i = 0; i < 106; i++)
-		{
-#ifdef _MSC_VER
-			ret = fscanf_s(infile, "%d %d %d %d %d %lf %lf %lf %lf %d \n ",
-				&iau80arr.iar80[i][0], &iau80arr.iar80[i][1], &iau80arr.iar80[i][2],
-				&iau80arr.iar80[i][3], &iau80arr.iar80[i][4],
-				&iau80arr.rar80[i][0], &iau80arr.rar80[i][1], &iau80arr.rar80[i][2],
-				&iau80arr.rar80[i][3], &j);
-#else
-			ret = fscanf(infile, "%d %d %d %d %d %lf %lf %lf %lf %d \n ",
-				&iau80arr.iar80[i][0], &iau80arr.iar80[i][1], &iau80arr.iar80[i][2],
-				&iau80arr.iar80[i][3], &iau80arr.iar80[i][4],
-				&iau80arr.rar80[i][0], &iau80arr.rar80[i][1], &iau80arr.rar80[i][2],
-				&iau80arr.rar80[i][3], &j);
-#endif
-			if (ret == EOF)
-			{
-				break;      /* get out of loop reading lines � found end of file prematurely */
-			}
-
-			for (j = 0; j < 4; j++)
-				iau80arr.rar80[i][j] = iau80arr.rar80[i][j] * convrt;
-		}
-		fclose(infile);
-	}  // procedure iau80in
-
-
-		/* ----------------------------------------------------------------------------
-		*
-		*                           function iau00in
-		*
-		*  this function initializes the matricies needed for iau 2000 reduction
-		*    calculations. the routine uses the files listed as inputs, but they are
-		*    are not input to the routine as they are static files. 
-		*
-		*  author        : david vallado                  719-573-2600   16 jul 2004
-		*
-		*  revisions
-		*    dav 14 apr 11  update for iau2010 conventions
-		*
-		*  inputs description                                      range / units
-		*    none
-		*    iau00x.dat  - file for x coefficient
-		*    iau00y.dat  - file for y coefficient
-		*    iau00s.dat  - file for s coefficient
-		*    iau00n.dat  - file for nutation coefficients
-		*    iau00pl.dat notused - file for planetary nutation coefficients
-		*    iau00gs.dat - file for gmst coefficients
-		*
-		*  outputs       :
-		*    axs0        - real coefficients for x                     rad
-		*    a0xi        - integer coefficients for x
-		*    ays0        - real coefficients for y                     rad
-		*    a0yi        - integer coefficients for y
-		*    ass0        - real coefficients for s                     rad
-		*    a0si        - integer coefficients for s
-		*    apn         - real coefficients for nutation              rad
-		*    apni        - integer coefficients for nutation
-		*    ape         - real coefficients for obliquity             rad
-		*    apei        - integer coefficients for obliquity
-		*    agst        - real coefficients for gst                   rad
-		*    agsti       - integer coefficients for gst
-		*
-		*  locals        :
-		*    convrt      - conversion factor to radians
-		*    i           - index
-		*
-		*  coupling      :
-		*    none        -
-		*
-		*  references    :
-		*    vallado     2013, pg 205-219, 910-912
-		* ----------------------------------------------------------------------------- */
-
-	void iau00in
-	(
-		std::string EopLoc,
-		iau00data& iau00arr
-	)
-	{
-		FILE *infile;
-		// string line;
-		int i, j, ret, tmpint;
-		double tmpdbl;
-		// int k, numsegs, ktr;
-
-		// ------------------------  implementation   -------------------
 		// " to rad
-		double convrtu = (0.000001 * pi) / (180.0 * 3600.0);  // if micro arcsecond
-		double convrtm = (0.001 * pi) / (180.0 * 3600.0);     // if milli arcsecond
+		convrt = pi / (180.0 * 3600.0);
 
-		// ------------------------------
-		//  note that since all these coefficients have only a single decimal place, one could store them as integers, and then simply
-		//  divide by one additional power of ten. it would make memeory storage much smaller and potentially faster.
+		ttt2 = ttt * ttt;
+		ttt3 = ttt2 * ttt;
+		ttt4 = ttt2 * ttt2;
+		ttt5 = ttt3 * ttt2;
 
-		// xys values
-		// tab5.2a.txt in IERS
-		// find first data point, and number for the segment
-		//ktr = 0;  // ktr going through the file
-		//k = 0;    // ktr through array of values
-		//while (ktr < fileData.Count())
-		//{
-		//    while (!(fileData[ktr][0] == 'j'))
-		//        ktr = ktr + 1;
-		//    numsegs = Convert.ToInt32(fileData[ktr].Split('=')[2]);
-		//    ktr = ktr + 2;
-		//    for (i = 0; i < numsegs; i++)
-		//    {
-		//        //line = Regex.Replace(fileData[i], @"\s+", "|");
-		//        //string[] linedata = line.Split('|');
-		//        // reals
-		//        string[] linedata = Regex.Split(fileData[ktr], pattern);
-		//        iau00arr.axs0[k, 0] = Convert.ToDouble(linedata[2]) * convrtu;  // rad
-		//        iau00arr.axs0[k, 1] = Convert.ToDouble(linedata[3]) * convrtu;  // rad
-		//                                                                        // integers
-		//        for (j = 0; j < 13; j++)
-		//            iau00arr.a0xi[k, j] = Convert.ToInt32(linedata[j + 4]);
-		//        k = k + 1;
-		//        ktr = ktr + 1;
-		//    }
-		//}
+		// mean obliquity of the ecliptic
+		// see sofa code obl06.f (no iau_ in front)
+		epsa = 84381.406 - 46.836769 * ttt - 0.0001831 * ttt2 + 0.00200340 * ttt3 - 0.000000576 * ttt4 - 0.0000000434 * ttt5; // "
+		epsa = fmod(epsa / 3600.0, 360.0);  // deg
 
-			// iau00x.txt in IERS
-#ifdef _MSC_VER
-		infile = fopen((EopLoc + "iau00x.dat").c_str(), "r");
-#else
-		infile = fopen(EopLoc, "r");
-#endif
-			for (i = 0; i < 1600; i++)
-			{
-#ifdef _MSC_VER
-				ret = fscanf_s(infile, "%d %lf %lf %d %d %d %d %d %d %d %d %d %d %d %d %d %d \n ",
-					&tmpint, &iau00arr.axs0[i][0], &iau00arr.axs0[i][1],
-					&iau00arr.a0xi[i][0], &iau00arr.a0xi[i][1], &iau00arr.a0xi[i][2], &iau00arr.a0xi[i][3],
-					&iau00arr.a0xi[i][4], &iau00arr.a0xi[i][5], &iau00arr.a0xi[i][6], &iau00arr.a0xi[i][7],
-					&iau00arr.a0xi[i][8], &iau00arr.a0xi[i][9], &iau00arr.a0xi[i][10], &iau00arr.a0xi[i][11], 
-					&iau00arr.a0xi[i][12], &iau00arr.a0xi[i][13]);
-#else
-				ret = fscanf(infile, "%d %lf %lf %d %d %d %d %d %d %d %d %d %d %d %d %d %d \n ",
-					&tmpint, &iau00arr.axs0[i][0], &iau00arr.axs0[i][1],
-					&iau00arr.a0xi[i][0], &iau00arr.a0xi[i][1], &iau00arr.a0xi[i][2], &iau00arr.a0xi[i][3],
-					&iau00arr.a0xi[i][4], &iau00arr.a0xi[i][5], &iau00arr.a0xi[i][6], &iau00arr.a0xi[i][7],
-					&iau00arr.a0xi[i][8], &iau00arr.a0xi[i][9], &iau00arr.a0xi[i][10], &iau00arr.a0xi[i][11],
-					&iau00arr.a0xi[i][12], &iau00arr.a0xi[i][13]);
-#endif
+		epsa = epsa * deg2rad; // rad
 
-				for (j = 0; j <= 1; j++)
-					iau00arr.axs0[i][j] = iau00arr.axs0[i][j] * convrtu;   // rad
-			}
+		fundarg(ttt, opt, l, l1, f, d, raan, lonmer, lonven, lonear, lonmar, lonjup, lonsat, lonurn, lonnep, precrate);
 
-		// tab5.2b.txt in IERS
-#ifdef _MSC_VER
-			infile = fopen((EopLoc + "iau00y.dat").c_str(), "r");
-#else
-			infile = fopen(EopLoc, "r");
-#endif
-			for (i = 0; i < 1275; i++)
-			{
-#ifdef _MSC_VER
-				ret = fscanf_s(infile, "%d %lf %lf %d %d %d %d %d %d %d %d %d %d %d %d %d %d \n ",
-					&tmpint, &iau00arr.ays0[i][0], &iau00arr.ays0[i][1],
-					&iau00arr.a0yi[i][0], &iau00arr.a0yi[i][1], &iau00arr.a0yi[i][2], &iau00arr.a0yi[i][3],
-					&iau00arr.a0yi[i][4], &iau00arr.a0yi[i][5], &iau00arr.a0yi[i][6], &iau00arr.a0yi[i][7],
-					&iau00arr.a0yi[i][8], &iau00arr.a0yi[i][9], &iau00arr.a0yi[i][10], &iau00arr.a0yi[i][11], 
-					&iau00arr.a0yi[i][12], &iau00arr.a0yi[i][13]);
-#else
-				ret = fscanf(infile, "%d %lf %lf %d %d %d %d %d %d %d %d %d %d %d %d %d %d \n ",
-					&tmpint, &iau00arr.ays0[i][0], &iau00arr.ays0[i][1],
-					&iau00arr.a0yi[i][0], &iau00arr.a0yi[i][1], &iau00arr.a0yi[i][2], &iau00arr.a0yi[i][3],
-					&iau00arr.a0yi[i][4], &iau00arr.a0yi[i][5], &iau00arr.a0yi[i][6], &iau00arr.a0yi[i][7],
-					&iau00arr.a0yi[i][8], &iau00arr.a0yi[i][9], &iau00arr.a0yi[i][10], &iau00arr.a0yi[i][11],
-					&iau00arr.a0yi[i][12], &iau00arr.a0yi[i][13]);
-#endif
+		//  evaluate the ee complementary terms
+		gstsum0 = 0.0;
+		// data file is not reversed
+		for (i = 32; i >= 0; i--)
+		{
+			tempval = iau00arr.agsti[i][0] * l + iau00arr.agsti[i][1] * l1 + iau00arr.agsti[i][2] * f 
+				+ iau00arr.agsti[i][3] * d + iau00arr.agsti[i][4] * raan + iau00arr.agsti[i][5] * lonmer 
+				+ iau00arr.agsti[i][6] * lonven + iau00arr.agsti[i][7] * lonear + iau00arr.agsti[i][8] * lonmar 
+				+ iau00arr.agsti[i][9] * lonjup + iau00arr.agsti[i][10] * lonsat + iau00arr.agsti[i][11] * lonurn 
+				+ iau00arr.agsti[i][12] * lonnep + iau00arr.agsti[i][13] * precrate;
+			gstsum0 = gstsum0 + iau00arr.agst[i][0] * sin(tempval) + iau00arr.agst[i][1] * cos(tempval);
+		}
 
-				for (j = 0; j <= 1; j++)
-					iau00arr.ays0[i][j] = iau00arr.ays0[i][j] * convrtu;   // rad
-			}
+		gstsum1 = 0.0;
+		// data file is not reversed
+		for (j = 0; j >= 0; j--)
+		{
+			i = 32 + j;
+			tempval = iau00arr.agsti[i][0] * l + iau00arr.agsti[i][1] * l1 + iau00arr.agsti[i][2] * f 
+				+ iau00arr.agsti[i][3] * d + iau00arr.agsti[i][4] * raan + iau00arr.agsti[i][5] * lonmer 
+				+ iau00arr.agsti[i][6] * lonven + iau00arr.agsti[i][7] * lonear + iau00arr.agsti[i][8] * lonmar 
+				+ iau00arr.agsti[i][9] * lonjup + iau00arr.agsti[i][10] * lonsat + iau00arr.agsti[i][11] * lonurn 
+				+ iau00arr.agsti[i][12] * lonnep + iau00arr.agsti[i][13] * precrate;
+			gstsum1 = gstsum1 + (iau00arr.agst[i][0] * sin(tempval) + iau00arr.agst[i][1] * cos(tempval)) * ttt;
+		}
 
-		// tab5.2d.txt in IERS
-#ifdef _MSC_VER
-			infile = fopen((EopLoc + "iau00s.dat").c_str(), "r");
-#else
-			infile = fopen(EopLoc, "r");
-#endif
-			for (i = 0; i < 66; i++)
-			{
-#ifdef _MSC_VER
-				ret = fscanf_s(infile, "%d %lf %lf %d %d %d %d %d %d %d %d %d %d %d %d %d %d \n ",
-					&tmpint, &iau00arr.ass0[i][0], &iau00arr.ass0[i][1],
-					&iau00arr.a0si[i][0], &iau00arr.a0si[i][1], &iau00arr.a0si[i][2], &iau00arr.a0si[i][3],
-					&iau00arr.a0si[i][4], &iau00arr.a0si[i][5], &iau00arr.a0si[i][6], &iau00arr.a0si[i][7],
-					&iau00arr.a0si[i][8], &iau00arr.a0si[i][9], &iau00arr.a0si[i][10], &iau00arr.a0si[i][11],
-					&iau00arr.a0si[i][12], &iau00arr.a0si[i][13]);
-#else
-				ret = fscanf(infile, "%d %lf %lf %d %d %d %d %d %d %d %d %d %d %d %d %d %d \n ",
-					&tmpint, &iau00arr.ass0[i][0], &iau00arr.ass0[i][1],
-					&iau00arr.a0si[i][0], &iau00arr.a0si[i][1], &iau00arr.a0si[i][2], &iau00arr.a0si[i][3],
-					&iau00arr.a0si[i][4], &iau00arr.a0si[i][5], &iau00arr.a0si[i][6], &iau00arr.a0si[i][7],
-					&iau00arr.a0si[i][8], &iau00arr.a0si[i][9], &iau00arr.a0si[i][10], &iau00arr.a0si[i][11],
-					&iau00arr.a0si[i][12], &iau00arr.a0si[i][13]);
-#endif
+		eect2000 = gstsum0 + gstsum1 * ttt;  // rad
 
-				for (j = 0; j <= 1; j++)
-					iau00arr.ass0[i][j] = iau00arr.ass0[i][j] * convrtu;   // rad
-			}
+		// equation of the equinoxes
+		ee2000 = deltapsi * cos(epsa) + eect2000;  // rad
 
-			//     // nutation values old approach iau2000a
-#ifdef _MSC_VER
-			infile = fopen((EopLoc + "iau00an.dat").c_str(), "r");
-#else
-			infile = fopen(EopLoc, "r");
-#endif
-			for (i = 0; i < 678; i++)
-			{
-#ifdef _MSC_VER
-				ret = fscanf_s(infile, "%d %d %d %d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf \n",
-					&iau00arr.appni[i][0], &iau00arr.appni[i][1], &iau00arr.appni[i][2], &iau00arr.appni[i][3], &iau00arr.appni[i][4],
-                    &tmpdbl, 
-					&iau00arr.appn[i][0], &iau00arr.appn[i][1], &iau00arr.appn[i][2], &iau00arr.appn[i][3],
-					&iau00arr.appn[i][4], &iau00arr.appn[i][5], &iau00arr.appn[i][6], &iau00arr.appn[i][7] );
-#else
-				ret = fscanf(infile, "%d %d %d %d %d %lf %lf %lf %lf %lf %lf %lf %lf %lf \n",
-					&iau00arr.appni[i][0], &iau00arr.appni[i][1], &iau00arr.appni[i][2], &iau00arr.appni[i][3], &iau00arr.appni[i][4],
-					&tmpdbl,
-					&iau00arr.appn[i][0], &iau00arr.appn[i][1], &iau00arr.appn[i][2], &iau00arr.appn[i][3],
-					&iau00arr.appn[i][4], &iau00arr.appn[i][5], &iau00arr.appn[i][6], &iau00arr.appn[i][7] );
-#endif
+		//  earth rotation angle
+		tut1d = jdut1 - 2451545.0;
+		era = twopi * (0.7790572732640 + 1.00273781191135448 * tut1d);
+		era = fmod(era, 2.0 * pi);
 
-				for (j = 0; j < 8; j++)
-					iau00arr.appn[i][j] = iau00arr.appn[i][j] * convrtm;   // rad
-			}			
+		//  greenwich mean sidereal time, iau 2000.
+		gmst2000 = era + (0.014506 + 4612.156534 * ttt + 1.3915817 * ttt2
+			- 0.00000044 * ttt3 + 0.000029956 * ttt4 + 0.0000000368 * ttt5) * convrt; // " to rad
 
-			//     // planetary nutation values
-#ifdef _MSC_VER
-			infile = fopen((EopLoc + "iau00apl.dat").c_str(), "r");
-#else
-			infile = fopen(EopLoc, "r");
-#endif
-			for (i = 0; i < 687; i++)
-			{
-#ifdef _MSC_VER
-				ret = fscanf_s(infile, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %lf %lf %lf %lf %lf %lf \n",
-					&tmpint, 
-					&iau00arr.aplni[i][0], &iau00arr.aplni[i][1], &iau00arr.aplni[i][2], &iau00arr.aplni[i][3], &iau00arr.aplni[i][4],
-					&iau00arr.aplni[i][5], &iau00arr.aplni[i][6], &iau00arr.aplni[i][7], &iau00arr.aplni[i][8], &iau00arr.aplni[i][9],
-					&iau00arr.aplni[i][10], &iau00arr.aplni[i][11], &iau00arr.aplni[i][12], &iau00arr.aplni[i][13],
-					&tmpdbl, & iau00arr.apln[i][0], &iau00arr.apln[i][1],
-					&iau00arr.apln[i][2], &iau00arr.apln[i][3], &iau00arr.apln[i][4] );
-#else
-				ret = fscanf(infile, "%d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %lf %lf %lf %lf %lf %lf \n",
-					&tmpint,
-					&iau00arr.aplni[i][0], &iau00arr.aplni[i][1], &iau00arr.aplni[i][2], &iau00arr.aplni[i][3], &iau00arr.aplni[i][4],
-					&iau00arr.aplni[i][5], &iau00arr.aplni[i][6], &iau00arr.aplni[i][7], &iau00arr.aplni[i][8], &iau00arr.aplni[i][9],
-					&iau00arr.aplni[i][10], &iau00arr.aplni[i][11], &iau00arr.aplni[i][12], &iau00arr.aplni[i][13],
-					&tmpdbl, &iau00arr.apln[i][0], &iau00arr.apln[i][1],
-					&iau00arr.apln[i][2], &iau00arr.apln[i][3], &iau00arr.apln[i][4]);
-#endif
-				for (j = 0; j < 5; j++)
-					iau00arr.apln[i][j] = iau00arr.apln[i][j] * convrtm;   // rad
-			}
+		gst = gmst2000 + ee2000; // rad
+
+		st[0][0] = cos(gst);
+		st[0][1] = -sin(gst);
+		st[0][2] = 0.0;
+		st[1][0] = sin(gst);
+		st[1][1] = cos(gst);
+		st[1][2] = 0.0;
+		st[2][0] = 0.0;
+		st[2][1] = 0.0;
+		st[2][2] = 1.0;
+	}  // gstime00 
 
 
-		// tab5.3a.txt in IERS
-		// nutation values planetary now included new iau2006
-		// nutation in longitude
-#ifdef _MSC_VER
-			infile = fopen((EopLoc + "iau00nlon.dat").c_str(), "r");
-#else
-			infile = fopen(EopLoc, "r");
-#endif
-			for (i = 0; i < 1358; i++)
-			{
-#ifdef _MSC_VER
-				ret = fscanf_s(infile, "%d %lf %lf %d %d %d %d %d %d %d %d %d %d %d %d %d %d \n",
-					&tmpint,
-					&iau00arr.apn[i][0], &iau00arr.apn[i][1],
-					&iau00arr.apni[i][0], &iau00arr.apni[i][1], &iau00arr.apni[i][2], &iau00arr.apni[i][3], &iau00arr.apni[i][4],
-					&iau00arr.apni[i][5], &iau00arr.apni[i][6], &iau00arr.apni[i][7], &iau00arr.apni[i][8], &iau00arr.apni[i][9],
-					&iau00arr.apni[i][10], &iau00arr.apni[i][11], &iau00arr.apni[i][12], &iau00arr.apni[i][13]);
-#else
-				ret = fscanf(infile, "%d %lf %lf %d %d %d %d %d %d %d %d %d %d %d %d %d %d \n",
-					&tmpint,
-					&iau00arr.apn[i][0], &iau00arr.apn[i][1],
-					&iau00arr.apni[i][0], &iau00arr.apni[i][1], &iau00arr.apni[i][2], &iau00arr.apni[i][3], &iau00arr.apni[i][4],
-					&iau00arr.apni[i][5], &iau00arr.apni[i][6], &iau00arr.apni[i][7], &iau00arr.apni[i][8], &iau00arr.apni[i][9],
-					&iau00arr.apni[i][10], &iau00arr.apni[i][11], &iau00arr.apni[i][12], &iau00arr.apni[i][13]);
-#endif
-				for (j = 0; j < 1; j++)
-					iau00arr.apn[i][j] = iau00arr.apn[i][j] * convrtu;   // rad
-			}
+		/* -----------------------------------------------------------------------------
+	*
+	*                           function gstime
+	*
+	*  this function finds the greenwich sidereal time (iau-82).
+	*
+	*  author        : david vallado                  719-573-2600    1 mar 2001
+	*
+	*  inputs          description                    range / units
+	*    jdut1       - julian date in ut1             days from 4713 bc
+	*
+	*  outputs       :
+	*    gstime      - greenwich sidereal time        0 to 2pi rad
+	*
+	*  locals        :
+	*    temp        - temporary variable for doubles   rad
+	*    tut1        - julian centuries from the
+	*                  jan 1, 2000 12 h epoch (ut1)
+	*
+	*  coupling      :
+	*    none
+	*
+	*  references    :
+	*    vallado       2013, 187, eq 3-45
+	* --------------------------------------------------------------------------- */
+
+	double  gstime
+	(
+		double jdut1
+	)
+	{
+		const double deg2rad = pi / 180.0;
+		double       temp, tut1;
+
+		tut1 = (jdut1 - 2451545.0) / 36525.0;
+		temp = -6.2e-6* tut1 * tut1 * tut1 + 0.093104 * tut1 * tut1 
+			+ (876600.0 * 3600 + 8640184.812866) * tut1 + 67310.54841;  // sec
+		temp = fmod(temp * deg2rad / 240.0, twopi); //360/86400 = 1/240, to deg, to rad
+
+		// ------------------------ check quadrants ---------------------
+		if (temp < 0.0)
+			temp = temp + twopi;
+
+		return temp;
+	}
 
 
-			// tab5.3b.txt in IERS
-		// nutation in obliquity
-#ifdef _MSC_VER
-			infile = fopen((EopLoc + "iau00nobl.dat").c_str(), "r");
-#else
-			infile = fopen(EopLoc, "r");
-#endif
-			for (i = 0; i < 1056; i++)
-			{
-#ifdef _MSC_VER
-				ret = fscanf_s(infile, "%d %lf %lf %d %d %d %d %d %d %d %d %d %d %d %d %d %d \n",
-					&tmpint,
-					&iau00arr.ape[i][0], &iau00arr.ape[i][1],
-					&iau00arr.apei[i][0], &iau00arr.apei[i][1], &iau00arr.apei[i][2], &iau00arr.apei[i][3], &iau00arr.apei[i][4],
-					&iau00arr.apei[i][5], &iau00arr.apei[i][6], &iau00arr.apei[i][7], &iau00arr.apei[i][8], &iau00arr.apei[i][9],
-					&iau00arr.apei[i][10], &iau00arr.apei[i][11], &iau00arr.apei[i][12], &iau00arr.apei[i][13]);
-#else
-				ret = fscanf(infile, "%d %lf %lf %d %d %d %d %d %d %d %d %d %d %d %d %d %d \n",
-					&tmpint,
-					&iau00arr.ape[i][0], &iau00arr.ape[i][1],
-					&iau00arr.apei[i][0], &iau00arr.apei[i][1], &iau00arr.apei[i][2], &iau00arr.apei[i][3], &iau00arr.apei[i][4],
-					&iau00arr.apei[i][5], &iau00arr.apei[i][6], &iau00arr.apei[i][7], &iau00arr.apei[i][8], &iau00arr.apei[i][9],
-					&iau00arr.apei[i][10], &iau00arr.apei[i][11], &iau00arr.apei[i][12], &iau00arr.apei[i][13]);
-#endif
-				for (j = 0; j < 1; j++)
-					iau00arr.ape[i][j] = iau00arr.ape[i][j] * convrtu;   // rad
-			}
+	/* -----------------------------------------------------------------------------
+	*                           procedure lstime
+	*
+	*  this procedure finds the local sidereal time at a given location.
+	*
+	*  author        : david vallado                  719-573-2600    1 mar 2001
+	*
+	*  inputs          description                    range / units
+	*    lon         - site longitude (west -)        -2pi to 2pi rad
+	*    jdut1       - julian date in ut1             days from 4713 bc
+	*
+	*  outputs       :
+	*    lst         - local sidereal time            0.0 to 2pi rad
+	*    gst         - greenwich sidereal time        0.0 to 2pi rad
+	*
+	*  locals        :
+	*    none.
+	*
+	*  coupling      :
+	*    gstime        finds the greenwich sidereal time
+	*
+	*  references    :
+	*    vallado       2013, 188, alg 15, ex 3-5
+	* --------------------------------------------------------------------------- */
 
+	void    lstime
+	(
+		double lon, double jdut1, double& lst, double& gst
+	)
+	{
+		gst = gstime(jdut1);
+		lst = lon + gst;
 
-		// tab5.2e.txt in IERS
-		// gmst values
-		// note - these are very similar to the first 34 elements of iau00s.dat,
-		// but they are not the same.
-#ifdef _MSC_VER
-			infile = fopen((EopLoc + "iau00gst.dat").c_str(), "r");
-#else
-			infile = fopen(EopLoc, "r");
-#endif
-			for (i = 0; i < 34; i++)
-			{
-#ifdef _MSC_VER
-				ret = fscanf_s(infile, "%d %lf %lf %d %d %d %d %d %d %d %d %d %d %d %d %d %d \n",
-					&tmpint,
-					&iau00arr.agst[i][0], &iau00arr.agst[i][1],
-					&iau00arr.agsti[i][0], &iau00arr.agsti[i][1], &iau00arr.agsti[i][2], &iau00arr.agsti[i][3], &iau00arr.agsti[i][4],
-					&iau00arr.agsti[i][5], &iau00arr.agsti[i][6], &iau00arr.agsti[i][7], &iau00arr.agsti[i][8], &iau00arr.agsti[i][9],
-					&iau00arr.agsti[i][10], &iau00arr.agsti[i][11], &iau00arr.agsti[i][12], &iau00arr.agsti[i][13]);
-#else
-				ret = fscanf(infile, "%d %lf %lf %d %d %d %d %d %d %d %d %d %d %d %d %d %d \n",
-					&tmpint,
-					&iau00arr.agst[i][0], &iau00arr.agst[i][1],
-					&iau00arr.agsti[i][0], &iau00arr.agsti[i][1], &iau00arr.agsti[i][2], &iau00arr.agsti[i][3], &iau00arr.agsti[i][4],
-					&iau00arr.agsti[i][5], &iau00arr.agsti[i][6], &iau00arr.agsti[i][7], &iau00arr.agsti[i][8], &iau00arr.agsti[i][9],
-					&iau00arr.agsti[i][10], &iau00arr.agsti[i][11], &iau00arr.agsti[i][12], &iau00arr.agsti[i][13]);
-#endif
-				for (j = 0; j <= 1; j++)
-					iau00arr.agst[i][j] = iau00arr.agst[i][j] * convrtu;   // rad
-			}
-			
-	}    // iau00in
+		/* ------------------------ check quadrants --------------------- */
+		lst = fmod(lst, twopi);
+		if (lst < 0.0)
+			lst = lst + twopi;
+	}
+
 
 
         /* -----------------------------------------------------------------------------
@@ -716,7 +523,7 @@ namespace AstroLib
 	}  // procedure fundarg
 
 
-	        /* ----------------------------------------------------------------------------
+	    /* ----------------------------------------------------------------------------
 		*
 		*                           function iau00xys
 		*
@@ -1016,7 +823,7 @@ namespace AstroLib
 *                           function iau00pn
 *
 *  this function calulates the transformation matrix that accounts for the
-*    effects of precession-nutation in the iau2010 theory.
+*    effects of precession-nutation in the iau2010 conventions.
 *
 *  author        : david vallado                  719-573-2600   16 jul 2004
 *
@@ -1063,7 +870,7 @@ namespace AstroLib
 	void iau00pn
 	(
 		double ttt, double ddx, double ddy, eOpt opt,
-		iau00data& iau00arr,
+		iau00data &iau00arr,
 		double x, double y, double s,
 		std::vector< std::vector<double> > &nut
 	)
@@ -1083,7 +890,7 @@ namespace AstroLib
 		ttt5 = ttt3 * ttt2;
 
 		char nutLoc[100] = "D:/Codes/LIBRARY/cpp/TestAll/";
-		iau00in(nutLoc, iau00arr);
+		EopSpw::iau00in(nutLoc, iau00arr);
 
 		fundarg(ttt, opt, l, l1, f, d, omega, lonmer, lonven, lonear, lonmar, lonjup, lonsat, lonurn, lonnep, precrate);
 
@@ -1128,204 +935,6 @@ namespace AstroLib
 
 
 
-	/* -----------------------------------------------------------------------------
-*
-*                           function gstime00
-*
-*  this function finds the greenwich sidereal time (iau-2010).
-*
-*  author        : david vallado                  719-573-2600    1 mar 2001
-*
-*  revisions
-*    vallado     - conversion to c#                              16 Nov 2011
-*
-*  inputs          description                    range / units
-*    jdut1       - julian date in ut1             days from 4713 bc
-*
-*  outputs       :
-*    gstime      - greenwich sidereal time        0 to 2pi rad
-*
-*  locals        :
-*    temp        - temporary variable for doubles   rad
-*    tut1        - julian centuries from the
-*                  jan 1, 2000 12 h epoch (ut1)
-*
-*  coupling      :
-*    none
-*
-*  references    :
-*    vallado       2013, 188, eq 3-47
-* --------------------------------------------------------------------------- */
-
-	void gstime00
-	(
-		double jdut1, double deltapsi, double ttt, const iau00data &iau00arr, eOpt opt, double& gst,
-		std::vector< std::vector<double> > &st
-	)
-	{
-		st.resize(3);  // rows
-		for (std::vector< std::vector<double> >::iterator it = st.begin(); it != st.end(); ++it)
-			it->resize(3);
-		const double deg2rad = pi / 180.0;
-		double convrt, ttt2, ttt3, ttt4, ttt5, epsa, tempval, gstsum0, gstsum1;
-		double l, l1, f, d, lonmer, lonven, lonear, lonmar, lonjup, lonsat, lonurn, lonnep, precrate, raan,
-			eect2000, ee2000, tut1d, era, gmst2000;
-		int i, j;
-
-		// " to rad
-		convrt = pi / (180.0 * 3600.0);
-
-		ttt2 = ttt * ttt;
-		ttt3 = ttt2 * ttt;
-		ttt4 = ttt2 * ttt2;
-		ttt5 = ttt3 * ttt2;
-
-		// mean obliquity of the ecliptic
-		// see sofa code obl06.f (no iau_ in front)
-		epsa = 84381.406 - 46.836769 * ttt - 0.0001831 * ttt2 + 0.00200340 * ttt3 - 0.000000576 * ttt4 - 0.0000000434 * ttt5; // "
-		epsa = fmod(epsa / 3600.0, 360.0);  // deg
-
-		epsa = epsa * deg2rad; // rad
-
-		fundarg(ttt, opt, l, l1, f, d, raan, lonmer, lonven, lonear, lonmar, lonjup, lonsat, lonurn, lonnep, precrate);
-
-		//  evaluate the ee complementary terms
-		gstsum0 = 0.0;
-		// data file is not reversed
-		for (i = 32; i >= 0; i--)
-		{
-			tempval = iau00arr.agsti[i][0] * l + iau00arr.agsti[i][1] * l1 + iau00arr.agsti[i][2] * f + iau00arr.agsti[i][3] * d + iau00arr.agsti[i][4] * raan +
-				iau00arr.agsti[i][5] * lonmer + iau00arr.agsti[i][6] * lonven + iau00arr.agsti[i][7] * lonear + iau00arr.agsti[i][8] * lonmar +
-				iau00arr.agsti[i][9] * lonjup + iau00arr.agsti[i][10] * lonsat + iau00arr.agsti[i][11] * lonurn + iau00arr.agsti[i][12] * lonnep + iau00arr.agsti[i][13] * precrate;
-			gstsum0 = gstsum0 + iau00arr.agst[i][0] * sin(tempval) + iau00arr.agst[i][1] * cos(tempval);
-		}
-
-		gstsum1 = 0.0;
-		// data file is not reversed
-		for (j = 0; j >= 0; j--)
-		{
-			i = 32 + j;
-			tempval = iau00arr.agsti[i][0] * l + iau00arr.agsti[i][1] * l1 + iau00arr.agsti[i][2] * f + iau00arr.agsti[i][3] * d + iau00arr.agsti[i][4] * raan +
-				iau00arr.agsti[i][5] * lonmer + iau00arr.agsti[i][6] * lonven + iau00arr.agsti[i][7] * lonear + iau00arr.agsti[i][8] * lonmar +
-				iau00arr.agsti[i][9] * lonjup + iau00arr.agsti[i][10] * lonsat + iau00arr.agsti[i][11] * lonurn + iau00arr.agsti[i][12] * lonnep + iau00arr.agsti[i][13] * precrate;
-			gstsum1 = gstsum1 + (iau00arr.agst[i][0] * sin(tempval) + iau00arr.agst[i][1] * cos(tempval)) * ttt;
-		}
-
-		eect2000 = gstsum0 + gstsum1 * ttt;  // rad
-
-		// equation of the equinoxes
-		ee2000 = deltapsi * cos(epsa) + eect2000;  // rad
-
-		//  earth rotation angle
-		tut1d = jdut1 - 2451545.0;
-		era = twopi * (0.7790572732640 + 1.00273781191135448 * tut1d);
-		era = fmod(era, 2.0 * pi);
-
-		//  greenwich mean sidereal time, iau 2000.
-		gmst2000 = era + (0.014506 + 4612.156534 * ttt + 1.3915817 * ttt2
-			- 0.00000044 * ttt3 + 0.000029956 * ttt4 + 0.0000000368 * ttt5) * convrt; // " to rad
-
-		gst = gmst2000 + ee2000; // rad
-
-		st[0][0] = cos(gst);
-		st[0][1] = -sin(gst);
-		st[0][2] = 0.0;
-		st[1][0] = sin(gst);
-		st[1][1] = cos(gst);
-		st[1][2] = 0.0;
-		st[2][0] = 0.0;
-		st[2][1] = 0.0;
-		st[2][2] = 1.0;
-	}  // gstime00 
-
-		/* -----------------------------------------------------------------------------
-	*
-	*                           function gstime
-	*
-	*  this function finds the greenwich sidereal time (iau-82).
-	*
-	*  author        : david vallado                  719-573-2600    1 mar 2001
-	*
-	*  inputs          description                    range / units
-	*    jdut1       - julian date in ut1             days from 4713 bc
-	*
-	*  outputs       :
-	*    gstime      - greenwich sidereal time        0 to 2pi rad
-	*
-	*  locals        :
-	*    temp        - temporary variable for doubles   rad
-	*    tut1        - julian centuries from the
-	*                  jan 1, 2000 12 h epoch (ut1)
-	*
-	*  coupling      :
-	*    none
-	*
-	*  references    :
-	*    vallado       2013, 187, eq 3-45
-	* --------------------------------------------------------------------------- */
-
-	double  gstime
-	(
-		double jdut1
-	)
-	{
-		const double deg2rad = pi / 180.0;
-		double       temp, tut1;
-
-		tut1 = (jdut1 - 2451545.0) / 36525.0;
-		temp = -6.2e-6* tut1 * tut1 * tut1 + 0.093104 * tut1 * tut1 +
-			(876600.0 * 3600 + 8640184.812866) * tut1 + 67310.54841;  // sec
-		temp = fmod(temp * deg2rad / 240.0, twopi); //360/86400 = 1/240, to deg, to rad
-
-		// ------------------------ check quadrants ---------------------
-		if (temp < 0.0)
-			temp = temp + twopi;
-
-		return temp;
-	}
-
-
-
-
-	/* -----------------------------------------------------------------------------
-	*                           procedure lstime
-	*
-	*  this procedure finds the local sidereal time at a given location.
-	*
-	*  author        : david vallado                  719-573-2600    1 mar 2001
-	*
-	*  inputs          description                    range / units
-	*    lon         - site longitude (west -)        -2pi to 2pi rad
-	*    jdut1       - julian date in ut1             days from 4713 bc
-	*
-	*  outputs       :
-	*    lst         - local sidereal time            0.0 to 2pi rad
-	*    gst         - greenwich sidereal time        0.0 to 2pi rad
-	*
-	*  locals        :
-	*    none.
-	*
-	*  coupling      :
-	*    gstime        finds the greenwich sidereal time
-	*
-	*  references    :
-	*    vallado       2013, 188, alg 15, ex 3-5
-	* --------------------------------------------------------------------------- */
-
-	void    lstime
-	(
-		double lon, double jdut1, double& lst, double& gst
-	)
-	{
-		gst = gstime(jdut1);
-		lst = lon + gst;
-
-		/* ------------------------ check quadrants --------------------- */
-		lst = fmod(lst, twopi);
-		if (lst < 0.0)
-			lst = lst + twopi;
-	}
-
 
 /* -----------------------------------------------------------------------------
 *
@@ -1341,9 +950,9 @@ namespace AstroLib
 *    vallado     - conversion to c++                             21 feb 2005
 *    vallado     - misc updates, nomenclature, etc               23 nov 2005
 *
-*  inputs          description                    range / units
+*  inputs          description                                 range / units
 *    ttt         - julian centuries of tt
-*    opt         - method option                  e00a, e00b, e96, e80
+*    opt         - method option                               e80, e96, e00a, e00b, e00cio
 *
 *  outputs       :
 *    prec        - transformation matrix for mod - j2000 (80 only)
@@ -1467,6 +1076,7 @@ namespace AstroLib
 			printf("pr %11.7f  %11.7f  %11.7fdeg \n", zeta * 180 / pi, theta * 180 / pi, z * 180 / pi);
 		}
 	} // procedure precess
+
 
         /* -----------------------------------------------------------------------------
         *
@@ -1734,12 +1344,13 @@ namespace AstroLib
 			for (i = 677; i >= 0; i--)
 			{
 				tempval = iau00arr.appni[i][0] * l + iau00arr.appni[i][1] * l1 + iau00arr.appni[i][2] * f + iau00arr.appni[i][3] * d + iau00arr.appni[i][4] * raan;
-				tempval = fmod(tempval, 2.0 * pi);  // rad
-													  //            pnsum = pnsum + (apn[i,1) + apn[i,2)*ttt) * sin(tempval) 
-													  //                          + (apn[i,5) + apn[i,6)*ttt) * cos(tempval);
-													  //            ensum = ensum + (apn[i,3) + apn[i,4)*ttt) * cos(tempval) 
-													  //                          + (apn[i,7) + apn[i,8)*ttt) * sin(tempval);
-													  // iers doesn't include the last few terms
+				// rad
+				tempval = fmod(tempval, 2.0 * pi);
+				//            pnsum = pnsum + (apn[i,1) + apn[i,2)*ttt) * sin(tempval) 
+				//                          + (apn[i,5) + apn[i,6)*ttt) * cos(tempval);
+				//            ensum = ensum + (apn[i,3) + apn[i,4)*ttt) * cos(tempval) 
+				//                          + (apn[i,7) + apn[i,8)*ttt) * sin(tempval);
+				// iers doesn't include the last few terms
 				pnsum = pnsum + (iau00arr.appn[i][0] + iau00arr.appn[i][1] * ttt) * sin(tempval)
 					+ (iau00arr.appn[i][4]) * cos(tempval);
 				ensum = ensum + (iau00arr.appn[i][2] + iau00arr.appn[i][3] * ttt) * cos(tempval)
@@ -1766,7 +1377,7 @@ namespace AstroLib
 		// 2000b has 77 terms
 		if (opt == e00b)
 		{
-
+			// not done
 		}
 
 		precess(ttt, opt,  psia,  wa,  epsa,  chia, prec);
@@ -1898,7 +1509,7 @@ namespace AstroLib
 		}
 
 
-		thetasa = 7.29211514670698e-05 * (1.0 - lod / 86400.0);
+		thetasa = earthrot * (1.0 - lod / 86400.0);
 		omegaearth = thetasa;
 
 		sinast = sin(ast);
@@ -2105,44 +1716,45 @@ namespace AstroLib
 
 /* ----------------------------------------------------------------------------
 *
-*                           function itrf_gcrf
+*                           function eci_ecef
 *
-*  this function transforms a vector between the earth fixed (itrf) frame, and
-*    the gcrf mean equator mean equinox. this is the preferrred method to
-*    accomplish the new iau 2000 resolutions and uses the eop corrections
+*  this function transforms a vector between the earth inertail (GRCF) and 
+*    Earth fixed (itrf) frames. the method works for nboth FK5 and IAU2010
+*    approahces. there are variations for the new iau 2000 resolutions
 *
 *  author        : david vallado                  719-573-2600   23 nov 2005
 *
 *  revisions
 *
-*  inputs          description                    range / units
-*    ritrf       - position vector earth fixed    km
-*    vitrf       - velocity vector earth fixed    km/s
-*    aitrf       - acceleration vector earth fixedkm/s2
-*    direct      - direction of transfer          eFrom, eTo
-*    iau80arr    - record containing the iau80 constants rad
-*    ttt         - julian centuries of tt         centuries
-*    jdut1       - julian date of ut1             days from 4713 bc
-*    lod         - excess length of day           sec
-*    xp          - polar motion coefficient       rad
-*    yp          - polar motion coefficient       rad
-*    eqeterms    - terms for ast calculation      0,2
-*    ddpsi       - delta psi correction to gcrf   rad
-*    ddeps       - delta eps correction to gcrf   rad
-*    deltapsi    - nutation angle                 rad
-*    deltaeps    - nutation angle                 rad
-		*    opt         - method option                           e80, e96, e00a, e00b
+*  inputs          description                              range / units
+*    rgcrf       - position vector gcrf                        km
+*    vgcrf       - velocity vector gcrf                        km/s
+*    agcrf       - acceleration vector gcrf                    km/s2
+*    direct      - direction of transfer                       eFrom, eTo
+*    iau80arr    - record containing the iau80 constants       rad
+*    iau00arr    - record containing the iau00 constants       rad
+*    ttt         - julian centuries of tt                      centuries
+*    jdut1       - julian date of ut1                          days from 4713 bc
+*    lod         - excess length of day                        sec
+*    xp          - polar motion coefficient                    rad
+*    yp          - polar motion coefficient                    rad
+*    eqeterms    - terms for ast calculation                   0,2
+*    ddpsi       - delta psi correction to gcrf                rad
+*    ddeps       - delta eps correction to gcrf                rad
+*    deltapsi    - nutation angle                              rad
+*    deltaeps    - nutation angle                              rad
+*    opt         - method option                               e80, e96, e00a, e00b, e00cio
 *
 *  outputs       :
-*    rgcrf       - position vector gcrf            km
-*    vgcrf       - velocity vector gcrf            km/s
-*    agcrf       - acceleration vector gcrf        km/s2
+*    ritrf       - position vector earth fixed                 km
+*    vitrf       - velocity vector earth fixed                 km/s
+*    aitrf       - acceleration vector earth fixed             km/s2
 *    trans       - matrix for pef - gcrf
 *
 *  locals        :
-*    trueeps     - true obliquity of the ecliptic rad
-*    meaneps     - mean obliquity of the ecliptic rad
-*    omega       -                                rad
+*    trueeps     - true obliquity of the ecliptic              rad
+*    meaneps     - mean obliquity of the ecliptic              rad
+*    omega       -                                             rad
 *    prec        - matrix for mod - gcrf
 *    nut         - matrix for tod - mod
 *    st          - matrix for pef - tod
@@ -2159,14 +1771,15 @@ namespace AstroLib
 *    vallado       2013, 228, Alg 24
 * --------------------------------------------------------------------------- */
 
-	void itrf_gcrf
+	void eci_ecef
 	(
-		double ritrf[3], double vitrf[3], double aitrf[3],
+		double reci[3], double veci[3], double aeci[3],
 		MathTimeLib::edirection direct,
-		double rgcrf[3], double vgcrf[3], double agcrf[3],
-		const iau80data &iau80arr, eOpt opt,
-		double ttt, double jdut1, double lod, double xp,
-		double yp, int eqeterms, double ddpsi, double ddeps,
+		double recef[3], double vecef[3], double aecef[3],
+		eOpt opt,
+		const iau80data &iau80arr, const iau00data &iau00arr,
+		double ttt, double jdut1, 
+		double lod, double xp, double yp, double ddpsi, double ddeps, double ddx, double ddy,
 		std::vector< std::vector<double> > &trans
 	)
 	{
@@ -2174,7 +1787,7 @@ namespace AstroLib
 		for (std::vector< std::vector<double> >::iterator it = trans.begin(); it != trans.end(); ++it)
 			it->resize(3);
 		// locals
-		double psia, wa, epsa, chia, deltapsi, deltaeps,
+		double psia, wa, epsa, chia, deltapsi, deltaeps, x, y, s, gst,
 			trueeps, meaneps, omega, thetasa, omegaearth[3], omgxr[3], omgxomgxr[3],
 			rpef[3], vpef[3], apef[3], omgxv[3], tempvec1[3], tempvec[3];
 		double  deg2rad;
@@ -2194,36 +1807,37 @@ namespace AstroLib
 
 		// ---- find matrices
 		precess(ttt, opt, psia, wa, epsa, chia, prec);
-		nutation(ttt, ddpsi, ddeps, iau80arr, opt, deltapsi, deltaeps, trueeps, meaneps, omega, nut);
-		sidereal(jdut1, deltapsi, meaneps, omega, lod, eqeterms, opt, st, stdot);
-		polarm(xp, yp, ttt, opt, pm);
 
+		if (opt == e80 || opt == e96)
+		{
+			nutation(ttt, ddpsi, ddeps, iau80arr, opt, deltapsi, deltaeps, trueeps, meaneps, omega, nut);
+			sidereal(jdut1, deltapsi, meaneps, omega, lod, 2, opt, st, stdot);
+		}
+		else
+			if (opt == e00cio)  // IAU-2010 CIO approach
+		{
+			prec[0][0] = 1.0;
+			prec[1][1] = 1.0;
+			prec[2][2] = 1.0;
+			iau00xys(ttt, ddx, ddy, opt, iau00arr, x, y, s, nut);
+			sidereal(jdut1, deltapsi, meaneps, omega, lod, 2, opt, st, stdot);
+		}
+		else  // IAU-2010 pna approach
+		{
+			precess(ttt, opt, psia, wa, epsa, chia, prec);
+			nutation00a(ttt, ddx, ddy, iau00arr, opt, nut);
+			gstime00(jdut1, deltapsi, ttt, iau00arr, opt, gst, st);
+		}
+		
+		polarm(xp, yp, ttt, opt, pm);
+			   		 
 		// ---- perform transformations
-		thetasa = 7.29211514670698e-05 * (1.0 - lod / 86400.0);
+		thetasa = earthrot * (1.0 - lod / 86400.0);
 		omegaearth[0] = 0.0;
 		omegaearth[1] = 0.0;
 		omegaearth[2] = thetasa;
 
 		if (direct == MathTimeLib::eTo)
-		{
-			MathTimeLib::matvecmult(pm, ritrf, rpef);
-			MathTimeLib::matmult(prec, nut, temp, 3, 3, 3);
-			MathTimeLib::matmult(temp, st, trans, 3, 3, 3);
-			MathTimeLib::matvecmult(trans, rpef, rgcrf);
-
-			MathTimeLib::matvecmult(pm, vitrf, vpef);
-			MathTimeLib::cross(omegaearth, rpef, omgxr);
-			MathTimeLib::addvec(1.0, vpef, 1.0, omgxr, tempvec1);
-			MathTimeLib::matvecmult(trans, tempvec1, vgcrf);
-
-			MathTimeLib::matvecmult(pm, aitrf, apef);
-			MathTimeLib::cross(omegaearth, omgxr, omgxomgxr);
-			MathTimeLib::cross(omegaearth, vpef, omgxv);
-			MathTimeLib::addvec(1.0, apef, 1.0, omgxomgxr, tempvec);
-			MathTimeLib::addvec(1.0, tempvec, 2.0, omgxv, tempvec1);
-			MathTimeLib::matvecmult(trans, tempvec1, agcrf);
-		}
-		else
 		{
 			MathTimeLib::mattrans(pm, pmp, 3, 3);
 			MathTimeLib::mattrans(st, stp, 3, 3);
@@ -2232,21 +1846,40 @@ namespace AstroLib
 
 			MathTimeLib::matmult(stp, nutp, temp, 3, 3, 3);
 			MathTimeLib::matmult(temp, precp, trans, 3, 3, 3);
-			MathTimeLib::matvecmult(trans, rgcrf, rpef);
-			MathTimeLib::matvecmult(pmp, rpef, ritrf);
+			MathTimeLib::matvecmult(trans, reci, rpef);
+			MathTimeLib::matvecmult(pmp, rpef, recef);
 
 			MathTimeLib::cross(omegaearth, rpef, omgxr);
-			MathTimeLib::matvecmult(trans, vgcrf, tempvec1);
+			MathTimeLib::matvecmult(trans, veci, tempvec1);
 			MathTimeLib::addvec(1.0, tempvec1, -1.0, omgxr, vpef);
-			MathTimeLib::matvecmult(pmp, vpef, vitrf);
+			MathTimeLib::matvecmult(pmp, vpef, vecef);
 
 			MathTimeLib::addvec(1.0, tempvec1, -1.0, omgxr, vpef);
 			MathTimeLib::cross(omegaearth, vpef, omgxv);
 			MathTimeLib::cross(omegaearth, omgxr, omgxomgxr);
-			MathTimeLib::matvecmult(trans, agcrf, tempvec1);
+			MathTimeLib::matvecmult(trans, aeci, tempvec1);
 			MathTimeLib::addvec(1.0, tempvec1, -1.0, omgxomgxr, tempvec);
 			MathTimeLib::addvec(1.0, tempvec, -2.0, omgxv, apef);
-			MathTimeLib::matvecmult(pmp, apef, aitrf);
+			MathTimeLib::matvecmult(pmp, apef, aecef);
+		}
+		else
+		{
+			MathTimeLib::matvecmult(pm, recef, rpef);
+			MathTimeLib::matmult(prec, nut, temp, 3, 3, 3);
+			MathTimeLib::matmult(temp, st, trans, 3, 3, 3);
+			MathTimeLib::matvecmult(trans, rpef, reci);
+
+			MathTimeLib::matvecmult(pm, vecef, vpef);
+			MathTimeLib::cross(omegaearth, rpef, omgxr);
+			MathTimeLib::addvec(1.0, vpef, 1.0, omgxr, tempvec1);
+			MathTimeLib::matvecmult(trans, tempvec1, veci);
+
+			MathTimeLib::matvecmult(pm, aecef, apef);
+			MathTimeLib::cross(omegaearth, omgxr, omgxomgxr);
+			MathTimeLib::cross(omegaearth, vpef, omgxv);
+			MathTimeLib::addvec(1.0, apef, 1.0, omgxomgxr, tempvec);
+			MathTimeLib::addvec(1.0, tempvec, 2.0, omgxv, tempvec1);
+			MathTimeLib::matvecmult(trans, tempvec1, aeci);
 		}
 	}  // procedure itrf_gcrf
 
@@ -2347,7 +1980,10 @@ namespace AstroLib
 		}
 		else  // IAU-2010 pna approach
 		{
-			precess(ttt, opt, psia, wa, epsa, chia, prec);
+			prec[0][0] = 1.0;
+			prec[1][1] = 1.0;
+			prec[2][2] = 1.0;
+//			precess(ttt, opt, psia, wa, epsa, chia, prec);
 			nutation00a(ttt, ddx, ddy, iau00arr, opt, nut);
 			gstime00(jdut1, deltapsi, ttt, iau00arr, opt, gst, st);
 		}
@@ -2491,7 +2127,7 @@ namespace AstroLib
 		polarm(xp, yp, ttt, opt, pm);
 
 		// ---- perform transformations
-		thetasa = 7.29211514670698e-05 * (1.0 - lod / 86400.0);
+		thetasa = earthrot * (1.0 - lod / 86400.0);
 		omegaearth[0] = 0.0;
 		omegaearth[1] = 0.0;
 		omegaearth[2] = thetasa;
@@ -2544,7 +2180,7 @@ namespace AstroLib
 
 /* ----------------------------------------------------------------------------
 *
-*                           function itrf_mod
+*                           function ecef_mod
 *
 *  this function transforms a vector between the earth fixed (itrf) frame, and
 *    the gcrf mean equator mean equinox (j2000).
@@ -2593,7 +2229,7 @@ namespace AstroLib
 *    vallado       2013, 228, Alg 24
 * --------------------------------------------------------------------------- */
 
-	void itrf_mod
+	void ecef_mod
 	(
 		double ritrf[3], double vitrf[3], double aitrf[3],
 		MathTimeLib::edirection direct,
@@ -2628,31 +2264,14 @@ namespace AstroLib
 		polarm(xp, yp, ttt, opt, pm);
 
 		// ---- perform transformations
-		thetasa = 7.29211514670698e-05 * (1.0 - lod / 86400.0);
+		thetasa = earthrot * (1.0 - lod / 86400.0);
 		omegaearth[0] = 0.0;
 		omegaearth[1] = 0.0;
 		omegaearth[2] = thetasa;
 
-		if (direct == MathTimeLib::eTo)
+		if (direct == MathTimeLib::eFrom)
 		{
-			MathTimeLib::matvecmult(pm, ritrf, rpef);
-			MathTimeLib::matmult(nut, st, tempmat, 3, 3, 3);
-			MathTimeLib::matvecmult(tempmat, rpef, rmod);
 
-			MathTimeLib::matvecmult(pm, vitrf, vpef);
-			MathTimeLib::cross(omegaearth, rpef, omgxr);
-			MathTimeLib::addvec(1.0, vpef, 1.0, omgxr, tempvec1);
-			MathTimeLib::matvecmult(tempmat, tempvec1, vmod);
-
-			MathTimeLib::matvecmult(pm, aitrf, apef);
-			MathTimeLib::cross(omegaearth, omgxr, omgxomgxr);
-			MathTimeLib::cross(omegaearth, vpef, omgxv);
-			MathTimeLib::addvec(1.0, apef, 1.0, omgxomgxr, tempvec);
-			MathTimeLib::addvec(1.0, tempvec, 2.0, omgxv, tempvec1);
-			MathTimeLib::matvecmult(tempmat, tempvec1, amod);
-		}
-		else
-		{
 			MathTimeLib::mattrans(pm, pmp, 3, 3);
 			MathTimeLib::mattrans(st, stp, 3, 3);
 			MathTimeLib::mattrans(nut, nutp, 3, 3);
@@ -2673,13 +2292,31 @@ namespace AstroLib
 			MathTimeLib::addvec(1.0, tempvec, -2.0, omgxv, apef);
 			MathTimeLib::matvecmult(pmp, apef, aitrf);
 		}
-	}  // procedure itrf_mod
+		else
+		{
+			MathTimeLib::matvecmult(pm, ritrf, rpef);
+			MathTimeLib::matmult(nut, st, tempmat, 3, 3, 3);
+			MathTimeLib::matvecmult(tempmat, rpef, rmod);
+
+			MathTimeLib::matvecmult(pm, vitrf, vpef);
+			MathTimeLib::cross(omegaearth, rpef, omgxr);
+			MathTimeLib::addvec(1.0, vpef, 1.0, omgxr, tempvec1);
+			MathTimeLib::matvecmult(tempmat, tempvec1, vmod);
+
+			MathTimeLib::matvecmult(pm, aitrf, apef);
+			MathTimeLib::cross(omegaearth, omgxr, omgxomgxr);
+			MathTimeLib::cross(omegaearth, vpef, omgxv);
+			MathTimeLib::addvec(1.0, apef, 1.0, omgxomgxr, tempvec);
+			MathTimeLib::addvec(1.0, tempvec, 2.0, omgxv, tempvec1);
+			MathTimeLib::matvecmult(tempmat, tempvec1, amod);
+		}
+	}  // procedure ecef_mod
 
 
 
 /* ----------------------------------------------------------------------------
 *
-*                           function itrf_tod
+*                           function ecef_tod
 *
 *  this function transforms a vector between the earth fixed (itrf) frame, and
 *    the true of date (tod).
@@ -2728,7 +2365,7 @@ namespace AstroLib
 *    vallado       2013, 228, Alg 24
 * --------------------------------------------------------------------------- */
 
-	void itrf_tod
+	void ecef_tod
 	(
 		double ritrf[3], double vitrf[3], double aitrf[3],
 		MathTimeLib::edirection direct,
@@ -2764,29 +2401,12 @@ namespace AstroLib
 		polarm(xp, yp, ttt, opt, pm);
 
 		// ---- perform transformations
-		thetasa = 7.29211514670698e-05 * (1.0 - lod / 86400.0);
+		thetasa = earthrot * (1.0 - lod / 86400.0);
 		omegaearth[0] = 0.0;
 		omegaearth[1] = 0.0;
 		omegaearth[2] = thetasa;
 
-		if (direct == MathTimeLib::eTo)
-		{
-			MathTimeLib::matvecmult(pm, ritrf, rpef);
-			MathTimeLib::matvecmult(st, rpef, rtod);
-
-			MathTimeLib::matvecmult(pm, vitrf, vpef);
-			MathTimeLib::cross(omegaearth, rpef, omgxr);
-			MathTimeLib::addvec(1.0, vpef, 1.0, omgxr, tempvec1);
-			MathTimeLib::matvecmult(st, tempvec1, vtod);
-
-			MathTimeLib::matvecmult(pm, aitrf, apef);
-			MathTimeLib::cross(omegaearth, omgxr, omgxomgxr);
-			MathTimeLib::cross(omegaearth, vpef, omgxv);
-			MathTimeLib::addvec(1.0, apef, 1.0, omgxomgxr, tempvec);
-			MathTimeLib::addvec(1.0, tempvec, 2.0, omgxv, tempvec1);
-			MathTimeLib::matvecmult(st, tempvec1, atod);
-		}
-		else
+		if (direct == MathTimeLib::eFrom)
 		{
 			MathTimeLib::mattrans(pm, pmp, 3, 3);
 			MathTimeLib::mattrans(st, stp, 3, 3);
@@ -2806,12 +2426,30 @@ namespace AstroLib
 			MathTimeLib::addvec(1.0, tempvec, -2.0, omgxv, apef);
 			MathTimeLib::matvecmult(pmp, apef, aitrf);
 		}
-	}  // procedure itrf_tod
+		else
+		{
+
+			MathTimeLib::matvecmult(pm, ritrf, rpef);
+			MathTimeLib::matvecmult(st, rpef, rtod);
+
+			MathTimeLib::matvecmult(pm, vitrf, vpef);
+			MathTimeLib::cross(omegaearth, rpef, omgxr);
+			MathTimeLib::addvec(1.0, vpef, 1.0, omgxr, tempvec1);
+			MathTimeLib::matvecmult(st, tempvec1, vtod);
+
+			MathTimeLib::matvecmult(pm, aitrf, apef);
+			MathTimeLib::cross(omegaearth, omgxr, omgxomgxr);
+			MathTimeLib::cross(omegaearth, vpef, omgxv);
+			MathTimeLib::addvec(1.0, apef, 1.0, omgxomgxr, tempvec);
+			MathTimeLib::addvec(1.0, tempvec, 2.0, omgxv, tempvec1);
+			MathTimeLib::matvecmult(st, tempvec1, atod);
+		}
+	}  // procedure ecef_tod
 
 
 /* ----------------------------------------------------------------------------
 *
-*                           function itrf_pef
+*                           function ecef_pef
 *
 *  this function transforms a vector between the earth fixed (itrf) frame, and
 *    the psuedo earth fixed (pef).
@@ -2844,7 +2482,7 @@ namespace AstroLib
 *    vallado       2013, 228, Alg 24
 * --------------------------------------------------------------------------- */
 
-	void itrf_pef
+	void ecef_pef
 	(
 		double ritrf[3], double vitrf[3], double aitrf[3],
 		MathTimeLib::edirection direct,
@@ -2866,15 +2504,7 @@ namespace AstroLib
 		polarm(xp, yp, ttt, e80, pm);
 
 		// ---- perform transformations
-		if (direct == MathTimeLib::eTo)
-		{
-			MathTimeLib::matvecmult(pm, ritrf, rpef);
-
-			MathTimeLib::matvecmult(pm, vitrf, vpef);
-
-			MathTimeLib::matvecmult(pm, aitrf, apef);
-		}
-		else
+		if (direct == MathTimeLib::eFrom)
 		{
 			MathTimeLib::mattrans(pm, pmp, 3, 3);
 
@@ -2884,12 +2514,20 @@ namespace AstroLib
 
 			MathTimeLib::matvecmult(pmp, apef, aitrf);
 		}
-	} // procedure itrf_pef
+		else
+		{
+			MathTimeLib::matvecmult(pm, ritrf, rpef);
+
+			MathTimeLib::matvecmult(pm, vitrf, vpef);
+
+			MathTimeLib::matvecmult(pm, aitrf, apef);
+		}
+	} // procedure ecef_pef
 
 
 /* ----------------------------------------------------------------------------
 *
-*                           function pef_gcrf
+*                           function eci_pef
 *
 *  this function transforms a vector between the pseudo earth fixed frame (pef),
 *    and the mean equator mean equinox (j2000) frame.
@@ -2937,11 +2575,11 @@ namespace AstroLib
 *    vallado       2013, 228, Alg 24
 * --------------------------------------------------------------------------- */
 
-	void pef_gcrf
+	void eci_pef
 	(
-		double rpef[3], double vpef[3], double apef[3],
-		MathTimeLib::edirection direct,
 		double rgcrf[3], double vgcrf[3], double agcrf[3],
+		MathTimeLib::edirection direct,
+		double rpef[3], double vpef[3], double apef[3],
 		const iau80data &iau80arr, eOpt opt,
 		double ttt, double jdut1, double lod, int eqeterms,
 		double ddpsi, double ddeps
@@ -2957,28 +2595,12 @@ namespace AstroLib
 		nutation(ttt, ddpsi, ddeps, iau80arr, opt, deltapsi, deltaeps, trueeps, meaneps, omega, nut);
 		sidereal(jdut1, deltapsi, meaneps, omega, lod, eqeterms, opt, st, stdot);
 
-		thetasa = 7.29211514670698e-05 * (1.0 - lod / 86400.0);
+		thetasa = earthrot * (1.0 - lod / 86400.0);
 		omegaearth[0] = 0.0;
 		omegaearth[1] = 0.0;
 		omegaearth[2] = thetasa;
 
 		if (direct == MathTimeLib::eTo)
-		{
-			MathTimeLib::matmult(prec, nut, temp, 3, 3, 3);
-			MathTimeLib::matmult(temp, st, tempmat, 3, 3, 3);
-			MathTimeLib::matvecmult(tempmat, rpef, rgcrf);
-
-			MathTimeLib::cross(omegaearth, rpef, omgxr);
-			MathTimeLib::addvec(1.0, vpef, 1.0, omgxr, tempvec1);
-			MathTimeLib::matvecmult(tempmat, tempvec1, vgcrf);
-
-			MathTimeLib::cross(omegaearth, omgxr, omgxomgxr);
-			MathTimeLib::cross(omegaearth, vpef, omgxv);
-			MathTimeLib::addvec(1.0, apef, 1.0, omgxomgxr, tempvec);
-			MathTimeLib::addvec(1.0, tempvec, 2.0, omgxv, tempvec1);
-			MathTimeLib::matvecmult(tempmat, tempvec1, agcrf);
-		}
-		else
 		{
 			MathTimeLib::mattrans(st, stp, 3, 3);
 			MathTimeLib::mattrans(nut, nutp, 3, 3);
@@ -2999,11 +2621,27 @@ namespace AstroLib
 			MathTimeLib::addvec(1.0, tempvec1, -1.0, omgxomgxr, tempvec);
 			MathTimeLib::addvec(1.0, tempvec, -2.0, omgxv, apef);
 		}
-	}  // procedure pef_gcrf
+		else
+		{
+			MathTimeLib::matmult(prec, nut, temp, 3, 3, 3);
+			MathTimeLib::matmult(temp, st, tempmat, 3, 3, 3);
+			MathTimeLib::matvecmult(tempmat, rpef, rgcrf);
+
+			MathTimeLib::cross(omegaearth, rpef, omgxr);
+			MathTimeLib::addvec(1.0, vpef, 1.0, omgxr, tempvec1);
+			MathTimeLib::matvecmult(tempmat, tempvec1, vgcrf);
+
+			MathTimeLib::cross(omegaearth, omgxr, omgxomgxr);
+			MathTimeLib::cross(omegaearth, vpef, omgxv);
+			MathTimeLib::addvec(1.0, apef, 1.0, omgxomgxr, tempvec);
+			MathTimeLib::addvec(1.0, tempvec, 2.0, omgxv, tempvec1);
+			MathTimeLib::matvecmult(tempmat, tempvec1, agcrf);
+		}
+	}  // procedure eci_pef
 
 /* -----------------------------------------------------------------------------
 *
-*                           function tod_gcrf
+*                           function eci_tod
 *
 *  this function transforms a vector between the true equator true equinox frame
 *    of date (tod), and the mean equator mean equinox (j2000) frame.
@@ -3046,11 +2684,11 @@ namespace AstroLib
 *    vallado       2013, 228, Alg 24
 * ----------------------------------------------------------------------------*/
 
-	void tod_gcrf
+	void eci_tod
 	(
-		double rtod[3], double vtod[3], double atod[3],
-		MathTimeLib::edirection direct,
 		double rgcrf[3], double vgcrf[3], double agcrf[3],
+		MathTimeLib::edirection direct,
+		double rtod[3], double vtod[3], double atod[3],
 		const iau80data &iau80arr, eOpt opt,
 		double ttt, double ddpsi, double ddeps
 	)
@@ -3064,13 +2702,6 @@ namespace AstroLib
 
 		if (direct == MathTimeLib::eTo)
 		{
-			MathTimeLib::matmult(prec, nut, tempmat, 3, 3, 3);
-			MathTimeLib::matvecmult(tempmat, rtod, rgcrf);
-			MathTimeLib::matvecmult(tempmat, vtod, vgcrf);
-			MathTimeLib::matvecmult(tempmat, atod, agcrf);
-		}
-		else
-		{
 			MathTimeLib::mattrans(nut, nutp, 3, 3);
 			MathTimeLib::mattrans(prec, precp, 3, 3);
 			MathTimeLib::matmult(nutp, precp, tempmat, 3, 3, 3);
@@ -3079,11 +2710,19 @@ namespace AstroLib
 			MathTimeLib::matvecmult(tempmat, vgcrf, vtod);
 			MathTimeLib::matvecmult(tempmat, agcrf, atod);
 		}
-	}  // procedure tod_gcrf
+		else
+		{
+
+			MathTimeLib::matmult(prec, nut, tempmat, 3, 3, 3);
+			MathTimeLib::matvecmult(tempmat, rtod, rgcrf);
+			MathTimeLib::matvecmult(tempmat, vtod, vgcrf);
+			MathTimeLib::matvecmult(tempmat, atod, agcrf);
+		}
+	}  // procedure eci_tod
 
 /* -----------------------------------------------------------------------------
 *
-*                           function mod_gcrf
+*                           function eci_mod
 *
 *  this function transforms a vector between the mean equator mean equinox of
 *    date (mod) and the mean equator mean equinox (j2000) frame.
@@ -3119,7 +2758,7 @@ namespace AstroLib
 *    vallado       2013, 228, Alg 24
 * --------------------------------------------------------------------------- */
 
-	void mod_gcrf
+	void eci_mod
 	(
 		double rmod[3], double vmod[3], double amod[3],
 		MathTimeLib::edirection direct,
@@ -3134,19 +2773,19 @@ namespace AstroLib
 
 		if (direct == MathTimeLib::eTo)
 		{
-			MathTimeLib::matvecmult(prec, rmod, rgcrf);
-			MathTimeLib::matvecmult(prec, vmod, vgcrf);
-			MathTimeLib::matvecmult(prec, amod, agcrf);
-		}
-		else
-		{
 			MathTimeLib::mattrans(prec, precp, 3, 3);
 
 			MathTimeLib::matvecmult(precp, rgcrf, rmod);
 			MathTimeLib::matvecmult(precp, vgcrf, vmod);
 			MathTimeLib::matvecmult(precp, agcrf, amod);
 		}
-	}  // procedure mod_gcrf
+		else
+		{
+			MathTimeLib::matvecmult(prec, rmod, rgcrf);
+			MathTimeLib::matvecmult(prec, vmod, vgcrf);
+			MathTimeLib::matvecmult(prec, amod, agcrf);
+		}
+	}  // procedure eci_mod
 
 
 /* ----------------------------------------------------------------------------
@@ -3208,11 +2847,12 @@ namespace AstroLib
 		std::vector< std::vector<double> > tempmat = std::vector< std::vector<double> >(3, std::vector<double>(3));
 		std::vector< std::vector<double> > pm, pmp, stp = std::vector< std::vector<double> >(3, std::vector<double>(3));
 		double omegaearth[3], rpef[3], vpef[3], apef[3], omgxr[3], omgxomgxr[3],
-			omgxv[3], tempvec1[3], tempvec[3], gmst;
+			omgxv[3], tempvec1[3], tempvec[3], gmst, conv;
 
 		deg2rad = pi / 180.0;
+		conv = pi / (3600.0 * 180.0);
 
-		// find omeage from nutation theory
+		// find omega from nutation theory
 		omega = 125.04452222 + (-6962890.5390 *ttt + 7.455 *ttt*ttt + 0.008 *ttt*ttt*ttt) / 3600.0;
 		omega = fmod(omega, 360.0) * deg2rad;
 
@@ -3224,14 +2864,14 @@ namespace AstroLib
 		if ((jdut1 > 2450449.5) && (eqeterms > 0))
 		{
 			gmstg = gmst
-				+ 0.00264*pi / (3600.0 * 180.0)*sin(omega)
-				+ 0.000063*pi / (3600.0 * 180.0)*sin(2.0 *omega);
+				+ 0.00264 * conv * sin(omega)
+				+ 0.000063 * conv * sin(2.0 *omega);
 		}
 		else
 			gmstg = gmst;
 		gmstg = fmod(gmstg, 2.0*pi);
 
-		thetasa = 7.29211514670698e-05 * (1.0 - lod / 86400.0);
+		thetasa = earthrot * (1.0 - lod / 86400.0);
 		omegaearth[0] = 0.0;
 		omegaearth[1] = 0.0;
 		omegaearth[2] = thetasa;
@@ -3474,14 +3114,7 @@ namespace AstroLib
 		double small, hbar[3], nbar[3], magr, magv, magn, ebar[3], sme, rdotv, temp, c1, hk, magh, halfpi;
 
 		int i;
-		// switch this to an integer msvs seems to have problems with this and strncpy_s
-		//char typeorbit[2];
-		int typeorbit;
-		// here 
-		// typeorbit = 1 = 'ei'
-		// typeorbit = 2 = 'ce'
-		// typeorbit = 3 = 'ci'
-		// typeorbit = 4 = 'ee'
+		char typeorbit[3];
 
 		halfpi = 0.5 * pi;
 		small = 0.00000001;
@@ -3521,34 +3154,31 @@ namespace AstroLib
 
 			// --------  determine type of orbit for later use  --------
 			// ------ elliptical, parabolic, hyperbolic inclined -------
-			//#ifdef _MSC_VER  // chk if compiling under MSVS
-			//		   strcpy_s(typeorbit, 2 * sizeof(char), "ei");
-			//#else
-			//		   strcpy(typeorbit, "ei");
-			//#endif
-			typeorbit = 1;
+			#ifdef _MSC_VER  // chk if compiling under MSVS
+					   strcpy_s(typeorbit, 3 * sizeof(char), "ei");
+			#else
+					   strcpy(typeorbit, "ei");
+			#endif
 
 			if (ecc < small)
 			{
 				// ----------------  circular equatorial ---------------
 				if ((incl < small) | (fabs(incl - pi) < small))
 				{
-					//#ifdef _MSC_VER
-					//				   strcpy_s(typeorbit, sizeof(typeorbit), "ce");
-					//#else
-					//				   strcpy(typeorbit, "ce");
-					//#endif
-					typeorbit = 2;
+					#ifdef _MSC_VER
+									   strcpy_s(typeorbit, sizeof(typeorbit), "ce");
+					#else
+									   strcpy(typeorbit, "ce");
+					#endif
 				}
 				else
 				{
 					// --------------  circular inclined ---------------
-					//#ifdef _MSC_VER
-					//				   strcpy_s(typeorbit, sizeof(typeorbit), "ci");
-					//#else
-					//				   strcpy(typeorbit, "ci");
-					//#endif
-					typeorbit = 3;
+					#ifdef _MSC_VER
+									   strcpy_s(typeorbit, sizeof(typeorbit), "ci");
+					#else
+									   strcpy(typeorbit, "ci");
+					#endif
 				}
 			}
 			else
@@ -3556,12 +3186,11 @@ namespace AstroLib
 				// - elliptical, parabolic, hyperbolic equatorial --
 				if ((incl < small) | (fabs(incl - pi) < small))
 				{
-					//#ifdef _MSC_VER
-					//				   strcpy_s(typeorbit, sizeof(typeorbit), "ee");
-					//#else
-					//				   strcpy(typeorbit, "ee");
-					//#endif
-					typeorbit = 4;
+					#ifdef _MSC_VER
+									   strcpy_s(typeorbit, sizeof(typeorbit), "ee");
+					#else
+									   strcpy(typeorbit, "ee");
+					#endif
 				}
 			}
 
@@ -3579,8 +3208,7 @@ namespace AstroLib
 				raan = undefined;
 
 			// ---------------- find argument of perigee ---------------
-			//if (strcmp(typeorbit, "ei") == 0)
-			if (typeorbit == 1)
+			if (strcmp(typeorbit, "ei") == 0)
 			{
 				argp = MathTimeLib::angle(nbar, ebar);
 				if (ebar[2] < 0.0)
@@ -3590,8 +3218,7 @@ namespace AstroLib
 				argp = undefined;
 
 			// ------------  find true anomaly at epoch    -------------
-			//if (typeorbit[0] == 'e')
-			if ((typeorbit == 1) || (typeorbit == 4))
+			if (typeorbit[0] == 'e')
 			{
 				nu = MathTimeLib::angle(ebar, r);
 				if (rdotv < 0.0)
@@ -3601,8 +3228,7 @@ namespace AstroLib
 				nu = undefined;
 
 			// ----  find argument of latitude - circular inclined -----
-			//if (strcmp(typeorbit, "ci") == 0)
-			if (typeorbit == 3)
+			if (strcmp(typeorbit, "ci") == 0 || strcmp(typeorbit, "ei") == 0)
 			{
 				arglat = MathTimeLib::angle(nbar, r);
 				if (r[2] < 0.0)
@@ -3613,8 +3239,7 @@ namespace AstroLib
 				arglat = undefined;
 
 			// -- find longitude of perigee - elliptical equatorial ----
-			//if ((ecc>small) && (strcmp(typeorbit, "ee") == 0))
-			if ((ecc > small) && (typeorbit == 4))
+			if ((ecc>small) && (strcmp(typeorbit, "ee") == 0))
 			{
 				temp = ebar[0] / ecc;
 				if (fabs(temp) > 1.0)
@@ -3629,8 +3254,7 @@ namespace AstroLib
 				lonper = undefined;
 
 			// -------- find true longitude - circular equatorial ------
-			//if ((magr>small) && (strcmp(typeorbit, "ce") == 0))
-			if ((magr > small) && (typeorbit == 2))
+			if ((magr>small) && (strcmp(typeorbit, "ce") == 0))
 			{
 				temp = r[0] / magr;
 				if (fabs(temp) > 1.0)
@@ -3646,8 +3270,7 @@ namespace AstroLib
 				truelon = undefined;
 
 			// ------------ find mean anomaly for all orbits -----------
-			//if (typeorbit[0] == 'e')
-			if ((typeorbit == 1) || (typeorbit == 4))
+			if (typeorbit[0] == 'e')
 				newtonnu(ecc, nu, eccanom, m);
 		}
 		else
@@ -3928,7 +3551,7 @@ namespace AstroLib
 		double r[3], double v[3]
 	)
 	{
-		double p, ecc, incl, raan, argp, nu, m, arglat, truelon, lonper, small, e0;
+		double p, ecc, incl, raan, argp, nu, m, arglat, truelon, lonper, small, eccanom;
 		small = 0.00000001;
 
 		// ------------------------ - implementation---------------- 
@@ -3974,7 +3597,7 @@ namespace AstroLib
 		m = meanlon - fr * raan - argp;
 		m = fmod(m + twopi, twopi);
 
-		newtonm(ecc, m, e0, nu);
+		newtonm(ecc, m, eccanom, nu);
 
 		// ----------fix for elliptical equatorial orbits------------
 		if (ecc < small)
@@ -4343,28 +3966,28 @@ namespace AstroLib
 		else
 		{
 			/* -------------- calculate angles and rates ---------------- */
-			rr = MathTimeLib::mag(recl);
-			temp = sqrt(recl[0] * recl[0] + recl[1] * recl[1]);
+			rr = MathTimeLib::mag(r);
+			temp = sqrt(r[0] * r[0] + r[1] * r[1]);
 			if (temp < small)
 			{
-				temp1 = sqrt(vecl[0] * vecl[0] + vecl[1] * vecl[1]);
+				temp1 = sqrt(v[0] * v[0] + v[1] * v[1]);
 				if (fabs(temp1) > small)
-					ecllon = atan2(vecl[1] / temp1, vecl[0] / temp1);
+					ecllon = atan2(v[1] / temp1, v[0] / temp1);
 				else
 					ecllon = 0.0;
 			}
 			else
-				ecllon = atan2(recl[1] / temp, recl[0] / temp);
-			ecllat = asin(recl[2] / MathTimeLib::mag(recl));
+				ecllon = atan2(r[1] / temp, r[0] / temp);
+			ecllat = asin(r[2] / MathTimeLib::mag(r));
 
-			temp1 = -recl[1] * recl[1] - recl[0] * recl[0]; // different now
-			drr = MathTimeLib::dot(recl, vecl) / rr;
+			temp1 = -r[1] * r[1] - r[0] * r[0]; // different now
+			drr = MathTimeLib::dot(r, v) / rr;
 			if (fabs(temp1) > small)
-				decllon = (vecl[0] * recl[1] - vecl[1] * recl[0]) / temp1;
+				decllon = (v[0] * r[1] - v[1] * r[0]) / temp1;
 			else
 				decllon = 0.0;
 			if (fabs(temp) > small)
-				decllat = (vecl[2] - drr * sin(ecllat)) / temp;
+				decllat = (v[2] - drr * sin(ecllat)) / temp;
 			else
 				decllat = 0.0;
 		}
@@ -4505,7 +4128,6 @@ namespace AstroLib
 	*    atan2       - arc tangent function which also resloves quadrants
 	*    dot         - dot product of two vectors
 	*    rvsez_razel - find r2 and v2 from site in topocentric horizon (sez) system
-	*    lncom2      - combine two vectors and constants
 	*    arcsin      - arc sine function
 	*    sgn         - returns the MathTimeLib::sgn of a variable
 	*
@@ -4515,7 +4137,7 @@ namespace AstroLib
 
 	void rv_razel
 	(
-		double recef[3], double vecef[3], double rsecef[3], double latgd, double lon,
+		double recef[3], double vecef[3], double latgd, double lon, double alt, 
 		MathTimeLib::edirection direct,
 		double& rho, double& az, double& el, double& drho, double& daz, double& del
 	)
@@ -4524,7 +4146,9 @@ namespace AstroLib
 		const double small = 0.0000001;
 
 		double temp, temp1;
-		double rhoecef[3], drhoecef[3], rhosez[3], drhosez[3], tempvec[3];
+		double rsecef[3], vsecef[3], rhoecef[3], drhoecef[3], rhosez[3], drhosez[3], tempvec[3];
+
+		site(latgd, lon, alt, rsecef, vsecef);
 
 		if (direct == MathTimeLib::eFrom)
 		{
@@ -4629,7 +4253,6 @@ namespace AstroLib
 	*    mag         - magnitude of a vector
 	*    atan2       - arc tangent function that resolves the quadrant ambiguities
 	*    arcsin      - arc sine function
-	*    lncom2      - linear combination of 2 vectors
 	*    addvec      - add two vectors
 	*    dot         - dot product of two vectors
 	*
@@ -4983,15 +4606,7 @@ namespace AstroLib
 		double ebar[3];
 		double nbar[3];
 		int i;
-		// switch this to an integer msvs seems to have problems with this and strncpy_s
-		//char typeorbit[2];
-		int typeorbit;
-		// here 
-		// typeorbit = 1 = 'ei'
-		// typeorbit = 2 = 'ce'
-		// typeorbit = 3 = 'ci'
-		// typeorbit = 4 = 'ee'
-		// define these here since setting individually
+		char typeorbit[3];
 
 		halfpi = 0.5 * pi;
 		small = 0.00000001;
@@ -5024,34 +4639,31 @@ namespace AstroLib
 
 			// --------  determine type of orbit for later use  --------
 			// ------ elliptical, parabolic, hyperbolic inclined -------
-			//#ifdef _MSC_VER  // chk if compiling under MSVS
-			//		   strcpy_s(typeorbit, 2 * sizeof(char), "ei");
-			//#else
-			//		   strcpy(typeorbit, "ei");
-			//#endif
-			typeorbit = 1;
+			#ifdef _MSC_VER  // chk if compiling under MSVS
+					   strcpy_s(typeorbit, 3 * sizeof(char), "ei");
+			#else
+					   strcpy(typeorbit, "ei");
+			#endif
 
 			if (ecc < small)
 			{
 				// ----------------  circular equatorial ---------------
 				if ((incl < small) | (fabs(incl - pi) < small))
 				{
-					//#ifdef _MSC_VER
-					//				   strcpy_s(typeorbit, sizeof(typeorbit), "ce");
-					//#else
-					//				   strcpy(typeorbit, "ce");
-					//#endif
-					typeorbit = 2;
+					#ifdef _MSC_VER
+									   strcpy_s(typeorbit, 3 * sizeof(char), "ce");
+					#else
+									   strcpy(typeorbit, "ce");
+					#endif
 				}
 				else
 				{
 					// --------------  circular inclined ---------------
-					//#ifdef _MSC_VER
-					//				   strcpy_s(typeorbit, sizeof(typeorbit), "ci");
-					//#else
-					//				   strcpy(typeorbit, "ci");
-					//#endif
-					typeorbit = 3;
+					#ifdef _MSC_VER
+									   strcpy_s(typeorbit, 3 * sizeof(char), "ci");
+					#else
+									   strcpy(typeorbit, "ci");
+					#endif
 				}
 			}
 			else
@@ -5059,19 +4671,17 @@ namespace AstroLib
 				// - elliptical, parabolic, hyperbolic equatorial --
 				if ((incl < small) | (fabs(incl - pi) < small))
 				{
-					//#ifdef _MSC_VER
-					//				   strcpy_s(typeorbit, sizeof(typeorbit), "ee");
-					//#else
-					//				   strcpy(typeorbit, "ee");
-					//#endif
-					typeorbit = 4;
+					#ifdef _MSC_VER
+									   strcpy_s(typeorbit, 3 * sizeof(char), "ee");
+					#else
+									   strcpy(typeorbit, "ee");
+					#endif
 				}
 			}
 
 
 			// ------------  find true anomaly at epoch    -------------
-			//if (typeorbit[0] == 'e')
-			if ((typeorbit == 1) || (typeorbit == 4))
+			if (typeorbit[0] == 'e')
 			{
 				nu = MathTimeLib::angle(ebar, r);
 				if (rdotv < 0.0)
@@ -5081,8 +4691,7 @@ namespace AstroLib
 				nu = undefined;
 
 			// ----  find argument of latitude - circular inclined -----
-			//if (strcmp(typeorbit, "ci") == 0)
-			if (typeorbit == 3)
+			if (strcmp(typeorbit, "ci") == 0)
 			{
 				arglat = MathTimeLib::angle(nbar, r);
 				if (r[2] < 0.0)
@@ -5092,8 +4701,7 @@ namespace AstroLib
 				arglat = undefined;
 
 			// -------- find true longitude - circular equatorial ------
-			//if ((magr>small) && (strcmp(typeorbit, "ce") == 0))
-			if ((magr > small) && (typeorbit == 2))
+			if ((magr>small) && (strcmp(typeorbit, "ce") == 0))
 			{
 				temp = r[0] / magr;
 				if (fabs(temp) > 1.0)
@@ -5114,8 +4722,7 @@ namespace AstroLib
 			if (ecc < small)
 			{
 				// ----------------  circular equatorial  ------------------
-			//if (strcmp(typeorbit, "ce") == 0)
-				if (typeorbit == 2)
+			if (strcmp(typeorbit, "ce") == 0)
 					nu = truelon;
 				else
 				{
@@ -5147,7 +4754,7 @@ namespace AstroLib
 				p = 0.00000001;
 
 			vpqw[0] = -sin_nu * sqrt(mu / p);
-			vpqw[1] = (ecc + cos_nu) *sqrt(mu / p);
+			vpqw[1] = (ecc + cos_nu) * sqrt(mu / p);
 			vpqw[2] = 0.0;
 		}
 		else
@@ -5244,7 +4851,7 @@ namespace AstroLib
 		  *
 		  *  inputs          description                    range / units
 		  *    ecc         - eccentricity                   0.0 to
-		  *    e0          - eccentric anomaly              0.0 to 2pi rad
+		  *    eccanom          - eccentric anomaly              0.0 to 2pi rad
 		  *
 		  *  outputs       :
 		  *    m           - mean anomaly                   -2pi to 2pi rad
@@ -5263,7 +4870,7 @@ namespace AstroLib
 
 	void newtone
 	(
-		double ecc, double e0, double& m, double& nu
+		double ecc, double eccanom, double& m, double& nu
 	)
 	{
 		double small, sinv, cosv;
@@ -5274,17 +4881,17 @@ namespace AstroLib
 		// ------------------------- circular --------------------------
 		if (abs(ecc) < small)
 		{
-			m = e0;
-			nu = e0;
+			m = eccanom;
+			nu = eccanom;
 		}
 		else
 		{
 			// ----------------------- elliptical ----------------------
 			if (ecc < 0.999)
 			{
-				m = e0 - ecc * sin(e0);
-				sinv = (sqrt(1.0 - ecc * ecc) * sin(e0)) / (1.0 - ecc * cos(e0));
-				cosv = (cos(e0) - ecc) / (1.0 - ecc * cos(e0));
+				m = eccanom - ecc * sin(eccanom);
+				sinv = (sqrt(1.0 - ecc * ecc) * sin(eccanom)) / (1.0 - ecc * cos(eccanom));
+				cosv = (cos(eccanom) - ecc) / (1.0 - ecc * cos(eccanom));
 				nu = atan2(sinv, cosv);
 			}
 			else
@@ -5293,20 +4900,24 @@ namespace AstroLib
 				// ---------------------- hyperbolic  ------------------
 				if (ecc > 1.0001)
 				{
-					m = ecc * sinh(e0) - e0;
-					sinv = (sqrt(ecc * ecc - 1.0) * sinh(e0)) / (1.0 - ecc * cosh(e0));
-					cosv = (cosh(e0) - ecc) / (1.0 - ecc * cosh(e0));
+					m = ecc * sinh(eccanom) - eccanom;
+					sinv = (sqrt(ecc * ecc - 1.0) * sinh(eccanom)) / (1.0 - ecc * cosh(eccanom));
+					cosv = (cosh(eccanom) - ecc) / (1.0 - ecc * cosh(eccanom));
 					nu = atan2(sinv, cosv);
 				}
 				else
 				{
 
 					// -------------------- parabolic ------------------
-					m = e0 + (1.0 / 3.0) * e0 * e0 * e0;
-					nu = 2.0 * atan(e0);
+					m = eccanom + (1.0 / 3.0) * eccanom * eccanom * eccanom;
+					nu = 2.0 * atan(eccanom);
 				}
 			}
 		}
+		if (m < 0.0)
+			m = m + twopi;
+		if (nu < 0.0)
+			nu = nu + twopi;
 	}  // newtone
 
 
@@ -5325,7 +4936,7 @@ namespace AstroLib
 	*    m           - mean anomaly                        -2pi to 2pi rad
 	*
 	*  outputs       :
-	*    e0          - eccentric anomaly                    0.0 to 2pi rad
+	*    eccanom          - eccentric anomaly                    0.0 to 2pi rad
 	*    nu          - true anomaly                        0.0 to 2pi rad
 	*
 	*  locals        :
@@ -5356,7 +4967,7 @@ namespace AstroLib
 
 	void newtonm
 	(
-		double ecc, double m, double& e0, double& nu
+		double ecc, double m, double& eccanom, double& nu
 	)
 	{
 		const int numiter = 50;
@@ -5371,20 +4982,20 @@ namespace AstroLib
 			// ------------  initial guess ------------- 
 			if (ecc < 1.6)
 				if (((m < 0.0) && (m > -pi)) || (m > pi))
-					e0 = m - ecc;
+					eccanom = m - ecc;
 				else
-					e0 = m + ecc;
+					eccanom = m + ecc;
 			else
 				if ((ecc < 3.6) && (fabs(m) > pi)) // just edges)
-					e0 = m - MathTimeLib::sgn(m) * ecc;
+					eccanom = m - MathTimeLib::sgn(m) * ecc;
 				else
-					e0 = m / (ecc - 1.0); // best over 1.8 in middle
+					eccanom = m / (ecc - 1.0); // best over 1.8 in middle
 			ktr = 1;
-			e1 = e0 + ((m - ecc * sinh(e0) + e0) / (ecc * cosh(e0) - 1.0));
-			while ((fabs(e1 - e0) > small) && (ktr <= numiter))
+			e1 = eccanom + ((m - ecc * sinh(eccanom) + eccanom) / (ecc * cosh(eccanom) - 1.0));
+			while ((fabs(e1 - eccanom) > small) && (ktr <= numiter))
 			{
-				e0 = e1;
-				e1 = e0 + ((m - ecc * sinh(e0) + e0) / (ecc * cosh(e0) - 1.0));
+				eccanom = e1;
+				e1 = eccanom + ((m - ecc * sinh(eccanom) + eccanom) / (ecc * cosh(eccanom) - 1.0));
 				ktr++;
 			}
 			// ---------  find true anomaly  ----------- 
@@ -5399,17 +5010,17 @@ namespace AstroLib
 			if (fabs(ecc - 1.0) < small)
 			{
 				//kbn      cubic(1.0 / 3.0, 0.0, 1.0, -m, r1r, r1i, r2r, r2i, r3r, r3i);
-				e0 = r1r;
+				eccanom = r1r;
 				//kbn      if (fileout != null)
 				//        fprintf(fileout, "roots %11.7f %11.7f %11.7f %11.7f %11.7f %11.7f\n",
 				//                          r1r, r1i, r2r, r2i, r3r, r3i);
 				/*
 					 s  = 0.5 * (halfpi - atan(1.5 * m));
 					 w  = atan(power(tan(s), 1.0 / 3.0));
-					 e0 = 2.0 * cot(2.0* w );
+					 eccanom = 2.0 * cot(2.0* w );
 				*/
 				ktr = 1;
-				nu = 2.0 * atan(e0);
+				nu = 2.0 * atan(eccanom);
 			}
 			else
 			{
@@ -5418,16 +5029,16 @@ namespace AstroLib
 				{
 					// ------------  initial guess ------------- 
 					if (((m < 0.0) && (m > -pi)) || (m > pi))
-						e0 = m - ecc;
+						eccanom = m - ecc;
 					else
-						e0 = m + ecc;
+						eccanom = m + ecc;
 					ktr = 1;
-					e1 = e0 + (m - e0 + ecc * sin(e0)) / (1.0 - ecc * cos(e0));
-					while ((fabs(e1 - e0) > small) && (ktr <= numiter))
+					e1 = eccanom + (m - eccanom + ecc * sin(eccanom)) / (1.0 - ecc * cos(eccanom));
+					while ((fabs(e1 - eccanom) > small) && (ktr <= numiter))
 					{
 						ktr++;
-						e0 = e1;
-						e1 = e0 + (m - e0 + ecc * sin(e0)) / (1.0 - ecc * cos(e0));
+						eccanom = e1;
+						e1 = eccanom + (m - eccanom + ecc * sin(eccanom)) / (1.0 - ecc * cos(eccanom));
 					}
 					// ---------  find true anomaly  ----------- 
 					cose1 = cos(e1);
@@ -5441,12 +5052,16 @@ namespace AstroLib
 					// --------------------- circular --------------------- 
 					ktr = 0;
 					nu = m;
-					e0 = m;
+					eccanom = m;
 				}
 			}
 		}
 		if (ktr > numiter)
 			printf("newtonrhapson not converged in %3d iterations\n", numiter);
+		if (eccanom < 0.0)
+			eccanom = eccanom + twopi;
+		if (nu < 0.0)
+			nu = nu + twopi;
 	}    // procedure newtonm
 
 
@@ -5470,7 +5085,7 @@ namespace AstroLib
 	*    nu          - true anomaly                                -2pi to 2pi rad
 	*
 	*  outputs       :
-	*    e0          - eccentric anomaly                           0.0  to 2pi rad       153.02 deg
+	*    eccanom          - eccentric anomaly                           0.0  to 2pi rad       153.02 deg
 	*    m           - mean anomaly                                0.0  to 2pi rad       151.7425 deg
 	*
 	*  locals        :
@@ -5490,13 +5105,13 @@ namespace AstroLib
 	void newtonnu
 	(
 		double ecc, double nu,
-		double& e0, double& m
+		double& eccanom, double& m
 	)
 	{
 		double small, sine, cose, cosnu, temp;
 
 		// ---------------------  implementation   ---------------------
-		e0 = 999999.9;
+		eccanom = 999999.9;
 		m = 999999.9;
 		small = 0.00000001;
 
@@ -5504,7 +5119,7 @@ namespace AstroLib
 		if (fabs(ecc) < small)
 		{
 			m = nu;
-			e0 = nu;
+			eccanom = nu;
 		}
 		else
 			// ---------------------- elliptical -----------------------
@@ -5514,8 +5129,8 @@ namespace AstroLib
 				temp = 1.0 / (1.0 + ecc * cosnu);
 				sine = (sqrt(1.0 - ecc * ecc) * sin(nu)) * temp;
 				cose = (ecc + cosnu) * temp;
-				e0 = atan2(sine, cose);
-				m = e0 - ecc * sin(e0);
+				eccanom = atan2(sine, cose);
+				m = eccanom - ecc * sin(eccanom);
 			}
 			else
 				// -------------------- hyperbolic  --------------------
@@ -5524,16 +5139,16 @@ namespace AstroLib
 					if ((ecc > 1.0) && (fabs(nu) + 0.00001 < pi - acos(1.0 / ecc)))
 					{
 						sine = (sqrt(ecc * ecc - 1.0) * sin(nu)) / (1.0 + ecc * cos(nu));
-						e0 = MathTimeLib::asinh(sine);
-						m = ecc * sinh(e0) - e0;
+						eccanom = MathTimeLib::asinh(sine);
+						m = ecc * sinh(eccanom) - eccanom;
 					}
 				}
 				else
 					// ----------------- parabolic ---------------------
 					if (fabs(nu) < 168.0 * pi / 180.0)
 					{
-						e0 = tan(nu * 0.5);
-						m = e0 + (e0 * e0 * e0) / 3.0;
+						eccanom = tan(nu * 0.5);
+						m = eccanom + (eccanom * eccanom * eccanom) / 3.0;
 					}
 
 		if (ecc < 1.0)
@@ -5541,8 +5156,12 @@ namespace AstroLib
 			m = fmod(m, 2.0 * pi);
 			if (m < 0.0)
 				m = m + 2.0 * pi;
-			e0 = fmod(e0, 2.0 *pi);
+			eccanom = fmod(eccanom, 2.0 *pi);
 		}
+		if (eccanom < 0.0)
+			eccanom = eccanom + twopi;
+		if (m < 0.0)
+			m = m + twopi;
 	}  // newtonnu
 
 
@@ -5667,7 +5286,7 @@ namespace AstroLib
 		gdot = 0.0;
 		switch (opt)
 		{
-		case 0:  // "pqw"
+		case 0:  // "pqw":
 		{
 			double h;
 			double hbar[3];
@@ -5686,7 +5305,7 @@ namespace AstroLib
 			f = (rpqw2[0] * vpqw1[1] - vpqw2[0] * rpqw1[1]) / h;
 			g = (rpqw1[0] * rpqw2[1] - rpqw2[0] * rpqw1[1]) / h;
 			gdot = (rpqw1[0] * vpqw2[1] - vpqw2[0] * rpqw1[1]) / h;
-			// fdot = (v2t[0] * v1t[1] - v2t[1] * v1t[0]) / h;
+			fdot = (vpqw2[0] * vpqw1[1] - vpqw2[1] * vpqw1[0]) / h;
 		}
 			break;
 		case 1:  //"series":
@@ -5712,27 +5331,33 @@ namespace AstroLib
 			double dt6 = dt5 * dtsec;
 			double dt7 = dt6 * dtsec;
 			double dt8 = dt7 * dtsec;
-			f = 1.0 - 0.5 * u * dt2 + 0.5 * u * p * dt3 + 1.0 / 24.0 * (3 * u * q - 15 * u * p2 + u2) * dt4 +
-				1.0 / 8.0 * (7 * u * p3 - 3 * u * p * q - u2 * p) * dt5 +
-				1.0 / 720.0 * (630 * u * p2 * q - 24 * u2 * q - u3 - 45 * u * q2 - 945 * u * p4 + 210 * u2 * p2) * dt6 +
-				1.0 / 5040 * (882 * u2 * p * q - 3150 * u2 * p3 - 9450 * u * p3 * q + 1575 * u * p * q2 + 63 * u3 * p + 10395 * u * p5) * dt7 +
-				1.0 / 40320 * (1107 * u2 * q2 - 24570 * u2 * p2 * q - 2205 * u3 * p2 + 51975 * u2 * p4 - 42525 * u * p2 * q2 + 155925 * u * p4 * q + 1575 * u * q3 + 117 * u3 * q - 135135 * u * p6 + u4) * dt8;
+			f = 1.0 - 0.5 * u * dt2 + 0.5 * u * p * dt3 +
+				u / 24.0 * (-15 * p2 + 3.0 * q + u) * dt4 +
+				p * u / 8.0 * (7.0 * p2 - 3 * q - u) * dt5 +
+				u / 720.0 * (-945.0 * p4 + 630.0 * p2 * q + 210 * u * p2 - 45 * q2 - 24 * u * q - u2) * dt6 +
+				p * u / 80.0 * (165 * p4 - 150 * p2 * q - 50 * u * p2 + 25 * q2 + 14.0 * u * q + u2) * dt7 +
+				u / 40320.0 * (-135135.0 * p6 + 155925.0 * p4 * q + 51975.0 * u * p4 - 42525 * p2 * q2 -
+					24570.0 * u * p2 * q - 2205 * u2 * p2 + 1575 * q3 + 1107.0 * u * q2 + 117.0 * u2 * q + u3) * dt8;
 
-			g = dtsec - 1 / 6 * u * dt3 + 0.25 * u * p * dt4 + 1 / 120 * (9 * u * q - 45 * u * p2 + u2) * dt5 +
-				1 / 360 * (210 * u * p3 - 90 * u * p * q - 15 * u2 * p) * dt6 +
-				1 / 5040 * (3150 * u * p2 * q - 54 * u2 * q - 225 * u * q2 - 4725 * u * p4 + 630 * u2 * p2 - u3) * dt7 +
-				1 / 40320 * (3024 * u2 * p * q - 12600 * u2 * p3 - 56700 * u * p3 * q + 9450 * u * p * q2 + 62370 * u * p5 + 126 * u3 * p) * dt8;
+			g = dtsec - 1.0 / 6.0 * u * dt3 + 0.25 * u * p * dt4 +
+				u / 120.0 * (-45 * p2 + 9.0 * q + u) * dt5 +
+				p * u / 24.0 * (14.0 * p2 - 6 * q - u) * dt6 +
+				u / 5040.0 * (-4725 * p4 + 3150 * p2 * q + 630 * u * p2 - 225 * q2 - 54 * u * q - u2) * dt7 +
+				p * u / 320.0 * (495 * p4 - 450 * p2 * q - 100 * u * p2 + 75 * q2 + 24.0 * u * q + u2) * dt8;
 
-			fdot = -u * dtsec + 1.5 * u * p * dt2 + 1.0 / 6.0 * (3 * u * q - 15 * u * p2 + u2) * dt3 +
-				5.0 / 8.0 * (7.0 * u * p3 - 3 * u * p * q - u2 * p) * dt4 +
-				6.0 / 720.0 * (630 * u * p2 * q - 24 * u2 * q - u3 - 45 * u * q2 - 945 * u * p4 + 210 * u2 * p2) * dt5 +
-				7.0 / 5040 * (882 * u2 * p * q - 3150 * u2 * p3 - 9450 * u * p3 * q + 1575 * u * p * q2 + 63 * u3 * p + 10395 * u * p5) * dt6 +
-				8.0 / 40320 * (1107 * u2 * q2 - 24570 * u2 * p2 * q - 2205 * u3 * p2 + 51975 * u2 * p4 - 42525 * u * p2 * q2 + 155925 * u * p4 * q + 1575 * u * q3 + 117 * u3 * q - 135135 * u * p6 + u4) * dt7;
+			fdot = -u * dtsec + 1.5 * u * p * dt2 +
+				u / 6.0 * (-15 * p2 + 3 * q + u) * dt3 +
+				5.0 * p * u / 8.0 * (7.0 * p2 - 3 * q - u) * dt4 +
+				u / 120.0 * (-945 * p4 + 630 * p2 * q + 210 * u * p2 - 45 * q2 - 24 * u * q - u2) * dt5 +
+				7.0 * p * u / 80.0 * (165 * p4 - 150 * p2 * q - 50 * u * p2 + 25 * q2 + 14 * u * q + u2) * dt6 +
+				u / 5040.0 * (-135135.0 * p6 + 155925.0 * p4 * q + 51975.0 * u * p4 - 42525.0 * p2 * q2 - 24570.0 * u * p2 * q
+					- 2205.0 * u2 * p2 + 1575 * q3 + 1107 * u * q2 + 117 * u2 * q + u3) * dt7;
 
-			gdot = 1.0 - 0.5 * u * dt2 + u * p * dt3 + 5 / 120 * (9 * u * q - 45 * u * p2 + u2) * dt4 +
-				1.0 / 60 * (210 * u * p3 - 90 * u * p * q - 15 * u2 * p) * dt5 +
-				7.0 / 5040 * (3150 * u * p2 * q - 54 * u2 * q - 225 * u * q2 - 4725 * u * p4 + 630 * u2 * p2 - u3) * dt6 +
-				8.0 / 40320 * (3024 * u2 * p * q - 12600 * u2 * p3 - 56700 * u * p3 * q + 9450 * u * p * q2 + 62370 * u * p5 + 126 * u3 * p) * dt7;
+			gdot = 1.0 - 0.5 * u * dt2 + u * p * dt3 +
+				u / 24 * (-45 * p2 + 9 * q + u) * dt4 +
+				p * u / 4 * (14 * p2 - 6 * q - u) * dt5 +
+				u / 720 * (-4725.0 * p4 + 3150 * p2 * q + 630 * u * p2 - 225 * q2 - 54 * u * q - u2) * dt6 +
+				p * u / 40 * (495 * p4 - 450 * p2 * q - 100 * u * p2 + 75 * q2 + 24 * u * q + u2) * dt7;
 		}
 			break;
 		case 2:  //"c2c3":
@@ -5747,7 +5372,7 @@ namespace AstroLib
 			break;
 		}
 		// g = g * tusec;  / to canonical if needed, fdot/tusec too
-		fdot = (f * gdot - 1.0) / g;
+		//fdot = (f * gdot - 1.0) / g;
 
 	}  //  findfandg
 
@@ -5929,7 +5554,8 @@ namespace AstroLib
 				xnew = xold + (dtsec * sqrt(mu) - dtnew) / rval;
 
 				// ----- check if the univ param goes negative. if so, use bissection
-				if (xnew < 0.0)
+                                // if dtsec is -, then so will xnew be -
+				if (xnew < 0.0 && dtsec > 0.0)
 					xnew = xold * 0.5;
 
 				if (show == 'y')
@@ -6023,7 +5649,7 @@ namespace AstroLib
 	*    argpdot     - change in argument of perigee               rad/sec
 	*    raan       - longitude of the asc node                    rad
 	*    raandot    - change in raan                               rad
-	*    e0          - eccentric anomaly                           rad
+	*    eccanom          - eccentric anomaly                           rad
 	*    e1          - eccentric anomaly                           rad
 	*    m           - mean anomaly                                rad/sec
 	*    mdot        - change in mean anomaly                      rad/sec
@@ -6052,7 +5678,7 @@ namespace AstroLib
 		double r1[3], double v1[3], double &dtsec, double &ndot, double &nddot, double r2[3], double v2[3]
 	)
 	{
-		double  truelondot, arglatdot, lonperdot, e0;
+		double  truelondot, arglatdot, lonperdot;
 		double p, a, ecc, incl, raan, argp, nu, m, eccanom, arglat, truelon, lonper;
 		double sqrtbeta, nbar, mdot, raandot, argpdot, sini, cosi;
 
@@ -6152,7 +5778,7 @@ namespace AstroLib
 				lonper = fmod(lonper, twopi);
 				m = m + mdot * dtsec + ndot * dtsec * dtsec + nddot * pow(dtsec, 3);
 				m = fmod(m, twopi);
-				newtonm(ecc, m, e0, nu);
+				newtonm(ecc, m, eccanom, nu);
 			}
 
 			else
@@ -6164,7 +5790,7 @@ namespace AstroLib
 				argp = fmod(argp, twopi);
 				m = m + mdot * dtsec + ndot * dtsec * dtsec + nddot * dtsec * dtsec * dtsec;
 				m = fmod(m, twopi);
-				newtonm(ecc, m, e0, nu);
+				newtonm(ecc, m, eccanom, nu);
 			}
 		}
 
@@ -6487,9 +6113,177 @@ namespace AstroLib
 		}  // check if starting positions ok
 	} // checkhitearth
 
+
+		/* ------------------------------------------------------------------------------
+		//
+		//                           function checkhitearthc
+		//
+		//  this function checks to see if the trajectory hits the earth during the
+		//    transfer. Calc in canonical units.
+		//
+		//  author        : david vallado                  719-573-2600   14 aug 2017
+		//
+		//  inputs          description                    range / units
+		//    altPadc     - pad for alt above surface       er
+		//    r1c         - initial position vector of int  er
+		//    v1tc        - initial velocity vector of trns er/tu
+		//    r2c         - final position vector of int    er
+		//    v2tc        - final velocity vector of trns   er/tu
+		//    nrev        - number of revolutions           0, 1, 2,
+		//
+		//  outputs       :
+		//    hitearth    - is earth was impacted           'y' 'n'
+		//    hitearthstr - is earth was impacted           "y - radii" "no"
+		//
+		//  locals        :
+		//    sme         - specific mechanical energy
+		//    rp          - radius of perigee               er
+		//    a           - semimajor axis of transfer      er
+		//    ecc         - eccentricity of transfer
+		//    p           - semi-paramater of transfer      er
+		//    hbar        - angular momentum vector of
+		//                  transfer orbit
+		//    radiuspadc  - radius including user pad       er
+		//
+		//  coupling      :
+		//    dot         - dot product of vectors
+		//    mag         - magnitude of a vector
+		//    MathTimeLibr.cross       - MathTimeLibr.cross product of vectors
+		//
+		//  references    :
+		//    vallado       2013, 503, alg 60
+		// ------------------------------------------------------------------------------*/
+
+	void checkhitearthc
+	(
+		double altPadc, double r1c[3], double v1tc[3], double r2c[3], double v2tc[3], int nrev, char& hitearth
+	)
+	{
+		double radiuspadc = 1.0 + altPadc; // radius of Earth with pad, km
+		double rp, magh, magv1c, v12c, a, ainv, ecc, ecosea1, esinea1, ecosea2;
+		double hbar[3];
+		rp = 0.0;
+
+		double magr1c = MathTimeLib::mag(r1c);
+		double magr2c = MathTimeLib::mag(r2c);
+
+		hitearth = 'n';
+		//hitearthstr = "no";
+
+		// check whether Lambert transfer trajectory hits the Earth
+		if (magr1c < radiuspadc || magr2c < radiuspadc)
+		{
+			// hitting earth already at start or stop point
+			hitearth = 'y';
+			//hitearthstr = hitearth + "_radii";
+		}
+		else
+		{
+			double rdotv1c = MathTimeLib::dot(r1c, v1tc);
+			double rdotv2c = MathTimeLib::dot(r2c, v2tc);
+
+			// Solve for a 
+			magv1c = MathTimeLib::mag(v1tc);
+			v12c = magv1c * magv1c;
+			ainv = 2.0 / magr1c - v12c;
+
+			// Find ecos(E) 
+			ecosea1 = 1.0 - magr1c * ainv;
+			ecosea2 = 1.0 - magr2c * ainv;
+
+			// Determine radius of perigee
+			// 4 distinct cases pass thru perigee 
+			// nrev > 0 you have to check
+			if (nrev > 0)
+			{
+				a = 1.0 / ainv;
+				// elliptical orbit
+				if (a > 0.0)
+				{
+					esinea1 = rdotv1c / sqrt(a);
+					ecc = sqrt(ecosea1 * ecosea1 + esinea1 * esinea1);
+				}
+				// hyperbolic orbit
+				else
+				{
+					esinea1 = rdotv1c / sqrt(fabs(-a));
+					ecc = sqrt(ecosea1 * ecosea1 - esinea1 * esinea1);
+				}
+				rp = a * (1.0 - ecc);
+				if (rp < radiuspadc)
+				{
+					hitearth = 'y';
+					//hitearthstr = hitearth + "Sub_Earth_nrrp";
+				}
+			}
+			// nrev = 0, 3 cases:
+			// heading to perigee and ending after perigee
+			// both headed away from perigee, but end is closer to perigee
+			// both headed toward perigee, but start is closer to perigee
+			else
+			{
+				if ((rdotv1c < 0.0 && rdotv2c > 0.0) || (rdotv1c > 0.0 && rdotv2c > 0.0 && ecosea1 < ecosea2) ||
+					(rdotv1c < 0.0 && rdotv2c < 0.0 && ecosea1 > ecosea2))
+				{
+					// parabolic orbit
+					if (fabs(ainv) <= 1.0e-10)
+					{
+						MathTimeLib::cross(r1c, v1tc, hbar);
+						magh = MathTimeLib::mag(hbar); // find h magnitude
+						rp = magh * magh * 0.5;
+						if (rp < radiuspadc)
+						{
+							hitearth = 'y';
+							//hitearthstr = hitearth + "Sub_Earth_para";
+						}
+					}
+					else
+					{
+						a = 1.0 / ainv;
+						// elliptical orbit
+						if (a > 0.0)
+						{
+							esinea1 = rdotv1c / sqrt(a);
+							ecc = sqrt(ecosea1 * ecosea1 + esinea1 * esinea1);
+						}
+						// hyperbolic orbit
+						else
+						{
+							esinea1 = rdotv1c / sqrt(fabs(-a));
+							ecc = sqrt(ecosea1 * ecosea1 - esinea1 * esinea1);
+						}
+						if (ecc < 1.0)
+						{
+							rp = a * (1.0 - ecc);
+							if (rp < radiuspadc)
+							{
+								hitearth = 'y';
+								//hitearthstr = hitearth + "Sub_Earth_ell";
+							}
+						}
+						else
+						{
+							// hyperbolic heading towards the earth
+							if (rdotv1c < 0.0 && rdotv2c > 0.0)
+							{
+								rp = a * (1.0 - ecc);
+								if (rp < radiuspadc)
+								{
+									hitearth = 'y';
+									//hitearthstr = hitearth + "Sub_Earth_hyp";
+								}
+							}
+						}
+
+					} // ell and hyp checks
+				} // end nrev = 0 cases
+			}  // nrev = 0 cases
+		}  // check if starting positions ok
+	} // checkhitearthc
+
 	
 	/* ----------------------- lambert techniques -------------------- */
-			/* ------------------------------------------------------------------------------
+    /* ------------------------------------------------------------------------------
 		//                           function lambertumins
 		//
 		//  find the minimum psi values for the universal variable lambert problem
@@ -6500,7 +6294,7 @@ namespace AstroLib
 		//    r1          - ijk position vector 1          km
 		//    r2          - ijk position vector 2          km
 		//    nrev        - multiple revolutions           0, 1,
-		//    df          - dir of flight (direct, retrograde) 'd','r'
+		//    dm          - direction of motion                  'S', 'L'
 		//                  this is the inclination discriminator
 		//
 		//  outputs       :
@@ -6513,7 +6307,7 @@ namespace AstroLib
 
 	void lambertumins
 	(
-		double r1[3], double r2[3], int nrev, char df,
+		double r1[3], double r2[3], int nrev, char dm,
 		double& kbi, double& tof
 	)
 	{
@@ -6538,7 +6332,7 @@ namespace AstroLib
 		magr2 = MathTimeLib::mag(r2);
 
 		cosdeltanu = MathTimeLib::dot(r1, r2) / (magr1 * magr2);
-		if (df == 'r')
+		if (dm == 'L')
 			vara = -sqrt(magr1 * magr2 * (1.0 + cosdeltanu));
 		else
 			vara = sqrt(magr1 * magr2 * (1.0 + cosdeltanu));
@@ -6643,7 +6437,7 @@ namespace AstroLib
 	*  inputs          description                    range / units
 	*    r1          - ijk position vector 1          km
 	*    r2          - ijk position vector 2          km
-	*    dm          - direction of motion            'L','S'
+	*    dm          - direction of motion            'L', 'S'
 	*    de          - direction of energy            'L', 'H'
 	*    nrev        - number of revs to complete     0, 1, 2, 3,
 	*
@@ -6730,7 +6524,7 @@ namespace AstroLib
 			temp = sqrt(0.5 * (s - chord) * alp);
 			if (fabs(temp) > 1.0)
 				temp = MathTimeLib::sgn(temp) * 1.0;
-			if (de == 'L')
+			if (dm == 'L')
 				beta = 2.0 * asin(temp);
 			else
 				beta = -2.0 * asin(temp);  // fix quadrant
@@ -6762,67 +6556,72 @@ namespace AstroLib
 	*
 	*                           procedure lambertuniv
 	*
-	*  this procedure solves the lambert problem for orbit determination and returns
-	*    the velocity vectors at each of two given position vectors.  the solution
-	*    uses universal variables for calculation and a bissection technique for
-	*    updating psi.
-	*
-	*  algorithm     : setting the initial bounds:
-	*                  using -8pi and 4pi2 will allow single rev solutions
-	*                  using -4pi2 and 8pi2 will allow multi-rev solutions
-	*                  the farther apart the initial guess, the more iterations
-	*                    because of the iteration
-	*                  inner loop is for special cases. must be sure to exit both!
-	*
-	*  author        : david vallado                  719-573-2600   22 jun 2002
-	*
-	*  inputs          description                            range / units
-	*    r1          -  position vector 1                          km
-	*    r2          -  position vector 2                          km
-	*    dm          - direction of motion                        'L','S'
-	*    de          - direction of energy                        'L', 'H'
-	*    dtsec       - time between r1 and r2                     sec
-	*
-	*  outputs       :
-	*    v1          -  velocity vector                          km/s
-	*    v2          -  velocity vector                          km/s
-	*    error       - error flag                                 1, 2, 3, ... use numbers since c++ is so horrible at strings
-	*        error = 1;   // g not converged
-	*        error = 2;   // y negative
-	*        error = 3;   // impossible 180 transfer
-	*
-	*  locals        :
-	*    vara        - variable of the iteration,
-	*                  not the semi or axis!
-	*    y           - area between position vectors
-	*    upper       - upper bound for z
-	*    lower       - lower bound for z
-	*    cosdeltanu  - cosine of true anomaly change              rad
-	*    f           - f expression
-	*    g           - g expression
-	*    gdot        - g dot expression
-	*    xold        - old universal variable x
-	*    xoldcubed   - xold cubed
-	*    zold        - old value of z
-	*    znew        - new value of z
-	*    c2new       - c2(z) function
-	*    c3new       - c3(z) function
-	*    timenew     - new time                                   s
-	*    small       - tolerance for roundoff errors
-	*    i, j        - index
-	*
-	*  coupling
-	*    MathTimeLib::mag         - MathTimeLib::magnitude of a vector
-	*    dot         - dot product of two vectors
-	*    findc2c3    - find c2 and c3 functions
-	*
-	*  references    :
-	*    vallado       2013, 492, alg 58, ex 7-5
+		*  this procedure solves the lambert problem for orbit determination and returns
+		*    the velocity vectors at each of two given position vectors.  the solution
+		*    uses universal variables for calculation and a bissection technique for
+		*    updating psi.
+		*
+		*  algorithm     : setting the initial bounds:
+		*                  using -8pi and 4pi2 will allow single rev solutions
+		*                  using -4pi2 and 8pi2 will allow multi-rev solutions
+		*                  the farther apart the initial guess, the more iterations
+		*                    because of the iteration
+		*                  inner loop is for special cases. must be sure to exit both!
+		*
+		*  author        : david vallado                        719-573-2600   22 jun 2002
+		*
+		*  inputs          description                          range / units
+		*    r1          - ijk position vector 1                km
+		*    r2          - ijk position vector 2                km
+		*    v1          - ijk velocity vector 1 if avail       km/s
+		*    dm          - direction of motion                  'L', 'S'
+		*    de          - orbital energy                       'L', 'H'
+		*                  only affects nrev >= 1 upper/lower bounds
+		*    dtsec       - time between r1 and r2               sec
+		*    dtwait      - time to wait before starting         sec
+		*    nrev        - number of revs to complete           0, 1, 2, 3,
+		*    kbi         - psi value for min
+		*    altpad      - altitude pad for hitearth calc       km
+		*    show        - control output don't output for speed      'y', 'n'
+		*
+		*  outputs       :
+		*    v1t         - ijk transfer velocity vector         km/s
+		*    v2t         - ijk transfer velocity vector         km/s
+		*    hitearth    - flag if hti or not                   'y', 'n'
+		*    error       - error flag                           1, 2, 3,   use numbers since c++ is so horrible at strings
+		*
+		*  locals        :
+		*    vara        - variable of the iteration,
+		*                  not the semi or axis!
+		*    y           - area between position vectors
+		*    upper       - upper bound for z
+		*    lower       - lower bound for z
+		*    cosdeltanu  - cosine of true anomaly change        rad
+		*    f           - f expression
+		*    g           - g expression
+		*    gdot        - g dot expression
+		*    xold        - old universal variable x
+		*    xoldcubed   - xold cubed
+		*    zold        - old value of z
+		*    znew        - new value of z
+		*    c2new       - c2(z) function
+		*    c3new       - c3(z) function
+		*    timenew     - new time                             sec
+		*    small       - tolerance for roundoff errors
+		*    i, j        - index
+		*
+		*  coupling
+		*    mag         - magnitude of a vector
+		*    dot         - dot product of two vectors
+		*    findc2c3    - find c2 and c3 functions
+		*
+		*  references    :
+		*    vallado       2013, 492, alg 58, ex 7-5
 	-----------------------------------------------------------------------------*/
 
 	void lambertuniv
 	(
-		double r1[3], double r2[3], char dm, char de, int nrev, double dtsec, double tbi[5][5], double altpad,
+		double r1[3], double r2[3], double v1[3], char dm, char de, int nrev, double dtsec, double kbi, double altpad,
 		double v1t[3], double v2t[3], char& hitearth, int& error, FILE *outfile
 	)
 	{
@@ -6830,12 +6629,20 @@ namespace AstroLib
 		const int numiter = 40;
 
 		int loops, ynegktr;
-		double rp, vara, y, upper, lower, cosdeltanu, f, g, gdot, xold, xoldcubed, magr1, magr2,
-			psiold, psinew, psilast, c2new, c3new, dtnew, dtold, c2dot, c3dot, dtdpsi, psiold2, a, tmp;
+		double vara, y, upper, lower, cosdeltanu, f, g, gdot, xold, xoldcubed, magr1, magr2,
+			psiold, psinew, psilast, c2new, c3new, dtnew, dtold, c2dot, c3dot, dtdpsi, psiold2;
 
 		/* --------------------  initialize values   -------------------- */
 		error = 0;
 		psinew = 0.0;
+		v1t[0] = 0.0;
+		v1t[1] = 0.0;
+		v1t[2] = 0.0;
+		v2t[0] = 0.0;
+		v2t[1] = 0.0;
+		v2t[2] = 0.0;
+		char show;
+		show = 'n';
 
 		magr1 = MathTimeLib::mag(r1);
 		magr2 = MathTimeLib::mag(r2);
@@ -6849,17 +6656,17 @@ namespace AstroLib
 		/* -------- set up initial bounds for the bissection ------------ */
 		if (nrev == 0)
 		{
+			lower = -16.0 * pi * pi; // allow hyperbolic and parabolic solutions
 			upper = 4.0 * pi * pi;  // could be negative infinity for all cases
-			lower = -4.0 * pi * pi; // allow hyperbolic and parabolic solutions
 		}
 		else
 		{
 			lower = 4.0 * nrev * nrev * pi * pi;
 			upper = 4.0 * (nrev + 1.0) * (nrev + 1.0) * pi * pi;
 			if (de == 'H')   // high way is always the 1st half
-				upper = tbi[nrev][1];
+				upper = kbi;
 			else
-				lower = tbi[nrev][1];
+				lower = kbi;
 		}
 
 		/* ----------------  form initial guesses   --------------------- */
@@ -6895,7 +6702,7 @@ namespace AstroLib
 		dtold = (xoldcubed * c3new + vara * sqrt(y)) * oosqrtmu;
 
 		// --------  determine if the orbit is possible at all ---------- 
-		if (fabs(vara) > small)  // 0.2??
+		if (fabs(vara) > 0.2)
 		{
 			loops = 0;
 			ynegktr = 1; // y neg ktr
@@ -6923,14 +6730,15 @@ namespace AstroLib
 							y = magr1 + magr2 - vara * (1.0 - psiold * c3new) / sqrt(c2new);
 						else
 							y = magr1 + magr2;
-						//          if (show == 'y')
-						//            if (fileout != null)
-						//              fprintf(fileout, "%3d %10.5f %10.5f %10.5f %7.3f %9.5f %9.5f\n",
-						//                      loops, psiold, y, xold, dtnew, vara, upper, lower);
+						          if (show == 'y')
+						              printf("%3d %10.5f %10.5f %10.5f %7.3f %9.5f %9.5f\n",
+										  ynegktr, psiold, y, xold, dtnew, vara, upper, lower);
 
 						ynegktr++;
 					}
 				}
+
+				loops = loops + 1;
 
 				if (ynegktr < 10)
 				{
@@ -6965,7 +6773,7 @@ namespace AstroLib
 					double psitmp = psinew;
 
 					// check if newton guess for psi is outside bounds(too steep a slope)
-					if (abs(psinew) > upper || psinew < lower)
+					if (psinew > upper || psinew < lower)
 					{
 						// --------readjust upper and lower bounds-------
 						// special check for 0 rev cases 
@@ -6987,20 +6795,21 @@ namespace AstroLib
 						psinew = (upper + lower) * 0.5;
 						psilast = psinew;
 					}
-
+					if (show == 'y')
+					    printf("%2i %14.7f  %14.7f  %14.7f  %14.7f  %14.7f  %14.7f  %14.7f  %14.7f  %14.7f \n",
+						ynegktr, y, xold, dtsec, dtnew, lower, upper, dtdpsi, psitmp, psinew);
 
 					// -------------- find c2 and c3 functions ---------- 
 					findc2c3(psinew, c2new, c3new);
 					psilast = psiold;  // keep previous iteration
 					psiold = psinew;
 					dtold = dtnew;
-					loops = loops + 1;
 
 					// ---- make sure the first guess isn't too close --- 
 					if ((fabs(dtnew - dtsec) < small) && (loops == 1))
 						dtnew = dtsec - 1.0;
-				}
-
+				}  // if ynegktr < 10
+				ynegktr = 1;
 			}
 
 			if ((loops >= numiter) || (ynegktr >= 10))
@@ -7028,7 +6837,10 @@ namespace AstroLib
 			}
 		}
 		else
+		{
 			error = 3;   // impossible 180 transfer
+			AstroLib::lambertbattin(r1, r2, v1, dm, de, nrev, dtsec, altpad, v1t, v2t, hitearth, error, outfile);
+		}
 
 	}  // lambertuniv
 
@@ -7059,7 +6871,7 @@ namespace AstroLib
 
 	void lambhodograph
 	(
-		double r1[3], double v1[3], double r2[3], double p, double ecc, double dnu, double dtsec,
+		double r1[3], double r2[3], double v1[3], double p, double ecc, double dnu, double dtsec,
 		double v1t[3], double v2t[3]
 	)
 	{
@@ -7091,7 +6903,7 @@ namespace AstroLib
 				nvec[i] = rcrv[i] / MathTimeLib::mag(rcrv);
 			if (ecc < 1.0)
 			{
-				ptx = twopi * sqrt(p * p * p / pow(mu * (1.0 - ecc * ecc), 3));
+				ptx = twopi * sqrt(p * p * p / (mu * pow(1.0 - ecc * ecc, 3)));
 				if (fmod(dtsec, ptx) > ptx * 0.5)
 					x1 = -x1;
 			}
@@ -7119,9 +6931,9 @@ namespace AstroLib
 		MathTimeLib::cross(nvec, r2, rcrr);
 		x2 = x1 * cos(dnu) + a * sin(dnu);
 		for (i = 0; i < 3; i++)
-		{
-			v1t[i] = (sqrt(mu * p) / magr1) * ((x1 / mu)*r1[i] + rcrv[i]) * oomagr1;
-			v2t[i] = (sqrt(mu * p) / magr2) * ((x2 / mu)*r2[i] + rcrr[i]) * oomagr2;
+		 {
+			v1t[i] = (sqrt(mu * p) * oomagr1) * ((x1 / mu) * r1[i] + rcrv[i] * oomagr1);
+			v2t[i] = (sqrt(mu * p) * oomagr2) * ((x2 / mu) * r2[i] + rcrr[i] * oomagr2);
 		}
 	}  // lambhodograph
 
@@ -7157,9 +6969,9 @@ namespace AstroLib
 		termold = d[0];
 		sum1 = termold;
 		i = 1;
-		while ((i <= 20) && (fabs(termold) > 0.00000001))
+		while ((i <= 20) && (fabs(termold) > 0.000000001))
 		{
-			del = 1.0 / (1.0 - d[i] * v * delold);
+			del = 1.0 / (1.0 + d[i] * v * delold);
 			term = termold * (del - 1.0);
 			sum1 = sum1 + term;
 
@@ -7167,18 +6979,18 @@ namespace AstroLib
 			delold = del;
 			termold = term;
 		}
-		//return sum1;
+		return sum1;
 
-		int ktr = 20;
-		double sum2 = 0.0;
-		double term2 = 1.0 + d[ktr] * v;
-		for (i = 1; i <= ktr - 1; i++)
-		{
-			sum2 = d[ktr - i] * v / term2;
-			term2 = 1.0 + sum2;
-		}
+		//int ktr = 20;
+		//double sum2 = 0.0;
+		//double term2 = 1.0 + d[ktr] * v;
+		//for (i = 1; i <= ktr - 1; i++)
+		//{
+		//	sum2 = d[ktr - i] * v / term2;
+		//	term2 = 1.0 + sum2;
+		//}
 
-		return (d[0] / term2);
+		//return (d[0] / term2);
 	}  // kbattin
 
 
@@ -7324,7 +7136,7 @@ namespace AstroLib
 
 	void lambertbattin
 	(
-		double r1[3], double r2[3], double v1[3], char dm, char de, int nrev, double dtsec, double tbi[5][5], double altpad,
+		double r1[3], double r2[3], double v1[3], char dm, char de, int nrev, double dtsec, double altpad,
 		double v1t[3], double v2t[3], char& hitearth, int& error, FILE *outfile
 	)
 	{
@@ -7334,7 +7146,14 @@ namespace AstroLib
 		double   u, b, x, xn, y, L, m, cosdeltanu, sindeltanu, dnu, a,
 			ror, h1, h2, tempx, eps, denom, chord, k2, s,
 			p, ecc, f, A, y1, bigt;
-		double magr1, magr2, magrcrossr, lam, temp, temp1, temp2, v1dvl[3], v2dvl[3], v2[3];
+		double magr1, magr2, magrcrossr, lam, temp, temp1, temp2, v1dvl[3], v2dvl[3];
+
+		v1t[0] = 0.0;
+		v1t[1] = 0.0;
+		v1t[2] = 0.0;
+		v2t[0] = 0.0;
+		v2t[1] = 0.0;
+		v2t[2] = 0.0;
 
 		f = 0.0;
 		error = 0;
@@ -7392,7 +7211,7 @@ namespace AstroLib
 				h2 = temp * m * temp1 * ((L - x * x) * temp2 - (L + x));
 
 				b = 0.25*27.0*h2 / (pow(temp1 * (1.0 + h1), 3));
-				if (b < -1.0) // reset the initial condition
+				if (b < 0.0) // reset the initial condition
 					f = 2.0 * cos(1.0 / 3.0 * acos(sqrt(b + 1.0)));
 				else
 				{
@@ -7402,15 +7221,15 @@ namespace AstroLib
 
 				y = 2.0 / 3.0 * temp1 * (1.0 + h1) *(sqrt(b + 1.0) / f + 1.0);
 				xn = 0.5 * ((m / (y*y) - (1.0 + L)) - sqrt(pow(m / (y*y) - (1.0 + L), 2) - 4.0*L));
-				fprintf(outfile, " %3i yh %11.6f x %11.6f h1 %11.6f h2 %11.6f b %11.6f f %11.7f \n", loops, y, x, h1, h2, b, f);
+				//fprintf(outfile, " %3i yh %11.6f x %11.6f h1 %11.6f h2 %11.6f b %11.6f f %11.7f \n", loops, y, x, h1, h2, b, f);
 				loops = loops + 1;
 			}  // while
 			x = xn;
 			a = s * pow(1.0 + lam, 2) * (1.0 + x)*(L + x) / (8.0 * x);
 			p = (2.0 * magr1 * magr2 * (1.0 + x) * pow(sin(dnu * 0.5), 2)) / (s * pow(1.0 + lam, 2) * (L + x));  // thompson
 			ecc = sqrt(1.0 - p / a);
-			lambhodograph(r1, v1, r2, p, ecc, dnu, dtsec, v1t, v2t);
-			fprintf(outfile, "high v1t %16.8f %16.8f %16.8f \n", v1t[0], v1t[1], v1t[2]);
+			lambhodograph(r1, r2, v1, p, ecc, dnu, dtsec, v1t, v2t);
+			//fprintf(outfile, "high v1t %16.8f %16.8f %16.8f \n", v1t[0], v1t[1], v1t[2]);
 		}
 		else
 		{
@@ -7448,51 +7267,50 @@ namespace AstroLib
 
 				y1 = sqrt(m / ((L + x)*(1.0 + x)));
 				loops = loops + 1;
-				//        fprintf(1, ' %3i yb %11.6f x %11.6f k2 %11.6f b %11.6f u %11.6f y1 %11.7f \n', loops, y, x, k2, b, u, y1);
+				//fprintf(outfile," %3i yb %11.6f x %11.6f k2 %11.6f b %11.6f u %11.6f y1 %11.7f \n", 
+				//	loops, y, x, k2, b, u, y1);
+
+				if (isnan(y))
+				{
+					y = 75.0;
+					xn = 1.0;
+				}
+
 			}  // while
 
-		}
 
-		if (loops < 30)
-		{
-			// blair approach use y from solution
-			//       lam = 1.0 / s * sqrt(magr1*magr2) * cos(dnu*0.5);
-			//       m = 8.0*mu*dtsec*dtsec / (s ^ 3 * (1.0 + lam) ^ 6);
-			//       L = ((1.0 - lam) / (1.0 + lam)) ^ 2;
-			//a = s*(1.0 + lam) ^ 2 * (1.0 + x)*(lam + x) / (8.0*x);
-			// p = (2.0*magr1*magr2*(1.0 + x)*sin(dnu*0.5) ^ 2) ^ 2 / (s*(1 + lam) ^ 2 * (lam + x));  % loechler, not right ?
-			p = (2.0 * magr1 * magr2 * y * y * pow(1.0 + x, 2) * pow(sin(dnu*0.5), 2)) / (m*s*pow(1.0 + lam, 2));  // thompson
-			ecc = sqrt((eps * eps + 4.0*magr2 / magr1 * pow(sin(dnu * 0.5), 2) * pow((L - x) / (L + x), 2)) / (eps * eps + 4.0*magr2 / magr1 * pow(sin(dnu * 0.5), 2)));
-			lambhodograph(r1, v1, r2, p, ecc, dnu, dtsec, v1t, v2t);
-			//            fprintf(1, 'oldb v1t %16.8f %16.8f %16.8f %16.8f\n', v1dv, mag(v1dv));
-
-			// Battin solution to orbital parameters(and velocities)
-			// thompson 2011, loechler 1988
-			if (dnu > pi)
-				lam = -sqrt((s - chord) / s);
-			else
-				lam = sqrt((s - chord) / s);
-
-			// loechler pg 21 seems correct!
-			for (i = 0; i < 3; i++)
+			if (loops < 30)
 			{
-				v1dvl[i] = 1.0 / (lam*(1.0 + lam))*sqrt(mu*(1.0 + x) / (2.0* s * s * s * (L + x)))*((r2[i] - r1[i]) + s * pow(1.0 + lam, 2) * (L + x) / (magr1*(1.0 + x))*r1[i]);
-				// added v2
-				v2dvl[i] = 1.0 / (lam*(1.0 + lam))*sqrt(mu*(1.0 + x) / (2.0* s *s *s * (L + x)))*((r2[i] - r1[i]) - s * pow(1.0 + lam, 2) * (L + x) / (magr2*(1.0 + x))*r2[i]);
-			}
-			//fprintf(1, 'loe v1t %16.8f %16.8f %16.8f %16.8f\n', v1dvl, mag(v1dvl));
-			//fprintf(1, 'loe v2t %16.8f %16.8f %16.8f %16.8f\n', v2dvl, mag(v2dvl));
-		}  // if loops converged < 30
+				// blair approach use y from solution
+				//       lam = 1.0 / s * sqrt(magr1*magr2) * cos(dnu*0.5);
+				//       m = 8.0*mu*dtsec*dtsec / (s ^ 3 * (1.0 + lam) ^ 6);
+				//       L = ((1.0 - lam) / (1.0 + lam)) ^ 2;
+				//a = s*(1.0 + lam) ^ 2 * (1.0 + x)*(lam + x) / (8.0*x);
+				// p = (2.0*magr1*magr2*(1.0 + x)*sin(dnu*0.5) ^ 2) ^ 2 / (s*(1 + lam) ^ 2 * (lam + x));  % loechler, not right ?
+				p = (2.0 * magr1 * magr2 * y * y * pow(1.0 + x, 2) * pow(sin(dnu*0.5), 2)) / (m*s*pow(1.0 + lam, 2));  // thompson
+				ecc = sqrt((eps * eps + 4.0*magr2 / magr1 * pow(sin(dnu * 0.5), 2) * pow((L - x) / (L + x), 2)) / (eps * eps + 4.0*magr2 / magr1 * pow(sin(dnu * 0.5), 2)));
+				lambhodograph(r1, r2, v1, p, ecc, dnu, dtsec, v1t, v2t);
+				//            fprintf(1, 'oldb v1t %16.8f %16.8f %16.8f %16.8f\n', v1dv, mag(v1dv));
 
-		//  if (fileout != null)
-		//    fprintf(fileout, "%8.5f %3d\n", testamt, loops);
-		if (dtsec < 0.001)
-			fprintf(outfile, " \n");
-		else
-			fprintf(outfile, "x %3i %c %5i %12.5f %12.5f %16.8f %16.8f %16.8f %16.8f %12.9f %12.9f %12.9f %12.9f \n",
-				nrev, dm, loops, dtsec, dtsec, y, f, v1[0], v1[1], v1[2], v2[0], v2[1], v2[2]);
+				// Battin solution to orbital parameters(and velocities)
+				//// thompson 2011, loechler 1988
+				//if (dnu > pi)
+				//	lam = -sqrt((s - chord) / s);
+				//else
+				//	lam = sqrt((s - chord) / s);
 
-		bigt = sqrt(8.0 / (s * s * s)) * dtsec;
+			}  // if loops converged < 30
+
+			//  if (fileout != null)
+			//    fprintf(fileout, "%8.5f %3d\n", testamt, loops);
+			//if (dtsec < 0.001)
+			//	fprintf(outfile, " \n");
+			//else
+			//	fprintf(outfile, "x %3i %c %c %5i %12.5f %12.5f %16.8f %16.8f %16.8f %16.8f %12.9f %12.9f %12.9f %12.9f \n",
+			//		nrev, dm, de, loops, dtsec, dtsec, y, f, v1t[0], v1t[1], v1t[2], v2t[0], v2t[1], v2t[2]);
+
+			//bigt = sqrt(8.0 / (s * s * s)) * dtsec;
+		}
 	}  // lambertbattin
 
 
@@ -7868,23 +7686,24 @@ namespace AstroLib
 	*                           function sun
 	*
 	*  this function calculates the geocentric equatorial position vector
-	*    the sun given the julian date.  this is the low precision formula and
-	*    is valid for years from 1950 to 2050.  accuaracy of apparent coordinates
-	*    is 0.01  degrees.  notice many of the calculations are performed in
-	*    degrees, and are not changed until later.  this is due to the fact that
-	*    the almanac uses degrees exclusively in their formulations.
+	*    the sun given the julian date. Sergey K (2022) has noted that improved results
+	*    are found assuming the oputput is in a precessing frame (TEME) and converting to ICRF.
+	*    this is the low precision formula and is valid for years from 1950 to 2050.
+	*    accuaracy of apparent coordinates is about 0.01 degrees.  notice many of
+	*    the calculations are performed in degrees, and are not changed until later.
+	*    this is due to the fact that the almanac uses degrees exclusively in their formulations.
 	*
 	*  author        : david vallado                  719-573-2600   27 may 2002
 	*
 	*  revisions
-	*    vallado     - fix mean lon of sun                            7 mat 2004
+	*    vallado     - fix mean lon of sun                            7 may 2004
 	*
-	*  inputs          description                             range / units
-	*    jdtdb         - epoch julian date                    days from 4713 BC
-	*    jdtdbF        - epoch julian date fraction           day fraction from jdutc
+	*  inputs          description                                   range / units
+	*    jdtdb         - epoch julian date                         days from 4713 BC
+	*    jdtdbF        - epoch julian date fraction                day fraction from jdutc
 	*
 	*  outputs       :
-	*    rsun        -  position vector of the sun au
+	*    rsun        -  position vector of the sun                 au
 	*    rtasc       - right ascension                             rad
 	*    decl        - declination                                 rad
 	*
@@ -8111,7 +7930,7 @@ namespace AstroLib
 		double rsecef[3], double vsecef[3]
 	)
 	{
-		const double rearth = 6378.137;  // km
+		//const double re = 6378.137;  // km
 		const double eesqrd = 0.00669437999013;
 		double   sinlat, cearth, rdel, rk;
 
@@ -8119,7 +7938,7 @@ namespace AstroLib
 		sinlat = sin(latgd);
 
 		// -------  find rdel and rk components of site vector  --------- 
-		cearth = rearth / sqrt(1.0 - (eesqrd * sinlat * sinlat));
+		cearth = re / sqrt(1.0 - (eesqrd * sinlat * sinlat));
 		rdel = (cearth + alt) * cos(latgd);
 		rk = ((1.0 - eesqrd) * cearth + alt) * sinlat;
 
@@ -8907,8 +8726,6 @@ namespace AstroLib
 	*    cross       - cross product of two vectors
 	*    dot         - dot product of two vectors
 	*    add3vec     - add three vectors
-	*    lncom2      - multiply two vectors by two constants
-	*    lncom3      - add three vectors each multiplied by a constant
 	*    norm        - creates a unit vector
 	*    angle       - angle between two vectors
 	*
@@ -8919,7 +8736,7 @@ namespace AstroLib
 	void gibbs
 	(
 		double r1[3], double r2[3], double r3[3],
-		double v2[3], double& theta, double& theta1, double& copa, char error[14]
+		double v2[3], double& theta, double& theta1, double& copa, char error[15]
 	)
 	{
 		const double small = 0.000001;
@@ -8949,10 +8766,10 @@ namespace AstroLib
 		MathTimeLib::norm(r1, r1n);
 		copa = asin(MathTimeLib::dot(pn, r1n));
 
-		if (fabs(MathTimeLib::dot(r1n, pn)) > 0.017452406)
+		if (fabs(copa) > 0.017452406)
 		{
 #ifdef _MSC_VER
-			strcpy_s(error, sizeof(error), "not coplanar");
+			strcpy_s(error, sizeof(error), "nc");  // "not coplanar");
 #else
 			strcpy(error, "not coplanar");
 #endif
@@ -8972,7 +8789,7 @@ namespace AstroLib
 			(fabs(MathTimeLib::dot(nn, dn)) < small))
 		{
 #ifdef _MSC_VER
-			strcpy_s(error, sizeof(error), "impossible");
+			strcpy_s(error, sizeof(error), "im");  // "impossible");
 #else
 			strcpy(error, "impossible");
 #endif
@@ -9058,7 +8875,6 @@ namespace AstroLib
 	*    dot         - dot product of two vectors
 	*    arcsin      - arc sine function
 	*    norm        - creates a unit vector
-	*    lncom3      - combination of three scalars and three vectors
 	*    angle       - angle between two vectors
 	*
 	*  references    :
@@ -9068,7 +8884,7 @@ namespace AstroLib
 	void herrgibbs
 	(
 		double r1[3], double r2[3], double r3[3], double jd1, double jd2, double jd3,
-		double v2[3], double& theta, double& theta1, double& copa, char error[14]
+		double v2[3], double& theta, double& theta1, double& copa, char error[15]
 	)
 	{
 		double p[3], pn[3], r1n[3];
@@ -9081,7 +8897,7 @@ namespace AstroLib
 		magr2 = MathTimeLib::mag(r2);
 
 #ifdef _MSC_VER
-		strcpy_s(error, sizeof(error), "ok");
+		strcpy_s(error, sizeof(error+1), "ok");
 #else
 		strcpy(error, "ok");
 #endif
@@ -9100,10 +8916,10 @@ namespace AstroLib
 		MathTimeLib::norm(p, pn);
 		MathTimeLib::norm(r1, r1n);
 		copa = asin(MathTimeLib::dot(pn, r1n));
-		if (fabs(MathTimeLib::dot(pn, r1n)) > tolangle)
+		if (fabs(copa) > tolangle)
 		{
 #ifdef _MSC_VER
-			strcpy_s(error, sizeof(error), "not coplanar");
+			strcpy_s(error, sizeof(error), "nc");  // "not coplanar");
 #else
 			strcpy(error, "not coplanar");
 #endif
@@ -9119,9 +8935,9 @@ namespace AstroLib
 		if ((theta > tolangle) || (theta1 > tolangle))
 		{
 #ifdef _MSC_VER
-			strcpy_s(error, sizeof(error), "angle > 1�");
+			strcpy_s(error, sizeof(error), "ag");  // "angle  1deg");
 #else
-			strcpy(error, "angle > 1�");
+			strcpy(error, "angle > 1deg");
 #endif
 		}
 
@@ -9178,7 +8994,6 @@ namespace AstroLib
 	*  coupling      :
 	*    kepler      - find r2 and v2 at future time
 	*    lambertuniv - find velocity vectors at each end of transfer
-	*    lncom2      - linear combination of two vectors and constants
 	*
 	*  references    :
 	*    vallado       2013, 503, alg 61
@@ -9192,7 +9007,7 @@ namespace AstroLib
 	)
 	{
 		double  r1tgt[3], v1tgt[3], altpad;
-		double tbi[5][5];
+		double tbi;
 		int nrev;
 		char hitearth;
 		FILE *outfile;
@@ -9219,7 +9034,7 @@ namespace AstroLib
 		/* ----------- calculate transfer orbit between r2's ------------- */
 		if (error == 0)
 		{
-			lambertuniv(rint, r1tgt, dm, de, nrev, dtsec, tbi, altpad, v1t, v2t, hitearth, error, outfile);
+			lambertuniv(rint, r1tgt, vint, dm, de, nrev, dtsec, tbi, altpad, v1t, v2t, hitearth, error, outfile);
 
 			if (error == 0)
 			{

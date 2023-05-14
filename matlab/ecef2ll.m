@@ -68,7 +68,7 @@ function [latgc,latgd,lon,hellp] = ecef2ll ( r );
         end
         decl = asin( r(3) / magr );
         latgd= decl;
-        fprintf(1,'rd %11.7f rtasc %11.7f lon %11.7f latgd %11.7f \n', temp, rtasc*rad, lon*rad, latgd*rad );
+   %     fprintf(1,'rd %11.7f rtasc %11.7f lon %11.7f latgd %11.7f \n', temp, rtasc*rad, lon*rad, latgd*rad );
 
         % ------------- iterate to find geodetic latitude -------------
         i= 1;
@@ -79,7 +79,7 @@ function [latgc,latgd,lon,hellp] = ecef2ll ( r );
             sintemp = sin( latgd );
             c       = re  / (sqrt( 1.0 -eesqrd*sintemp*sintemp ));
             latgd= atan( (r(3)+c*eesqrd*sintemp)/temp );
-            fprintf(1,'%3i  c %11.7f gd %11.7f  \n', i, c, latgd*rad );
+           % fprintf(1,'%3i  c %11.7f gd %11.7f  \n', i, c, latgd*rad );
             i = i + 1;
         end
 

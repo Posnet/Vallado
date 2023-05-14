@@ -8,22 +8,234 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace TestAll.Properties
-{
-
-
+namespace TestAll.Properties {
+    
+    
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "11.0.0.0")]
-    internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase
-    {
-
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.0.3.0")]
+    internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
+        
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
-
-        public static Settings Default
-        {
-            get
-            {
+        
+        public static Settings Default {
+            get {
                 return defaultInstance;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0.939913")]
+        public string trtasc1 {
+            get {
+                return ((string)(this["trtasc1"]));
+            }
+            set {
+                this["trtasc1"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("18.667717")]
+        public string tdecl1 {
+            get {
+                return ((string)(this["tdecl1"]));
+            }
+            set {
+                this["tdecl1"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("45.025748")]
+        public string trtasc2 {
+            get {
+                return ((string)(this["trtasc2"]));
+            }
+            set {
+                this["trtasc2"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("35.664741")]
+        public string tdecl2 {
+            get {
+                return ((string)(this["tdecl2"]));
+            }
+            set {
+                this["tdecl2"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("67.886655 ")]
+        public string trtasc3 {
+            get {
+                return ((string)(this["trtasc3"]));
+            }
+            set {
+                this["trtasc3"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("36.996583")]
+        public string tdecl3 {
+            get {
+                return ((string)(this["tdecl3"]));
+            }
+            set {
+                this["tdecl3"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("20 Aug 2012 11:40:28.000")]
+        public string time1 {
+            get {
+                return ((string)(this["time1"]));
+            }
+            set {
+                this["time1"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("20 Aug 2012 11:48:28.000")]
+        public string time2 {
+            get {
+                return ((string)(this["time2"]));
+            }
+            set {
+                this["time2"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("20 Aug 2012 11:52:28.000")]
+        public string time3 {
+            get {
+                return ((string)(this["time3"]));
+            }
+            set {
+                this["time3"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("40.0")]
+        public string lat1 {
+            get {
+                return ((string)(this["lat1"]));
+            }
+            set {
+                this["lat1"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("-110.0")]
+        public string lon1 {
+            get {
+                return ((string)(this["lon1"]));
+            }
+            set {
+                this["lon1"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("2.0")]
+        public string alt1 {
+            get {
+                return ((string)(this["alt1"]));
+            }
+            set {
+                this["alt1"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("40.0")]
+        public string lat2 {
+            get {
+                return ((string)(this["lat2"]));
+            }
+            set {
+                this["lat2"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("-110.0")]
+        public string lon2 {
+            get {
+                return ((string)(this["lon2"]));
+            }
+            set {
+                this["lon2"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("2.0")]
+        public string alt2 {
+            get {
+                return ((string)(this["alt2"]));
+            }
+            set {
+                this["alt2"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("40.0")]
+        public string lat3 {
+            get {
+                return ((string)(this["lat3"]));
+            }
+            set {
+                this["lat3"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("-110.0")]
+        public string lon3 {
+            get {
+                return ((string)(this["lon3"]));
+            }
+            set {
+                this["lon3"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("2.0")]
+        public string alt3 {
+            get {
+                return ((string)(this["alt3"]));
+            }
+            set {
+                this["alt3"] = value;
             }
         }
     }

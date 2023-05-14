@@ -26,13 +26,9 @@
 % ------------------------------------------------------------------------------
 
 function [a] = repeatgt ( b );
-
+constastro;
         twopi   =  2.0*pi;
         small   =  0.00000001;      % small value for tolerances
-        re      =  6378.137;
-        j2      =  0.00108263       % earth j2
-        oearth  =  7.292115146706979e-5; % omega earth, rad /sec
-        gm      = 3.986004418;
 
         rad = 180/pi;
         
@@ -40,7 +36,7 @@ function [a] = repeatgt ( b );
         ecc = 0.0001;
         incl = 98.00/rad;
 
-        nanom = sqrt( gm/(a*a*a) );
+        nanom = sqrt( mu/(a*a*a) );
         nanom
         
 %        nnodal = 1;
@@ -64,13 +60,13 @@ function [a] = repeatgt ( b );
 
         % old a422 way
         rp = 160.0;
-        period2b = 2.0*pi*sqrt( gm/(a*a*a) );
+        period2b = 2.0*pi*sqrt( mu/(a*a*a) );
         period2b
         
         periodnew = period2b + period2b*raanrate/oearth;
         periodnew 
         
-        anew = (gm*(periodnew/oearth)^2)^(1.0/3.0);
+        anew = (mu*(periodnew/oearth)^2)^(1.0/3.0);
         anew
         
         enew = 1-rp/anew;

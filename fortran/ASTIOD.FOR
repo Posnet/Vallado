@@ -1471,7 +1471,7 @@ c        TUDay        =     0.00933809017716D0
         CALL NORM( R1,R1N )
         Copa=  DASIN( DOT( Pn,R1n ) ) 
 
-        IF ( DABS( DOT(R1N,Pn) ) .gt. 0.017452406D0 ) THEN
+        IF ( DABS( Copa ) .gt. 0.017452406D0 ) THEN
             Error= 'not coplanar'
           ENDIF
 
@@ -1591,7 +1591,7 @@ c        TUDay        =     0.00933809017716D0
         CALL NORM( P,Pn )
         CALL NORM( R1,R1N )
         Copa=  DASIN( DOT( Pn,R1n ) )
-        IF ( DABS( DOT(R1N,Pn) ) .gt. 0.017452406D0 ) THEN
+        IF ( DABS( Copa ) .gt. 0.017452406D0 ) THEN
             Error= 'not coplanar'
           ENDIF
 

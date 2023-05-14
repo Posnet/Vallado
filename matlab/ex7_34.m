@@ -34,6 +34,8 @@
       [v2g, theta,theta1,copa, errorg] = gibbs( r1,r2,r3);
 
       fprintf(1,' v2g %15.9f   %15.9f   %15.9f km/s \n\n\n',v2g );
+      rad = 180.0 / pi;
+      fprintf(1,' theta %11.6f  theta1  %11.6f  copa %11.6f \n',theta*rad, theta1*rad,copa*rad);
 
 
       fprintf(1,'-------------------- problem ex 7-4 \n');
@@ -45,14 +47,15 @@
       fprintf(1,' r3 %15.10f  %15.10f  %15.10f\n',r3 );
 
       % just needs to be in secs - so precision isn't lost
-      jd1 = 0.0; %/86400.0;
-      jd2 = (60.0 + 16.48); %/86400.0;
-      jd3 = (120.0 + 33.04); %/86400.0;
+      jd1 = 0.0/86400.0;
+      jd2 = (60.0 + 16.48)/86400.0;
+      jd3 = (120.0 + 33.04)/86400.0;
 
       % use t1, t2, t3 as secs for greater accuracy
       [v2h, theta,theta1,copa, errorh ] =  hgibbs ( r1,r2,r3,jd1,jd2,jd3 );
 
       fprintf(1,' v2h %15.9f   %15.9f   %15.9f km/s \n\n\n',v2h );
+      fprintf(1,' theta %11.6f  theta1  %11.6f  copa %11.6f \n',theta*rad, theta1*rad,copa*rad);
 pause;
 %
 % 
@@ -75,7 +78,7 @@ pause;
         v = v * velkmps;
         magv = mag(v);
 
-        p    = 6.61*re;
+        p    = 1.61*re;
         ecc    = 0.0;
         incl = 34.0/rad;
         omega= 0.0;
@@ -140,9 +143,9 @@ pause;
             [v2g, theta,theta1,copa, errorg] = gibbs( r1,r2,r3);
 
             % just needs to be in days - so precision isn't lost
-            jd1 = t1; %/86400.0;
-            jd2 = t2; %/86400.0;
-            jd3 = t3; %/86400.0;
+            jd1 = t1/86400.0;
+            jd2 = t2/86400.0;
+            jd3 = t3/86400.0;
             % use t1, t2, t3 as secs for greater accuracy
             [v2h, theta,theta1,copa, errorh ] =  hgibbs ( r1,r2,r3,jd1,jd2,jd3 );
 
@@ -168,5 +171,60 @@ pause;
             i = i + 1;
           end;
 
+pause;
 
+% 6 Apr 2004 19:02:28.3860     12709.670465397     9059.657416996      4937.914304833    -2.425788263     1.145863933     4.141391183
+% 6 Apr 2004 19:03:28.3860     12562.052651693     9126.923951210      5185.576718081    -2.494671410     1.096292760     4.113797579
+% 6 Apr 2004 19:04:28.3860     12410.326214883     9191.205376885      5431.543104340    -2.562738634     1.046363027     4.084858491
+% 
+% 6 Apr 2004 19:08:28.3860     11763.346541426     9418.074295602      6396.848305457    -2.826407207     0.843386744     3.955843131
+% 6 Apr 2004 19:14:28.3860     10678.648538971     9665.704898623      7780.535182624    -3.193778683     0.530988666     3.723761880
+       
+     % closely spaced
+      r1 = [12709.670465397     9059.657416996      4937.914304833];
+      r2 = [12562.052651693     9126.923951210      5185.576718081];
+      r3 = [12410.326214883     9191.205376885      5431.543104340];
+
+      fprintf(1,'-------------------- problem close spaced circorbit \n');
+      fprintf(1,' r1 %15.10f  %15.10f  %15.10f\n',r1 );
+      fprintf(1,' r2 %15.10f  %15.10f  %15.10f\n',r2 );
+      fprintf(1,' r3 %15.10f  %15.10f  %15.10f\n',r3 );
+
+      [v2g, theta,theta1,copa, errorg] = gibbs( r1,r2,r3);
+      fprintf(1,' v2g %15.9f   %15.9f   %15.9f km/s \n',v2g );
+      fprintf(1,' theta %11.6f  theta1  %11.6f  copa %11.6f \n',theta*rad, theta1*rad,copa*rad);
+
+      % just needs to be in secs - so precision isn't lost
+      jd1 = 0.0;
+      jd2 = 60.0/86400.0; %/86400.0;
+      jd3 = 120.0/86400.0 ; %/86400.0;
+
+      % use t1, t2, t3 as secs for greater accuracy
+      [v2h, theta,theta1,copa, errorh ] =  hgibbs ( r1,r2,r3,jd1,jd2,jd3 );
+      fprintf(1,' v2h %15.9f   %15.9f   %15.9f km/s \n',v2h );
+      fprintf(1,' theta %11.6f  theta1  %11.6f  copa %11.6f \n',theta*rad, theta1*rad,copa*rad);
+   
+      % wider spaced 
+      r1 = [12709.670465397     9059.657416996      4937.914304833 ];
+      r2 = [11763.346541426     9418.074295602      6396.848305457];
+      r3 = [10678.648538971     9665.704898623      7780.535182624];
+      
+      fprintf(1,'-------------------- problem wider spaced circorbit \n');
+      fprintf(1,' r1 %15.10f  %15.10f  %15.10f\n',r1 );
+      fprintf(1,' r2 %15.10f  %15.10f  %15.10f\n',r2 );
+      fprintf(1,' r3 %15.10f  %15.10f  %15.10f\n',r3 );
+      [v2g, theta,theta1,copa, errorg] = gibbs( r1,r2,r3);
+
+      fprintf(1,' v2g %15.9f   %15.9f   %15.9f km/s \n',v2g );
+      fprintf(1,' theta %11.6f  theta1  %11.6f  copa %11.6f \n',theta*rad, theta1*rad,copa*rad);
+
+      % just needs to be in secs - so precision isn't lost
+      jd1 = 0.0; %/86400.0;
+      jd2 = 360.0/86400.0; %/86400.0;
+      jd3 = 720.0/86400.0; %/86400.0;
+
+      % use t1, t2, t3 as secs for greater accuracy
+      [v2h, theta,theta1,copa, errorh ] =  hgibbs ( r1,r2,r3,jd1,jd2,jd3 );
+      fprintf(1,' v2h %15.9f   %15.9f   %15.9f km/s \n',v2h );
+      fprintf(1,' theta %11.6f  theta1  %11.6f  copa %11.6f \n',theta*rad, theta1*rad,copa*rad);
 

@@ -63,7 +63,7 @@ function [reci, veci, aeci] = teme2eci  ( rteme, vteme, ateme, ttt, ddpsi, ddeps
 
         tm = prec * nut * eqe';
         
-        reci = tm * rteme;
-        veci = tm * vteme;
+        reci = tm * rteme';
+        veci = tm * vteme';
         aeci = tm * ateme;
 

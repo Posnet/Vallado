@@ -50,6 +50,14 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="EOPSPWLib, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\EOPSPWLib\EOPSPWLib\bin\Debug\EOPSPWLib.dll</HintPath>
+    </Reference>
+    <Reference Include="MathTimeLib, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\MathTimeLib\MathTimeLib\bin\Debug\MathTimeLib.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -62,16 +70,6 @@
   <ItemGroup>
     <Compile Include="AstroLib.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\EOPSPWLib\EOPSPWLib\EOPSPWLib.csproj">
-      <Project>{b64e8863-15b0-4d1d-a48d-debea17469b8}</Project>
-      <Name>EOPSPWLib</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\MathTimeLib\MathTimeLib\MathTimeLib.csproj">
-      <Project>{106694e6-9585-487e-9904-e4ccc344dd69}</Project>
-      <Name>MathTimeLib</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

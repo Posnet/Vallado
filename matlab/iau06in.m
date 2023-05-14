@@ -64,36 +64,35 @@
     % ------------------------------
 
     % xys values
-    load iau06x.dat;
-    axs0 = iau06x(:,2:3);  % reals
-    a0xi = iau06x(:,4:17); % integers
+    filein = load('iau06xtab5.2.a.dat');
+    axs0 = filein(:,2:3);  % reals
+    a0xi = filein(:,4:17); % integers
     for i=1:size(axs0)
         axs0(i,1)= axs0(i,1) * convrtu;  % rad
         axs0(i,2)= axs0(i,2) * convrtu;  % rad
-    end;
+    end
 
-    load iau06y.dat;
-    ays0 = iau06y(:,2:3);
-    a0yi = iau06y(:,4:17);
+    fileln =load('iau06ytab5.2.b.dat');
+    ays0 = filein(:,2:3);
+    a0yi = filein(:,4:17);
     for i=1:size(ays0)
         ays0(i,1)= ays0(i,1) * convrtu;
         ays0(i,2)= ays0(i,2) * convrtu;
-    end;
+    end
 
-    load iau06s.dat;
-    ass0 = iau06s(:,2:3);
-    a0si = iau06s(:,4:17);
+    filein = load('iau06stab5.2.d.dat');
+    ass0 = filein(:,2:3);
+    a0si = filein(:,4:17);
     for i=1:size(ass0)
         ass0(i,1)= ass0(i,1) * convrtu;
         ass0(i,2)= ass0(i,2) * convrtu;
-    end;
-
+    end
 
 
     % nutation values old approach iau2003
-    load iau03n.dat;
-    apni = iau03n(:,1:5);
-    apn  = iau03n(:,7:14);
+    filein = load('iau03n.dat');
+    apni = filein(:,1:5);
+    apn  = filein(:,7:14);
     for i=1:size(apn)
         apn(i,1)= apn(i,1) * convrtm;
         apn(i,2)= apn(i,2) * convrtm;
@@ -103,18 +102,18 @@
         apn(i,6)= apn(i,6) * convrtm;
         apn(i,7)= apn(i,7) * convrtm;
         apn(i,8)= apn(i,8) * convrtm;
-    end;
+    end
 
     % planetary nutation values
-    load iau03pl.dat;
-    appli = iau03pl(:,2:15);
-    appl  = iau03pl(:,17:21);  % 21 is extra
+    filein = load('iau03pl.dat');
+    appli = filein(:,2:15);
+    appl  = filein(:,17:21);  % 21 is extra
     for i=1:size(appl)
         appl(i,1)= appl(i,1) * convrtm;
         appl(i,2)= appl(i,2) * convrtm;
         appl(i,3)= appl(i,3) * convrtm;
         appl(i,4)= appl(i,4) * convrtm;
-    end;
+    end
 
 
     % nutation values planetary now included new iau2006
@@ -137,12 +136,12 @@
     % gmst values
     % note - these are very similar to the first 34 elements of iau00s.dat,
     % but they are not the same.
-    load iau06gs.dat;
-    agst  = iau06gs(:,2:3);
-    agsti = iau06gs(:,4:17);
+    filein = load('iau06gsttab5.2.e.dat');
+    agst  = filein(:,2:3);
+    agsti = filein(:,4:17);
     for i=1:size(agst)
         agst(i,1)= agst(i,1) * convrtu;
         agst(i,2)= agst(i,2) * convrtu;
-    end;
+    end
 
 

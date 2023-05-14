@@ -50,14 +50,14 @@
 % ----------------------------------------------------------------------------
 
 function [reci,veci,aeci] = pef2eci  ( rpef,vpef,apef,ttt,jdut1,lod,eqeterms,ddpsi,ddeps );
-
+constastro;
         [prec,psia,wa,ea,xa] = precess ( ttt, '80' );
 
         [deltapsi,trueeps,meaneps,omega,nut] = nutation(ttt,ddpsi,ddeps);
 
         [st,stdot] = sidereal(jdut1,deltapsi,meaneps,omega,lod,eqeterms );
 
-        thetasa= 7.29211514670698e-05 * (1.0  - lod/86400.0 );
+        thetasa= earthrot * (1.0  - lod/86400.0 );
         omegaearth = [0; 0; thetasa;];
 
         reci = prec*nut*st*rpef;

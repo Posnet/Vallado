@@ -72,4 +72,22 @@
     fprintf(1,'r1 %16.8f %16.8f %16.8f km \n',r1 );
     fprintf(1,'v1 %16.8f %16.8f %16.8f er/tu \n',v1/velkmps );
     fprintf(1,'v1 %16.8f %16.8f %16.8f km/s \n',v1 );
-
+    
+    
+    
+    ro=[-3244.01178958993; 5561.5015207476; 3181.63137126354];
+    vo=[-0.311911476329513; 3.55766787343696; -6.53796978233233];
+    dtsec = 240.0;
+    fprintf(1,'dt %16.8f sec \n',dtsec );
+    fprintf(1,'intermediate values: \n' );
+    
+    [r1,v1] =  kepler ( ro,vo, dtsec );
+    
+    % answer in km and km/s
+    fprintf(1,'output: \n' );
+    fprintf(1,'r1 %16.8f %16.8f %16.8f er \n',r1/re );
+    fprintf(1,'r1 %16.8f %16.8f %16.8f km \n',r1 );
+    fprintf(1,'v1 %16.8f %16.8f %16.8f er/tu \n',v1/velkmps );
+    fprintf(1,'v1 %16.8f %16.8f %16.8f km/s \n',v1 );
+    
+    

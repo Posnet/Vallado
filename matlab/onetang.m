@@ -62,7 +62,7 @@ function [deltava, deltavb, dttu, etran, atran, vtrana, vtranb ] = onetang(rinit
          etran  = (( ratio - 1.0 ) / ( cos(nutran) + ratio ));  % init at perigee 
          etran  = (( -rfinal + rinit ) / ( rfinal * cos(nutran) + rinit ));  % init at apogee 
          eainit= pi;
-       end;
+     end;
      if etran >= 0.0  
          ainit = (rinit * (1.0 + einit * cos(nuinit))) / (1.0 - einit * einit );
          afinal= (rfinal * (1.0 + efinal * cos(nutran))) / (1.0 - efinal * efinal );
@@ -73,13 +73,13 @@ function [deltava, deltavb, dttu, etran, atran, vtrana, vtranb ] = onetang(rinit
          if abs( etran-1.0 ) > 0.000001  
              if abs(nuinit) < 0.01 % check 0 or 180 }
                  atran = (rinit * (1.0 + etran * cos(nuinit))) / (1.0 - etran*etran ); % per }
-               else
+             else
                  atran = (rinit * (1.0 + etran * cos(nuinit))) / (1.0 + etran * etran ); %  apo }
                  atran= rinit/(1.0 + etran);
-               end
-           else
+             end
+         else
              atran = 999999.9;  % infinite for parabolic orbit }
-           end;
+         end;
 
          ptran = rinit * ( 1.0 + etran);
          atran = ptran / (1.0 - etran^2);
@@ -108,13 +108,13 @@ function [deltava, deltavb, dttu, etran, atran, vtrana, vtranb ] = onetang(rinit
            else
              if abs( etran-1.0 ) < 0.000001  
                  % parabolic dttu }
-               else
+             else
                  % hyperbolic dttu }
-               end; 
-           end
-       else
+             end; 
+         end
+     else
          fprintf(1,'the one tangent burn is not possible for this case ' );
-       end;
+     end;
 
      constastro;
 %      fprintf(1,' atran   %11.7f  %11.7f km %11.7f \n',atran, atran*re,ptran*re );

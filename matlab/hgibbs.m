@@ -76,7 +76,7 @@ function [v2, theta,theta1,copa, error ] =  hgibbs ( r1,r2,r3,jd1,jd2,jd3 );
         pn = unit( p );
         r1n = unit( r1 );
         copa=  asin( dot( pn,r1n ) );
-        if ( abs( dot(r1n,pn) ) > 0.017452406 )
+        if ( abs( copa ) > 0.017452406 )
             error= 'not coplanar';
           end
 

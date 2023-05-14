@@ -1,4 +1,3 @@
-%
 % ------------------------------------------------------------------------------
 %
 %                           function rv2tradc
@@ -64,13 +63,13 @@ function [rho,trtasc,tdecl,drho,dtrtasc,dtdecl] = rv2tradc ( reci,veci, latgd,lo
 
         % --------------------- implementation ------------------------
         % ----------------- get site vector in ecef -------------------
-        [rs,vs] = site ( latgd,lon,alt );
+        [rsecef,vsecef] = site ( latgd,lon,alt );
 
 %rs
 %vs
         % -------------------- convert ecef to eci --------------------
         a = [0;0;0];
-        [rseci, vseci, aeci] = ecef2eci(rs, vs, a, ttt, jdut1, lod, xp, yp, 2, ddpsi, ddeps);
+        [rseci, vseci, aeci] = ecef2eci(rsecef, vsecef, a, ttt, jdut1, lod, xp, yp, 2, ddpsi, ddeps);
 %rseci
 %vseci
 

@@ -55,7 +55,7 @@
 % ----------------------------------------------------------------------------
 
 function [recef,vecef,aecef] = eci2ecef  ( reci,veci,aeci,ttt,jdut1,lod,xp,yp,eqeterms,ddpsi,ddeps );
-
+constastro;
         [prec,psia,wa,ea,xa] = precess ( ttt, '80' );
 
         [deltapsi,trueeps,meaneps,omega,nut] = nutation(ttt,ddpsi,ddeps);
@@ -64,7 +64,7 @@ function [recef,vecef,aecef] = eci2ecef  ( reci,veci,aeci,ttt,jdut1,lod,xp,yp,eq
 
         [pm] = polarm(xp,yp,ttt,'80');
 
-        thetasa= 7.29211514670698e-05 * (1.0  - lod/86400.0 );
+        thetasa= earthrot * (1.0  - lod/86400.0 );
         omegaearth = [0; 0; thetasa;];
 
         rpef  = st'*nut'*prec'*reci;

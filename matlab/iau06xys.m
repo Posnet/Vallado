@@ -16,7 +16,7 @@
         %    ddy         - eop correction for y           rad
         %
         %  outputs       :
-        %    nut         - transformation matrix for ire-gcrf
+        %    nut         - transformation matrix for tirs-gcrf
         %    x           - coordinate of cip              rad
         %    y           - coordinate of cip              rad
         %    s           - coordinate                     rad
@@ -228,6 +228,7 @@
         s = -x*y*0.5 + s*convrt + ssum0 + ssum1*ttt + ssum2*ttt2 + ssum3*ttt3 + ssum4*ttt4;  % rad
 
         if iauhelp == 'y'
+            fprintf(1,'06xys before x  %14.12f y  %14.12f s %14.12f a %14.12f rad \n',x, y, s, a );
             fprintf(1,'xys s %14.12f  %14.12f  %14.12f  %14.12f  %14.12f \n',ssum0/deg2rad,ssum1/deg2rad,ssum2/deg2rad,ssum3/deg2rad,ssum4/deg2rad );
         end;
 
@@ -238,10 +239,11 @@
         % ---------------- now find a
         a = 0.5 + 0.125*(x*x + y*y); % units take on whatever x and y are
 
-        if iauhelp == 'x'
-            %            fprintf(1,'06xys  x  %14.12f y  %14.12f s %14.12f a %14.12f deg \n',x/deg2rad,y/deg2rad,s/deg2rad,a/deg2rad );
+        %if iauhelp == 'x'
+            fprintf(1,'06xys  x  %14.12f y  %14.12f s %14.12f a %14.12f rad \n',x, y, s, a );
+            fprintf(1,'06xys  x  %14.12f y  %14.12f s %14.12f a %14.12f deg \n',x/deg2rad,y/deg2rad,s/deg2rad,a/deg2rad );
             fprintf(1,'06xys  x  %14.12f" y  %14.12f" s %14.12f" a %14.12fdeg \n',x/deg2rad*3600,y/deg2rad*3600,s/deg2rad*3600,a/deg2rad );
-        end;
+        %end;
 
         % ----------------- find nutation matrix ----------------------
         nut1(1,1) = 1.0 - a*x*x;
@@ -263,7 +265,7 @@
 
         nut = nut1*nut2;
 
-        %       the matrix apears to be orthogonal now, so the extra processing is not needed.
+        %       the matrix appears to be orthogonal now, so the extra processing is not needed.
         %        if (x ~= 0.0) && (y ~= 0.0)
         %            e = atan2(y,x);
         %          else

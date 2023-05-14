@@ -1646,7 +1646,7 @@ namespace astPert
 		double jdeopstart, jdeopstartf;
 		char nutLoc[85] = "../nut80.dat";  //D:/Codes/LIBRARY/CPP/TestSGP4DC/
 		iau80data iau80rec;
-		AstroLib::iau80in(nutLoc, iau80rec);
+		EopSpw::iau80in(nutLoc, iau80rec);
 		std::vector<eopdata> eoparr;
 		eoparr.resize(eopsize);
 		char EopLoc[140] = "../EOP-All-v1.1_2018-01-04.txt";

@@ -1566,34 +1566,52 @@
 *
 * ------------------------------------------------------------------------------  
 
-      SUBROUTINE QUADRATIC   ( a,b,c, R1r,R1i,R2r,R2i )
+      SUBROUTINE QUADRATIC( a,b,c,opt, R1r,R1i,R2r,R2i )
         IMPLICIT NONE
         REAL*8 R1r,R1i,R2r,R2i,a,b,c
+        CHARACTER opt
 * -----------------------------  Locals  ------------------------------
-        REAL*8 Discrim
+    
+        REAL*8 discrim, small
+        DATA Small      /0.00000001D0/
+        ! --------------------  implementation   ----------------------
+        r1r = 0.0D0
+        r1i = 0.0D0
+        r2r = 0.0D0
+        r2i = 0.0D0
 
-        ! --------------------  Implementation   ----------------------
-        R1r= 0.0D0 
-        R1i= 0.0D0 
-        R2r= 0.0D0 
-        R2i= 0.0D0 
+        discrim = b * b - 4.0D0 * a * c
 
-        Discrim= b*b - 4.0D0*a*c 
-
-        ! ---------------------  Real Roots  --------------------------
-        IF ( Discrim .gt. 0.0D0 ) THEN
-            R1r= ( -b + DSQRT(Discrim) ) / ( 2.0D0*a )
-            R2r= ( -b - DSQRT(Discrim) ) / ( 2.0D0*a ) 
-          ELSE
-            ! -------------------- Complex Roots ----------------------
-            R1r= -b / ( 2.0D0*a )
-            R2r= R1r
-            R1i=  DSQRT(-Discrim) / ( 2.0D0*a )
-            R2i= -DSQRT(-Discrim) / ( 2.0D0*a )
-          ENDIF
-      RETURN
-      END
-*
+        ! ---------------------  real roots  --------------------------
+        if (DAbs(discrim) .lt. small) THEN
+                r1r = -b / (2.0D0 * a)
+                r2r = r1r
+                if (opt .eq.'U') THEN
+                    r2r = 99999.9D0
+                ENDIF
+            else
+                if (DAbs(a) .lt. small) THEN
+                    r1r = -c / b
+                else
+                    if (discrim .gt. 0.0D0) THEN
+                        r1r = (-b + DSqrt(discrim)) / (2.0D0 * a)
+                        r2r = (-b - DSqrt(discrim)) / (2.0D0 * a)
+                    else
+                        ! ------------------ complex roots --------------------
+                        if (opt .eq. 'I') THEN
+                            r1r = -b / (2.0D0 * a)
+                            r2r = r1r;
+                            r1i = DSqrt(-discrim) / (2.0 * a)
+                            r2i = -DSqrt(-discrim) / (2.0 * a)
+                        else
+                            r1r = 99999.9D0
+                            r2r = 99999.9D0
+                        ENDIF
+                    ENDIF
+                ENDIF
+            ENDIF
+        RETURN
+        END  ! QUADRATIC
 * ------------------------------------------------------------------------------
 *
 *                           SUBROUTINE CUBIC
@@ -1641,15 +1659,21 @@
 *    Vallado       2007, pg 975
 *
 * ------------------------------------------------------------------------------
-*
+*
       SUBROUTINE CUBIC       ( a,b,c,d, R1r,R1i,R2r,R2i,R3r,R3i )
         IMPLICIT NONE
         REAL*8 R1r,R1i,R2r,R2i,R3r,R3i,a,b,c,d
 * -----------------------------  Locals  ------------------------------
-        REAL*8 OneThird,
+        REAL*8 OneThird, aa, bb, cc, dd,
      &   Temp1, Temp2, Root1, Root2, Root3, P, Q, R, Delta,
      &   E0, CosPhi, SinPhi, Phi
-        INCLUDE 'astmath.cmn'
+
+        REAL*8 Small,    Rad2Deg,  Deg2Rad, Pi
+        DATA Small      /0.00000001D0/
+c       use machine precision instead
+        Pi      =  4.0D0 * DATAN(1.0D0)
+        Rad2Deg = 180.0D0/pi
+        Deg2Rad = pi/180.0D0
 
         ! --------------------  Implementation   ----------------------
         OneThird  = 1.0D0/3.0D0
@@ -1664,19 +1688,20 @@
         Root3= 0.0D0 
 
         ! ----------- Force coefficients into std form ----------------
-        P= B/A 
-        Q= C/A 
-        R= D/A 
+        IF (DABS(a) .gt. small) THEN
+         P= b/a 
+         Q= c/a 
+         R= d/a 
 
-        a= OneThird*( 3.0D0*Q - P*P ) 
-        b= (1.0D0/27.0D0)*( 2.0D0*P*P*P - 9.0D0*P*Q + 27.0D0*R )
+         aa= OneThird*( 3.0D0*Q - P*P ) 
+         bb= (1.0D0/27.0D0)*( 2.0D0*P*P*P - 9.0D0*P*Q + 27.0D0*R )
 
-        Delta= (a*a*a/27.0D0) + (b*b*0.25D0) 
-
+         Delta= (aa*aa*aa/27.0D0) + (bb*bb*0.25D0) 
+         
         ! ------------------ Use Cardans formula ----------------------
         IF ( Delta .gt. Small ) THEN
-            Temp1= (-b*0.5D0)+DSQRT(Delta)
-            Temp2= (-b*0.5D0)-DSQRT(Delta) 
+            Temp1= (-bb*0.5D0)+DSQRT(Delta)
+            Temp2= (-bb*0.5D0)-DSQRT(Delta) 
             IF ( DABS(Temp1) .gt. Small ) THEN
                 Temp1= Temp1**OneThird
               ENDIF
@@ -1691,29 +1716,36 @@
           ELSE
             ! --------------- Evaluate zero point ---------------------
             IF ( DABS( Delta ) .lt. Small  ) THEN
-                IF ( DABS(b) .gt. Small ) THEN
-                    Root1= -2.0D0 * (b*0.5D0)**OneThird
-                    Root2=  (b*0.5D0)**OneThird
+                IF ( DABS(bb) .gt. Small ) THEN
+                    Root1= -2.0D0 * (bb*0.5D0)**OneThird
+                    Root2=  (bb*0.5D0)**OneThird
                     Root3= Root2 
                   ENDIF 
               ELSE
                 ! ------------ Use trigonometric identities -----------
-                E0     = 2.0D0*DSQRT(-a*OneThird)
-                CosPhi = (-b/(2.0D0*DSQRT(-a*a*a/27.0D0)) ) 
+                E0     = 2.0D0*DSQRT(-aa*OneThird)
+                CosPhi = (-bb/(2.0D0*DSQRT(-aa*aa*aa/27.0D0)) ) 
                 SinPhi = DSQRT( 1.0D0-CosPhi*CosPhi ) 
                 Phi    = DATAN2( SinPhi,CosPhi ) 
                 Root1= E0*DCOS( Phi*OneThird ) 
                 Root2= E0*DCOS( Phi*OneThird + 120.0D0*deg2Rad )
                 Root3= E0*DCOS( Phi*OneThird + 240.0D0*deg2Rad )
+                R1r= Root1 - P*OneThird 
+                R2r= Root2 - P*OneThird 
+                R3r= Root3 - P*OneThird 
               ENDIF 
           ENDIF 
+          ELSE
+          CALL quadratic ( b, c, d, 'R', r1r,r1i,r2r,r2i )
+          r3r  = 99999.9D0
+          r3i  = 99999.9D0
+        
+          ENDIF
 
-        R1r= Root1 - P*OneThird 
-        R2r= Root2 - P*OneThird 
-        R3r= Root3 - P*OneThird 
       RETURN
-      END
-*
+      END   !  CUBIC
+
+*
 * ------------------------------------------------------------------------------
 *
 *                           SUBROUTINE QUARTIC
@@ -1919,6 +1951,112 @@
         R4r= R4r + h 
       RETURN
       END
+      
+* -----------------------------------------------------------------------------
+*
+*                           function cubicspl
+*
+*  this function performs cubic splining of an input zero crossing
+*  function in order to find function values.
+*
+*  author        : david vallado           davallado@gmail.com     7 aug 2005
+*
+*  revisions
+*                -
+*  inputs          description                    range / units
+*    p0,p1,p2,p3 - function values used for splining
+*    t0,t1,t2,t3 - time values used for splining
+*
+*  outputs       :
+*    acu0..acu3  - splined polynomial coefficients. acu3 t^3, etc
+*
+*  locals        : none
+*
+*  coupling      :
+*    none
+*
+*  references    :
+*    vallado       2013, 1034
+* ---------------------------------------------------------------------------
+
+      SUBROUTINE cubicspl( p1, p2, p3, p4,  acu0, acu1, acu2, acu3 )
+        IMPLICIT NONE
+        REAL*8 p1, p2, p3, p4, acu0, acu1, acu2, acu3
+        
+        ! --------------------  Implementation   ----------------------
+        acu0 = p2
+        acu1 = -p1 / 3.0D0 - 0.5D0 * p2 + p3 - p4 / 6.0D0
+        acu2 = 0.5D0 * p1 - p2 + 0.5D0 * p3
+        acu3 = -p1 / 6.0D0 + 0.5D0 * p2 - 0.5D0 * p3 + p4 / 6.0D0
+      RETURN
+      END
+
+
+
+* -----------------------------------------------------------------------------
+*
+*                           function cubicinterp
+*
+*  this function performs a cubic spline. four points are needed.
+*
+*  author        : david vallado           davallado@gmail.com   1 dec  2005
+*
+*  inputs          description                    range / units
+*    valuein     - kp
+*
+*  outputs       :
+*    out         - ap
+*
+*  locals        :
+*                -
+*
+*  coupling      :
+*    cubicspl
+*
+*  references    :
+*    vallado       2013, 1027
+* --------------------------------------------------------------------------- 
+
+      REAL*8 FUNCTION cubicinterp( p1a, p1b, p1c, p1d, p2a, p2b,
+     &       p2c, p2d, valuein )
+        IMPLICIT NONE
+        REAL*8 p1a, p1b, p1c, p1d, p2a, p2b, p2c, p2d, valuein
+* -----------------------------  Locals  ------------------------------
+        REAL*8 kc0, kc1, kc2, kc3, ac0, ac1, ac2, ac3,
+     &         r1r, r1i, r2r, r2i, r3r, r3i, val
+
+        ! --------------------  Implementation   ----------------------
+
+        
+        ! -------- assign function points ---------
+        CALL cubicspl(p1a, p1b, p1c, p1d, ac0, ac1, ac2, ac3)
+        CALL cubicspl(p2a, p2b, p2c, p2d, kc0, kc1, kc2, kc3)
+
+        ! recover the original function values
+        ! use the normalized time first, but at an arbitrary interval
+        CALL cubic(kc3, kc2, kc1, kc0 - valuein,  
+     &             r1r, r1i, r2r, r2i, r3r, r3i)
+
+        if ((r1r.ge.-0.000001D0).and.(r1r.le.1.001D0)) THEN
+            val = r1r
+        else
+            if ((r2r.ge.-0.000001D0).and.(r2r.le.1.001D0)) THEN
+                val = r2r
+            else
+                if ((r3r.ge.-0.000001D0).and.(r3r.le.1.001D0)) THEN
+                    val = r3r
+                else
+                    val = 0.0D0
+                    !Console.Write("error in cubicinterp root {0} {1} {2} {3} \n", valuein, r1r, r2r, r3r)
+                ENDIF
+            ENDIF
+        ENDIF
+
+        cubicinterp = ac3*val**3 + ac2*val**2 + ac1*val + ac0
+      RETURN
+      END   !  cubicinterp
+      
+      
 *
 * ------------------------------------------------------------------------------
 *

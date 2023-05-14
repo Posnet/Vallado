@@ -41,7 +41,7 @@
 % ----------------------------------------------------------------------------
 
 function [recef, vecef, aecef] = teme2ecef( rteme, vteme, ateme, ttt, jdut1, lod, xp, yp, eqeterms )
-
+constastro;
         deg2rad = pi/180.0;
         
         % ------------------------ find gmst --------------------------
@@ -80,7 +80,7 @@ function [recef, vecef, aecef] = teme2ecef( rteme, vteme, ateme, ttt, jdut1, lod
         rpef  = st'*rteme;
         recef = pm'*rpef;
 
-        thetasa    = 7.29211514670698e-05 * (1.0  - lod/86400.0 );
+        thetasa    = earthrot * (1.0  - lod/86400.0 );
         omegaearth = [0; 0; thetasa;];
 
         vpef  = st'*vteme - cross( omegaearth,rpef );

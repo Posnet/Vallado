@@ -40,6 +40,35 @@
 // note the deltapsi/deltaeps are for iau76/fk5 from eop
 // x/y/s/a and deltapsi/deltaeps are for computational speed in nutation calcs
 
+typedef struct iau80data
+{
+	int    iar80[107][6];
+	double rar80[107][5];
+} iau80data;
+
+typedef struct iau00data
+{
+	double axs0[1600][2];  // reals
+	int a0xi[1600][14];  // integers
+	double ays0[1275][2];  // reals
+	int a0yi[1275][14];  // integers
+	double ass0[66][2];  // reals
+	int a0si[66][14];  // integers
+
+	double agst[35][2];  // reals
+	int agsti[35][14];  // integers
+
+	double apn[1358][2];  // reals
+	int apni[1358][14];  // integers
+	double ape[1056][2];  // reals
+	int apei[1056][14];  // integers
+
+	double appn[678][8];  // reals
+	int appni[678][5];  // integers
+	double apln[687][5];  // reals
+	int aplni[687][14];  // integers
+} iau00data;
+
 typedef struct eopdata
   {
        double xp,   yp,  dut1, lod,  ddpsi,    ddeps,    dx,   dy;
@@ -59,6 +88,18 @@ const int spwsize = 25000; // 25000 if from 62
 
 namespace EopSpw 
 {
+	void iau80in
+	(
+		std::string EopLoc,
+		iau80data& iau80arr
+	);
+
+	void iau00in
+	(
+		std::string EopLoc,
+		iau00data& iau00arr
+	);
+
 	void readspw
 		(
 		std::vector<spwdata> &spwarr,

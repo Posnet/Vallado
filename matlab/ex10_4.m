@@ -94,7 +94,7 @@
     firstobs = 1;
     lastobs = 10;
 
-    % -------  form nominal vector
+    % -------  form nominal vector in eci
     % simply average each vector moved back to the nominal time
     reci = [0 0 0];
     veci = [0 0 0];

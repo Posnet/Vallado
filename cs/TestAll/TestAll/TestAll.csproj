@@ -8,10 +8,26 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>TestAll</RootNamespace>
     <AssemblyName>TestAll</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -33,6 +49,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="EOPSPWLib">
+      <HintPath>..\..\libraries\EOPSPWLib\EOPSPWLib\bin\Debug\EOPSPWLib.dll</HintPath>
+    </Reference>
+    <Reference Include="SGP4Lib">
+      <HintPath>..\..\libraries\SGP4Lib\SGP4Lib\bin\Debug\SGP4Lib.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -52,10 +74,28 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="frmGauss.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmGauss.Designer.cs">
+      <DependentUpon>frmGauss.cs</DependentUpon>
+    </Compile>
+    <Compile Include="frmLambert.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmLambert.Designer.cs">
+      <DependentUpon>frmLambert.cs</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmGauss.resx">
+      <DependentUpon>frmGauss.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmLambert.resx">
+      <DependentUpon>frmLambert.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -65,6 +105,7 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -88,14 +129,17 @@
       <Project>{8509fde2-2245-4977-8f2d-d13648aab613}</Project>
       <Name>Astrolib</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\libraries\EOPSPWLib\EOPSPWLib\EOPSPWLib.csproj">
-      <Project>{b64e8863-15b0-4d1d-a48d-debea17469b8}</Project>
-      <Name>EOPSPWLib</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\libraries\MathTimeLib\MathTimeLib\MathTimeLib.csproj">
       <Project>{106694e6-9585-487e-9904-e4ccc344dd69}</Project>
       <Name>MathTimeLib</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

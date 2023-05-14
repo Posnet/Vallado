@@ -58,11 +58,15 @@
 %  references    :
 %    vallado       2007, 201, alg 16, ex 3-7
 %
-% [ut1, tut1, jdut1,jdut1frac, utc, tai, tt, ttt, jdtt,jdttfrac, tdb, ttdb, jdtdb,jdtdbfrac, tcg, jdtcg,jdtcgfrac, tcb, jdtcb,jdtcbfrac ] ...
+%  leave out for now...
+%  , tcg, jdtcg,jdtcgfrac, tcb, jdtcb,jdtcbfrac 
+% [ut1, tut1, jdut1,jdut1frac, utc, tai, tt, ttt, jdtt,jdttfrac, ...
+%  tdb, ttdb, jdtdb,jdtdbfrac] ...
 % = convtime ( year, mon, day, hr, min, sec, timezone, dut1, dat );
 % ------------------------------------------------------------------------------
 
-function [ut1, tut1, jdut1, jdut1frac, utc, tai, tt, ttt, jdtt, jdttfrac, tdb, ttdb, jdtdb, jdtdbfrac, tcg, jdtcg,jdtcgfrac, tcb, jdtcb,jdtcbfrac ] ...
+function [ut1, tut1, jdut1, jdut1frac, utc, tai, tt, ttt, jdtt, jdttfrac, ...
+          tdb, ttdb, jdtdb, jdtdbfrac ] ...
          = convtime ( year, mon, day, hr, min, sec, timezone, dut1, dat )
 
         deg2rad = pi/180.0;
@@ -118,7 +122,7 @@ function [ut1, tut1, jdut1, jdut1frac, utc, tai, tt, ttt, jdtt, jdttfrac, tdb, t
         [hrtemp,mintemp,sectemp] = sec2hms( tdb2 );
         [jdtdb2, jdtdb2frac] = jday( year,mon,day, hrtemp, mintemp, sectemp );
         ttdb2 = (jdtdb2 + jdtdb2frac - 2451545.0  )/ 36525.0;
-        fprintf(1,'asta tdb %8.6f ttdb  %16.12f jdtdb  %18.11f %18.11f \n',tdb2,ttdb2,jdtdb2, jdtdb2frac );
+ %       fprintf(1,'asta tdb %8.6f ttdb  %16.12f jdtdb  %18.11f %18.11f \n',tdb2,ttdb2,jdtdb2, jdtdb2frac );
 % usno circular approach 
         tdb = tt + 0.001657*sin(628.3076*ttt+6.2401) ...
                + 0.000022*sin(575.3385*ttt+4.2970) ...
@@ -131,7 +135,7 @@ function [ut1, tut1, jdut1, jdut1frac, utc, tai, tt, ttt, jdtt, jdttfrac, tdb, t
         [jdtdb, jdtdbfrac] = jday( year,mon,day, hrtemp, mintemp, sectemp );
         ttdb = (jdtdb + jdtdbfrac - 2451545.0  )/ 36525.0;
 
-        fprintf(1,'usno tdb %8.6f ttdb  %16.12f jdtdb  %18.11f %18.11f \n',tdb,ttdb,jdtdb, jdtdbfrac );
+%        fprintf(1,'usno tdb %8.6f ttdb  %16.12f jdtdb  %18.11f %18.11f \n',tdb,ttdb,jdtdb, jdtdbfrac );
         [h,m,s] = sec2hms( tdb );
 %        fprintf(1,'hms %3i %3i %8.6f \n',h,m,s);
         
@@ -143,7 +147,7 @@ function [ut1, tut1, jdut1, jdut1frac, utc, tai, tt, ttt, jdtt, jdttfrac, tdb, t
         [jdtcg, jdtcgfrac] = jday( year,mon,day, hrtemp, mintemp, sectemp );
         tt2 = tcg-6.969290134e-10*(jdtcg+jdtcgfrac-2443144.5003725)*86400.0;
 
-        fprintf(1,'tcg %8.6f jdtcg  %18.11f ',tcg,jdtcg );
+  %      fprintf(1,'tcg %8.6f jdtcg  %18.11f ',tcg,jdtcg );
         [h,m,s] = sec2hms( tcg );
 %        fprintf(1,'hms %3i %3i %8.6f \n',h,m,s);        
         
@@ -172,7 +176,7 @@ function [ut1, tut1, jdut1, jdut1frac, utc, tai, tt, ttt, jdtt, jdttfrac, tdb, t
         [hrtemp,mintemp,sectemp] = sec2hms( tcb );
         [jdtcb, jdtcbfrac] = jday( year,mon,day, hrtemp, mintemp, sectemp );
         ttcb = (jdtcb + jdtcbfrac - 2451545.0  )/ 36525.0;
-        fprintf(1,'     tcb %8.6f ttcb  %16.12f jdtcb  %18.11f %18.11f \n',tcb,ttcb,jdtcb, jdtcbfrac );
+%        fprintf(1,'     tcb %8.6f ttcb  %16.12f jdtcb  %18.11f %18.11f \n',tcb,ttcb,jdtcb, jdtcbfrac );
         
 
         

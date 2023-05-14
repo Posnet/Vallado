@@ -4,24 +4,25 @@
 %                           function sun
 %
 %  this function calculates the geocentric equatorial position vector
-%    the sun given the julian date.  this is the low precision formula and
-%    is valid for years from 1950 to 2050.  accuaracy of apparent coordinates
-%    is 0.01  degrees.  notice many of the calculations are performed in
-%    degrees, and are not changed until later.  this is due to the fact that
-%    the almanac uses degrees exclusively in their formulations.
+%    the sun given the julian date. Sergey K (2022) has noted that improved results 
+%    are found assuming the oputput is in a precessing frame (TEME) and converting to ICRF. 
+%    this is the low precision formula and is valid for years from 1950 to 2050.  
+%    accuaracy of apparent coordinates is about 0.01 degrees.  notice many of 
+%    the calculations are performed in degrees, and are not changed until later.  
+%    this is due to the fact that the almanac uses degrees exclusively in their formulations.
 %
 %  author        : david vallado                  719-573-2600   27 may 2002
 %
 %  revisions
-%    vallado     - fix mean lon of sun                            7 mat 2004
+%    vallado     - fix mean lon of sun                            7 may 2004
 %
-%  inputs          description                    range / units
-%    jd          - julian date                    days from 4713 bc
+%  inputs          description                            range / units
+%    jd          - julian date (UTC)                         days from 4713 bc
 %
 %  outputs       :
-%    rsun        - ijk position vector of the sun au
-%    rtasc       - right ascension                rad
-%    decl        - declination                    rad
+%    rsun        - inertial position vector of the sun       au
+%    rtasc       - right ascension                           rad
+%    decl        - declination                               rad
 %
 %  locals        :
 %    meanlong    - mean longitude
@@ -32,9 +33,9 @@
 %                  jan 1, 2000 12h
 %    ttdb        - julian centuries of tdb from
 %                  jan 1, 2000 12h
-%    hr          - hours                          0 .. 24              10
-%    min         - minutes                        0 .. 59              15
-%    sec         - seconds                        0.0  .. 59.99          30.00
+%    hr          - hours                                   0 .. 24              10
+%    min         - minutes                                 0 .. 59              15
+%    sec         - seconds                                 0.0  .. 59.99          30.00
 %    temp        - temporary variable
 %    deg         - degrees
 %

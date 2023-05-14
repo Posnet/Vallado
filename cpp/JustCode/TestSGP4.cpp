@@ -114,10 +114,10 @@ int _tmain(int argc, _TCHAR* argv[])
 	sec = 16.0;
 	jd;
 	jdFrac;
-	SGP4Funcs::jday(year, mon, day, hr, minute, sec, jd, jdFrac);
+	SGP4Funcs::jday_SGP4(year, mon, day, hr, minute, sec, jd, jdFrac);
 
 	double total = jd + jdFrac;
-	SGP4Funcs::invjday(total, 0.0, year, mon, day, hr, minute, sec);
+	SGP4Funcs::invjday_SGP4(total, 0.0, year, mon, day, hr, minute, sec);
 
 
 
@@ -220,7 +220,7 @@ int _tmain(int argc, _TCHAR* argv[])
 			outname[5] = '.';
 			outname[6] = 'e';
 			outname[7] = '\0';
-			SGP4Funcs::invjday(jd, jdFrac, year, mon, day, hr, min, sec);
+			SGP4Funcs::invjday_SGP4(jd, jdFrac, year, mon, day, hr, min, sec);
 			err = fopen_s(&outfilee, outname, "w");
 			fprintf(outfilee, "stk.v.4.3 \n"); // must use 4.3...
 			fprintf(outfilee, "\n");
@@ -275,7 +275,7 @@ int _tmain(int argc, _TCHAR* argv[])
 							jd = jd - 1.0;
 							jdFrac = jdFrac + 1.0;
 						}
-						SGP4Funcs::invjday(jd, jdFrac, year, mon, day, hr, min, sec);
+						SGP4Funcs::invjday_SGP4(jd, jdFrac, year, mon, day, hr, min, sec);
 
 						fprintf(outfile,
 							" %16.8f %16.8f %16.8f %16.8f %12.9f %12.9f %12.9f %5i%3i%3i %2i:%2i:%9.6f\n",
@@ -292,7 +292,7 @@ int _tmain(int argc, _TCHAR* argv[])
 							jd = jd - 1.0;
 							jdFrac = jdFrac + 1.0;
 						}
-						SGP4Funcs::invjday(jd, jdFrac, year, mon, day, hr, min, sec);
+						SGP4Funcs::invjday_SGP4(jd, jdFrac, year, mon, day, hr, min, sec);
 
 						fprintf(outfilee, " %16.6f %16.8f %16.8f %16.8f %12.9f %12.9f %12.9f \n",
 							tsince*60.0, ro[0], ro[1], ro[2], vo[0], vo[1], vo[2]);
@@ -300,7 +300,7 @@ int _tmain(int argc, _TCHAR* argv[])
 						fprintf(outfile, " %16.8f %16.8f %16.8f %16.8f %12.9f %12.9f %12.9f",   // \n
 							tsince, ro[0], ro[1], ro[2], vo[0], vo[1], vo[2]);
 
-						SGP4Funcs::rv2coe(ro, vo, satrec.mus, p, a, ecc, incl, node, argp, nu, m, arglat, truelon, lonper);
+						SGP4Funcs::rv2coe_SGP4(ro, vo, satrec.mus, p, a, ecc, incl, node, argp, nu, m, arglat, truelon, lonper);
 						fprintf(outfile, " %14.6f %8.6f %10.5f %10.5f %10.5f %10.5f %10.5f %5i%3i%3i %2i:%2i:%9.6f\n",
 							a, ecc, incl*rad, node*rad, argp*rad, nu*rad,
 							m*rad, year, mon, day, hr, min, sec);
@@ -383,7 +383,7 @@ int _tmain(int argc, _TCHAR* argv[])
 			jd = jd - 1.0;
 			jdFrac = jdFrac - 1.0;
 		}
-		SGP4Funcs::invjday(jd, jdFrac, year, mon, day, hr, min, sec);
+		SGP4Funcs::invjday_SGP4(jd, jdFrac, year, mon, day, hr, min, sec);
 
 		fprintf(outfile, " %16.8f %16.8f %16.8f %16.8f %12.9f %12.9f %12.9f",
 			tsince, ro[0], ro[1], ro[2], vo[0], vo[1], vo[2]);

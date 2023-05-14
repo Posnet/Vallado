@@ -6,13 +6,15 @@
 // date. 
 //
 //    current :
+//              17 nov 21  david vallado
+//                           current
+//    changes :
 //              18 mar 19  david vallado
 //                           split up to be more functional
-//    changes :
 //              19 mar 14  david vallado
 //                           original baseline 
 //
-//    (w) 719-573-2600, email dvallado@agi.com, davallado@gmail.com
+//    (w) 719-573-2600, email dvallado@comspoc.com, davallado@gmail.com
 //
 //
 
@@ -21,19 +23,20 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.IO;
 
-using MathTimeMethods;  // globals, Edirection
+using MathTimeMethods;  // Edirection
 
 
 namespace EOPSPWMethods
 {
     public class EOPSPWLib
     {
-        public string EOPSPWLibVersion = "EOPSPWLib Version 2019-10-23";
+        public string EOPSPWLibVersion = "EOPSPWLib Version 2021-11-17";
 
         // assume max of 24000 days from 1957 and eop from 1962  
         // include extra for 10 years of daily predictions
         public const long numb = 50000;
-        public long numbeop, numbspw;  // actual numebr of records read in
+        // actual number of records read in
+        public long numbeop, numbspw;  
 
         // this is just the EOP data setup so it can grow
         public class EOPdataClass
@@ -43,16 +46,9 @@ namespace EOPSPWMethods
         }
         // use a class for all the eop data so it can be processed
         public EOPdataClass[] eopdata = new EOPdataClass[numb];
+        // temp for USNO processing
         public EOPdataClass[] eopdataU = new EOPdataClass[numb];
 
-        // this is the processed EOP data to speed nutation calculations
-        // FK5/IAU-76 106 term dpsi and deps
-        // CIO      ~1400 term x, y, s and dpsi, deps 
-        public class EOPdataProcClass
-        {
-            public double mjd, x, y, s, dpsi, deps;
-        }
-        public EOPdataProcClass[] eopdataP = new EOPdataProcClass[numb];
 
         // set it up so it can grow
         public class SPWdataClass
@@ -79,25 +75,25 @@ namespace EOPSPWMethods
         // this will be a fixed size since the constants stay the same (mostly)
         public class iau00Class
         {
-            public double[,] axs0 = new double[1600, 2];  // reals
-            public Int32[,] a0xi = new int[1600, 14];  // integers
-            public double[,] ays0 = new double[1275, 2];  // reals
-            public Int32[,] a0yi = new int[1275, 14];  // integers
-            public double[,] ass0 = new double[66, 2];  // reals
-            public Int32[,] a0si = new int[66, 14];  // integers
+            public double[,] ax0 = new double[1600, 2];  // reals
+            public Int32[,] ax0i = new int[1600, 14];  // integers
+            public double[,] ay0 = new double[1275, 2];  // reals
+            public Int32[,] ay0i = new int[1275, 14];  // integers
+            public double[,] as0 = new double[66, 2];  // reals
+            public Int32[,] as0i = new int[66, 14];  // integers
 
-            public double[,] agst = new double[35, 2];  // reals
-            public Int32[,] agsti = new int[35, 14];  // integers
+            public double[,] ag0 = new double[35, 2];  // reals
+            public Int32[,] ag0i = new int[35, 14];  // integers
 
-            public double[,] apn = new double[1358, 2];  // reals
-            public Int32[,] apni = new int[1358, 14];  // integers
-            public double[,] ape = new double[1056, 2];  // reals
-            public Int32[,] apei = new int[1056, 14];  // integers
+            public double[,] apn0 = new double[1358, 2];  // reals
+            public Int32[,] apn0i = new int[1358, 14];  // integers
+            public double[,] apl0 = new double[1056, 2];  // reals
+            public Int32[,] apl0i = new int[1056, 14];  // integers
 
-            public double[,] appn = new double[678, 8];  // reals
-            public Int32[,] appni = new int[678, 5];  // integers
-            public double[,] apln = new double[687, 5];  // reals
-            public Int32[,] aplni = new int[687, 14];  // integers
+            public double[,] aapn0 = new double[678, 8];  // reals
+            public Int32[,] aapn0i = new int[678, 5];  // integers
+            public double[,] aapl0 = new double[687, 5];  // reals
+            public Int32[,] aapl0i = new int[687, 14];  // integers
         }
         public iau00Class iau00arr = new iau00Class();
 
@@ -177,10 +173,9 @@ namespace EOPSPWMethods
         *
         *                           function iau00in
         *
-        *  this function initializes the matricies needed for iau 2000 reduction
+        *  this function initializes the matricies needed for iau 2006 reduction
         *    calculations. the routine uses the files listed as inputs, but they are
-        *    are not input to the routine as they are static files. arrays are kept 
-        *    starting at 1 instead of 0 for comparison to other codes.
+        *    are not input to the routine as they are static files. 
         *
         *  author        : david vallado                  719-573-2600   16 jul 2004
         *
@@ -188,20 +183,21 @@ namespace EOPSPWMethods
         *    dav 14 apr 11  update for iau2010 conventions
         *
         *  inputs description                                      range / units
-        *    none
-        *    iau00x.dat  - file for x coefficient
-        *    iau00y.dat  - file for y coefficient
-        *    iau00s.dat  - file for s coefficient
-        *    iau00n.dat  - file for nutation coefficients
-        *    iau00pl.dat notused - file for planetary nutation coefficients
-        *    iau00gs.dat - file for gmst coefficients
+        *    iau06xtab5.2.a.dat  - file for x coefficient
+        *    iau06ytab5.2.b.dat  - file for y coefficient
+        *    iau06stab5.2.d.dat  - file for s coefficient
+        *    iau00ansofa.dat     - file for nutation coefficients
+        *    iau00anpl.dat       - file for planetary nutation coefficients
+        *    iau06nlontab5.3.a.dat - file for longitude coefficients
+        *    iau06nobltab5.3.b.dat - file for obliquity coefficients
+        *    iau06gsttab5.3.e.dat  - file for gmst coefficients
         *
         *  outputs       :
-        *    axs0        - real coefficients for x                     rad
+        *    a0x         - real coefficients for x                     rad
         *    a0xi        - integer coefficients for x
-        *    ays0        - real coefficients for y                     rad
+        *    a0y         - real coefficients for y                     rad
         *    a0yi        - integer coefficients for y
-        *    ass0        - real coefficients for s                     rad
+        *    a0s         - real coefficients for s                     rad
         *    a0si        - integer coefficients for s
         *    apn         - real coefficients for nutation              rad
         *    apni        - integer coefficients for nutation
@@ -235,11 +231,12 @@ namespace EOPSPWMethods
             // ------------------------  implementation   -------------------
             // " to rad
             double convrtu = (0.000001 * Math.PI) / (180.0 * 3600.0);  // if micro arcsecond
-            double convrtm = (0.001 * Math.PI) / (180.0 * 3600.0);     // if milli arcsecond
+            double convrtmu = (0.0000001 * Math.PI) / (180.0 * 3600.0);  // if 0.1 micro arcsecond
+            //double convrtm = (0.001 * Math.PI) / (180.0 * 3600.0);     // if milli arcsecond
 
             // ------------------------------
             //  note that since all these coefficients have only a single decimal place, one could store them as integers, and then simply
-            //  divide by one additional power of ten. it would make memeory storage much smaller and potentially faster.
+            //  divide by one additional power of ten. it would make memory storage much smaller and potentially faster.
             iau00arr = new iau00Class();
 
             // xys values
@@ -269,138 +266,138 @@ namespace EOPSPWMethods
             //    }
             //}
 
-            pattern = @"^\s+?(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)";
+            pattern = @"^\s+?(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)";
             // iau00x.txt in IERS
-            string[] fileData = File.ReadAllLines(nutLoc + "iau00x.dat");
-            for (i = 0; i < fileData.Count(); i++)
+            string[] fileData = File.ReadAllLines(nutLoc + "iau06xtab5.2.a.dat");
+            // start on line 2 to be below header info
+            for (i = 2; i < fileData.Count(); i++)
             {
                 //line = Regex.Replace(fileData[i], @"\s+", "|");
                 //string[] linedata = line.Split('|');
                 // reals
                 string[] linedata = Regex.Split(fileData[i], pattern);
-                iau00arr.axs0[i, 0] = Convert.ToDouble(linedata[2]) * convrtu;  // rad
-                iau00arr.axs0[i, 1] = Convert.ToDouble(linedata[3]) * convrtu;  // rad
+                iau00arr.ax0[i-2, 0] = Convert.ToDouble(linedata[2]) * convrtu;  // rad
+                iau00arr.ax0[i-2, 1] = Convert.ToDouble(linedata[3]) * convrtu;  // rad
                 // integers
-                for (j = 0; j < 13; j++)
-                    iau00arr.a0xi[i, j] = Convert.ToInt32(linedata[j + 4]);
+                for (j = 0; j <= 13; j++)
+                    iau00arr.ax0i[i-2, j] = Convert.ToInt32(linedata[j + 4]);
             }
 
             // tab5.2b.txt in IERS
-            fileData = File.ReadAllLines(nutLoc + "iau00y.dat");
-            for (i = 0; i < fileData.Count(); i++)
+            fileData = File.ReadAllLines(nutLoc + "iau06ytab5.2.b.dat");
+            for (i = 2; i < fileData.Count(); i++)
             {
                 //line = Regex.Replace(fileData[i], @"\s+", "|");
                 //string[] linedata = line.Split('|');
                 // reals
                 string[] linedata = Regex.Split(fileData[i], pattern);
-                iau00arr.ays0[i, 0] = Convert.ToDouble(linedata[2]) * convrtu;  // rad
-                iau00arr.ays0[i, 1] = Convert.ToDouble(linedata[3]) * convrtu;  // rad
+                iau00arr.ay0[i-2, 0] = Convert.ToDouble(linedata[2]) * convrtu;  // rad
+                iau00arr.ay0[i-2, 1] = Convert.ToDouble(linedata[3]) * convrtu;  // rad
                 // integers
-                for (j = 0; j < 13; j++)
-                    iau00arr.a0yi[i, j] = Convert.ToInt32(linedata[j + 4]);
+                for (j = 0; j <= 13; j++)
+                    iau00arr.ay0i[i-2, j] = Convert.ToInt32(linedata[j + 4]);
             }
 
             // tab5.2d.txt in IERS
-            fileData = File.ReadAllLines(nutLoc + "iau00s.dat");
-            for (i = 0; i < fileData.Count(); i++)
+            fileData = File.ReadAllLines(nutLoc + "iau06stab5.2.d.dat");
+            for (i = 2; i < fileData.Count(); i++)
             {
                 //line = Regex.Replace(fileData[i], @"\s+", "|");
                 //string[] linedata = line.Split('|');
                 // reals
                 string[] linedata = Regex.Split(fileData[i], pattern);
                 // reals
-                iau00arr.ass0[i, 0] = Convert.ToDouble(linedata[2]) * convrtu;  // rad
-                iau00arr.ass0[i, 1] = Convert.ToDouble(linedata[3]) * convrtu;  // rad
+                iau00arr.as0[i-2, 0] = Convert.ToDouble(linedata[2]) * convrtu;  // rad
+                iau00arr.as0[i-2, 1] = Convert.ToDouble(linedata[3]) * convrtu;  // rad
                 // integers
-                for (j = 0; j < 13; j++)
-                    iau00arr.a0si[i, j] = Convert.ToInt32(linedata[j + 4]);
+                for (j = 0; j <= 13; j++)
+                    iau00arr.as0i[i-2, j] = Convert.ToInt32(linedata[j + 4]);
             }
 
-            // 
-            string pattern1 = @"^\s+?(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)";
-            //     // nutation values old approach iau2000a
-            fileData = File.ReadAllLines(nutLoc + "iau00an.dat");
-            for (i = 0; i < fileData.Count(); i++)
+
+            string pattern1 = @"^\s+?(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)";
+            //     2000a nutation values old approach iau2000a
+            fileData = File.ReadAllLines(nutLoc + "iau00ansofa.dat");  // 678
+            for (i = 2; i < fileData.Count(); i++)
             {
                 //line = Regex.Replace(fileData[i], @"\s+", "|");
                 //string[] linedata = line.Split('|');
                 // reals
                 string[] linedata = Regex.Split(fileData[i], pattern1);
                 // reals
-                for (j = 0; j < 8; j++)
-                    iau00arr.appn[i, j] = Convert.ToDouble(linedata[j + 7]) * convrtm;  // rad
+                for (j = 0; j < 6; j++)
+                    iau00arr.aapn0[i-2, j] = Convert.ToDouble(linedata[j + 6]) * convrtmu;  // rad
                 // integers
                 for (j = 0; j < 5; j++)
-                    iau00arr.appni[i, j] = Convert.ToInt32(linedata[j + 1]);
+                    iau00arr.aapn0i[i-2, j] = Convert.ToInt32(linedata[j + 1]);
             }
 
             //
-            pattern1 = @"^\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)";
-            //     // planetary nutation values
-            fileData = File.ReadAllLines(nutLoc + "iau00apl.dat");
-            for (i = 0; i < fileData.Count(); i++)
+            pattern1 = @"^\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)";
+            //     2000a planetary nutation values
+            fileData = File.ReadAllLines(nutLoc + "iau00anplsofa.dat");  // 687
+            for (i = 2; i < fileData.Count(); i++)
             {
                 //line = Regex.Replace(fileData[i], @"\s+", "|");
                 //string[] linedata = line.Split('|');
-                // reals
                 string[] linedata = Regex.Split(fileData[i], pattern1);
                 // reals
-                for (j = 0; j < 5; j++)
-                    iau00arr.apln[i, j] = Convert.ToDouble(linedata[j + 17]) * convrtm;  // rad
+                for (j = 0; j < 4; j++)
+                    iau00arr.aapl0[i-2, j] = Convert.ToDouble(linedata[j + 15]) * convrtmu;  // rad
                 // integers
-                for (j = 0; j < 14; j++)
-                    iau00arr.aplni[i, j] = Convert.ToInt32(linedata[j + 2]);
+                for (j = 0; j < 13; j++)
+                    iau00arr.aapl0i[i-2, j] = Convert.ToInt32(linedata[j + 1]);
             }
 
             // tab5.3a.txt in IERS
             // nutation values planetary now included new iau2006
             // nutation in longitude
-            fileData = File.ReadAllLines(nutLoc + "iau00nlon.dat");  //1358
-            for (i = 0; i < fileData.Count(); i++)
+            fileData = File.ReadAllLines(nutLoc + "iau06nlontab5.3.a.dat");  //1358
+            for (i = 2; i < fileData.Count(); i++)
             {
                 //line = Regex.Replace(fileData[i], @"\s+", "|");
                 //string[] linedata = line.Split('|');
                 // reals
                 string[] linedata = Regex.Split(fileData[i], pattern);
-                iau00arr.apn[i, 0] = Convert.ToDouble(linedata[2]) * convrtu;  // rad
-                iau00arr.apn[i, 1] = Convert.ToDouble(linedata[3]) * convrtu;  // rad
+                iau00arr.apn0[i-2, 0] = Convert.ToDouble(linedata[2]) * convrtu;  // rad
+                iau00arr.apn0[i-2, 1] = Convert.ToDouble(linedata[3]) * convrtu;  // rad
                 // integers
-                for (j = 0; j < 13; j++)
-                    iau00arr.apni[i, j] = Convert.ToInt32(linedata[j + 4]);
+                for (j = 0; j <= 13; j++)
+                    iau00arr.apn0i[i-2, j] = Convert.ToInt32(linedata[j + 4]);
             }
 
             // tab5.3b.txt in IERS
             // nutation in obliquity
-            fileData = File.ReadAllLines(nutLoc + "iau00nobl.dat");  // 1056
-            for (i = 0; i < fileData.Count(); i++)
+            fileData = File.ReadAllLines(nutLoc + "iau06nobltab5.3.b.dat");  // 1056
+            for (i = 2; i < fileData.Count(); i++)
             {
                 //line = Regex.Replace(fileData[i], @"\s+", "|");
                 //string[] linedata = line.Split('|');
                 // reals
                 string[] linedata = Regex.Split(fileData[i], pattern);
-                iau00arr.ape[i, 0] = Convert.ToDouble(linedata[2]) * convrtu;  // rad
-                iau00arr.ape[i, 1] = Convert.ToDouble(linedata[3]) * convrtu;  // rad
+                iau00arr.apl0[i-2, 0] = Convert.ToDouble(linedata[2]) * convrtu;  // rad
+                iau00arr.apl0[i-2, 1] = Convert.ToDouble(linedata[3]) * convrtu;  // rad
                 // integers
-                for (j = 0; j < 13; j++)
-                    iau00arr.apei[i, j] = Convert.ToInt32(linedata[j + 4]);
+                for (j = 0; j <= 13; j++)
+                    iau00arr.apl0i[i-2, j] = Convert.ToInt32(linedata[j + 4]);
             }
 
             // tab5.2e.txt in IERS
             // gmst values
             // note - these are very similar to the first 34 elements of iau00s.dat,
             // but they are not the same.
-            fileData = File.ReadAllLines(nutLoc + "iau00gst.dat");
-            for (i = 0; i < fileData.Count(); i++)
+            fileData = File.ReadAllLines(nutLoc + "iau06gsttab5.2.e.dat");
+            for (i = 2; i < fileData.Count(); i++)
             {
                 //line = Regex.Replace(fileData[i], @"\s+", "|");
                 //string[] linedata = line.Split('|');
                 // reals
                 string[] linedata = Regex.Split(fileData[i], pattern);
-                iau00arr.agst[i, 0] = Convert.ToDouble(linedata[2]) * convrtu;  // rad
-                iau00arr.agst[i, 1] = Convert.ToDouble(linedata[3]) * convrtu;  // rad
+                iau00arr.ag0[i-2, 0] = Convert.ToDouble(linedata[2]) * convrtu;  // rad
+                iau00arr.ag0[i-2, 1] = Convert.ToDouble(linedata[3]) * convrtu;  // rad
                 // integers
-                for (j = 0; j < 13; j++)
-                    iau00arr.agsti[i, j] = Convert.ToInt32(linedata[j + 4]);
+                for (j = 0; j <= 13; j++)
+                    iau00arr.ag0i[i-2, j] = Convert.ToInt32(linedata[j + 4]);
             }
 
         }    // iau00in
@@ -412,7 +409,7 @@ namespace EOPSPWMethods
         *                           function readeop
         *
         *  this function initializes the earth orientation parameter data with an EOP file. the input
-        *  data files are from celestrak and the eoppn.txt file contains the nutation
+        *  data files are from CelesTrak and the eoppn.txt file contains the nutation
         *  daily values used for optimizing the speed of operation. note these nutation
         *  values do not have corrections applied (dx/dy/ddpsi/ddeps) so a single
         *  routine can process past and future data with these corrections. the
@@ -420,15 +417,17 @@ namespace EOPSPWMethods
         *  may make more sense to keep them separate because the values can be calculated
         *  long into the future.
         *
-        *  author        : david vallado                  719-573-2600   2 nov 2005
+        *  author        : david vallado                  719-573-2600        2 nov 2005
         *
         *  revisions
         *
         *  inputs          description                    range / units
-        *
+        *    eopdata[0]  - array of eop data records
+        *    infile      - name of eop file to read
+        *     
         *  outputs       :
-        *    eopdata[0]      - array of eop data records
-        *    jdeopstart  - julian date of the start of the eopdata[0] data
+        *    eopdata[0]  - array of eop data records
+        *    mjdeopstart - modified julian date of the start of the eopdata[0] data
         *    ktrActualObs- ktr of number of actual obs (no predicted)
         *    updDate     - date string of update in case it's not the current time
         *
@@ -563,16 +562,15 @@ namespace EOPSPWMethods
         *                           function findeopparam
         *
         *  this routine finds the eop parameters for a given time. several types of
-        *  interpolation are available. the cio and iau76 nutation parameters are also
-        *  read for optimizing the speeed of calculations.
+        *  interpolation are available. 
         *
         *  author        : david vallado                      719-573-2600   12 dec 2005
         *
         *  inputs          description                                  range / units
-        *    jde         - julian date of epoch (0 hrs utc)
-        *    mfme        - minutes from midnight epoch
+        *    jd          - julian date of epoch (0 hrs utc)
+        *    jdFrac      - fractional date of epoch
         *    interp      - interpolation                                n-none, l-linear, s-spline
-        *    eopdata[0]      - array of eop data records
+        *    eopdata[0]  - array of eop data records
         *    jdeopstart  - julian date of the start of the eopdata[0] data (set in initeop)
         *
         *  outputs       :
@@ -585,11 +583,6 @@ namespace EOPSPWMethods
         *    ddeps       - correction to delta eps (iau-76 theory)           rad
         *    dx          - correction to x (cio theory)                      rad
         *    dy          - correction to y (cio theory)                      rad
-        *    x           - x component of cio                                rad
-        *    y           - y component of cio                                rad
-        *    s           -                                                   rad
-        *    deltapsi    - nutation longitude angle                          rad
-        *    deltaeps    - obliquity of the ecliptic correction              rad
         *
         *  locals        :
         *                -
@@ -709,121 +702,7 @@ namespace EOPSPWMethods
             dy = dy * convrt;
         }  //  findeopparam
 
-
-
-        /* -----------------------------------------------------------------------------
-        *
-        *                           function findredparam
-        *
-        *  this routine finds the reduction parameters for a given time. this speeds the 
-        *  iau00 and fk5/iau76 series operations by interpolating from already calculated 
-        *  tables. several types of interpolation are available. the cio and iau76 nutation 
-        *  parameters are also found for optimizing the speeed of calculations.
-        *
-        *  author        : david vallado                      719-573-2600   12 dec 2005
-        *
-        *  inputs          description                                  range / units
-        *    jde         - julian date of epoch (0 hrs utc)
-        *    mfme        - minutes from midnight epoch
-        *    interp      - interpolation                               n-none, l-linear, s-spline
-        *    eopdata[0]  - array of eop data records
-        *    jdeopstart  - julian date of the start of the eopdata[0] data (set in initeop)
-        *
-        *  outputs       :
-        *    x           - x component of cio                             rad
-        *    y           - y component of cio                             rad
-        *    s           -                                                rad
-        *    deltapsi    - nutation longitude angle                       rad
-        *    deltaeps    - obliquity of the ecliptic correction           rad
-        *
-        *  locals        :
-        *                -
-        *
-        *  coupling      :
-        *    none        -
-        * --------------------------------------------------------------------------- */
-
-        public void findredparam
-             (
-               double jd, double jdFrac, char interp,
-               EOPdataClass[] eopdata, double jdeopstart,
-               out double x, out double y, out double s
-             )
-        {
-            Int32 recnum;
-            int off1, off2;
-            //eopdata eopdata[0], lasteoprec, tempeoprec;
-            // EOPdataClass[] nexteoprec;
-            double fixf, mfme, jd1, jdeopstarto;
-
-            x = 0.0;
-            y = 0.0;
-            s = 0.0;
-
-            // check if any whole days in jdF
-            jd1 = Math.Floor(jd + jdFrac) + 0.5;  // want jd at 0 hr
-            mfme = (jd + jdFrac - jd1) * 1440.0;
-            if (mfme < 0.0)
-                mfme = 1440.0 + mfme;
-
-            // ---- read data for day of interest
-            jdeopstarto = Math.Floor(jd + jdFrac - jdeopstart);
-            recnum = Convert.ToInt32(jdeopstarto + 1);
-
-            // check for out of bound values
-            if ((recnum >= 1) && (recnum < numbeop-1))
-            {
-                //eopdata   = eopdata[recnum];
-
-                // ---- set non-interpolated values
-                // ---- find nutation parameters for use in optimizing speed
-                x = eopdataP[recnum].x;
-                y = eopdataP[recnum].y;
-                s = eopdataP[recnum].s;
-
-                // ---- do linear interpolation
-                if (interp == 'l')
-                {
-                    fixf = mfme / 1440.0;
-                    x = eopdataP[recnum].x + (eopdataP[recnum + 1].x - eopdataP[recnum].x) * fixf;
-                    y = eopdataP[recnum].y + (eopdataP[recnum + 1].y - eopdataP[recnum].y) * fixf;
-                    s = eopdataP[recnum].s + (eopdataP[recnum + 1].s - eopdataP[recnum].s) * fixf;
-                }
-
-                // ---- do spline interpolations
-                if (interp == 's')
-                {
-                    off1 = 2;
-                    off2 = 1;
-                    x = MathTimeLibr.cubicinterp(eopdataP[recnum - off1].x, eopdataP[recnum - off2].x, eopdataP[recnum].x, eopdataP[recnum + off2].x,
-                                         eopdataP[recnum - off1].mjd, eopdataP[recnum - off2].mjd, eopdataP[recnum].mjd, eopdataP[recnum + off2].mjd,
-                                         mfme);
-                    y = MathTimeLibr.cubicinterp(eopdataP[recnum - off1].y, eopdataP[recnum - off2].y, eopdataP[recnum].y, eopdataP[recnum + off2].y,
-                                         eopdataP[recnum - off1].mjd, eopdataP[recnum - off2].mjd, eopdataP[recnum].mjd, eopdataP[recnum + off2].mjd,
-                                         mfme);
-                    s = MathTimeLibr.cubicinterp(eopdataP[recnum - off1].s, eopdataP[recnum - off2].s, eopdataP[recnum].s, eopdataP[recnum + off2].s,
-                                         eopdataP[recnum - off1].mjd, eopdataP[recnum - off2].mjd, eopdataP[recnum].mjd, eopdataP[recnum + off2].mjd,
-                                         mfme);
-                }
-            }
-            // set default values
-            else
-            {
-                x = 0.0;
-                y = 0.0;
-                s = 0.0;
-
-                // ---- find nutation parameters for use in optimizing speed
-                // these could be set here, or in the program calling this...
-                //           x        = eopdataP[0].x;
-                //           y        = eopdataP[0].y;
-                //           s        = eopdataP[0].s;
-                //           deltapsi = eopdataP[0].deltapsi;
-                //           deltaeps = eopdataP[0].deltaeps;
-            }
-
-        }  //  findredparam
-
+               
                      
 
         /* -----------------------------------------------------------------------------
@@ -831,7 +710,7 @@ namespace EOPSPWMethods
         *                           function readspw
         *
         *  this function initializes the space weather data from the cssi/SPW files. 
-        *  It reads the actual data, and optionally the predicted.
+        *  It reads the actual data, and the predicted.
         *
         *  author        : david vallado                  719-573-2600   2 nov 2005
         *
@@ -948,6 +827,9 @@ namespace EOPSPWMethods
             numbspw = ktrActualObs;
 
             // ---- process predicted records
+
+
+
         }   // readspw
 
 

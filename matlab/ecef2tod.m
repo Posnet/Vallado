@@ -49,7 +49,7 @@
 % ----------------------------------------------------------------------------
 
 function [rtod, vtod, atod] = ecef2tod(recef, vecef, aecef, ttt, jdut1, lod, xp, yp, eqeterms, ddpsi, ddeps)
-
+constastro;
         % ---- find matrices - note nut is only needed for st argument inputs
         [deltapsi, trueeps, meaneps, omega, nut] = nutation(ttt, ddpsi, ddeps);
 
@@ -58,7 +58,7 @@ function [rtod, vtod, atod] = ecef2tod(recef, vecef, aecef, ttt, jdut1, lod, xp,
         [pm] = polarm(xp, yp, ttt, '80');
 
         % ---- perform transformations
-        thetasa= 7.29211514670698e-05 * (1.0  - lod/86400.0 );
+        thetasa= earthrot * (1.0  - lod/86400.0 );
         omegaearth = [0; 0; thetasa;];
 
         rpef = pm*recef;

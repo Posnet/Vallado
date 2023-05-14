@@ -53,20 +53,20 @@
 %          typerun, typeinput, opsmode, whichconst)
 %  ----------------------------------------------------------------------------*/
 
-function [startmfe, stopmfe, deltamin, satrec] = twoline2rv(longstr1, longstr2, ...
-          typerun, typeinput, opsmode, whichconst)
+    function [startmfe, stopmfe, deltamin, satrec] = twoline2rv(longstr1, longstr2, ...
+        typerun, typeinput, opsmode, whichconst)
 
     % sgp4fix no longer needed, put in satrec
-    % global tumin radiusearthkm xke j2 j3 j4 j3oj2  
+    % global tumin radiusearthkm xke j2 j3 j4 j3oj2
 
     deg2rad  =   pi / 180.0;         %  0.01745329251994330;  % [deg/rad]
-    xpdotp   =  1440.0 / (2.0*pi);   % 229.1831180523293;  % [rev/day]/[rad/min]  
+    xpdotp   =  1440.0 / (2.0*pi);   % 229.1831180523293;  % [rev/day]/[rad/min]
 
-    year   = 0; 
+    year   = 0;
     satrec.error = 0;
 
-%     // set the implied decimal points since doing a formated read
-%     // fixes for bad input data values (missing, ...)
+    %     // set the implied decimal points since doing a formated read
+    %     // fixes for bad input data values (missing, ...)
     for j = 11:16
         if (longstr1(j) == ' ')
             longstr1(j) = '_';
@@ -77,7 +77,7 @@ function [startmfe, stopmfe, deltamin, satrec] = twoline2rv(longstr1, longstr2, 
         longstr1(44) = longstr1(45);
     end
     longstr1(45) = '.';
-     
+
     if (longstr1(8) == ' ')
         longstr1(8) = 'U';
     end
@@ -100,13 +100,13 @@ function [startmfe, stopmfe, deltamin, satrec] = twoline2rv(longstr1, longstr2, 
     longstr1(54) = '.';
 
     longstr2(26) = '.';
-     
+
     for (j = 27:33)
         if (longstr2(j) == ' ')
             longstr2(j) = '0';
         end
     end
-     
+
     if (longstr1(63) == ' ')
         longstr1(63) = '0';
     end
@@ -129,7 +129,7 @@ function [startmfe, stopmfe, deltamin, satrec] = twoline2rv(longstr1, longstr2, 
     ibexp = str2num(longstr1(60:61));
     numb = str2num(longstr1(63));
     satrec.elnum = str2num(longstr1(65:68));
- 
+
     % parse second line
     if (typerun == 'v')
         cardnumb = str2num(longstr2(1));
@@ -141,9 +141,9 @@ function [startmfe, stopmfe, deltamin, satrec] = twoline2rv(longstr1, longstr2, 
         satrec.mo = str2num(longstr2(43:51));
         satrec.no_kozai = str2num(longstr2(52:63));
         satrec.revnum = str2num(longstr2(64:68));
-        startmfe = str2num(longstr2(70:81));        
-        stopmfe  = str2num(longstr2(83:96)); 
-        deltamin = str2num(longstr2(97:105)); 
+        startmfe = str2num(longstr2(70:81));
+        stopmfe  = str2num(longstr2(83:96));
+        deltamin = str2num(longstr2(97:105));
     else
         cardnumb = str2num(longstr2(1));
         satrec.satnum = str2num(longstr2(3:7));
@@ -156,113 +156,113 @@ function [startmfe, stopmfe, deltamin, satrec] = twoline2rv(longstr1, longstr2, 
         satrec.revnum = str2num(longstr2(64:68));
     end
 
-%     // ---- find no, ndot, nddot ----
+    %     // ---- find no, ndot, nddot ----
     satrec.no_kozai   = satrec.no_kozai / xpdotp; %//* rad/min
     satrec.nddot= satrec.nddot * 10.0^nexp;
+    % note the implied decimal is set when adjusting longstr1 above
     satrec.bstar= satrec.bstar * 10.0^ibexp;
 
-%     // ---- convert to sgp4 units ----
-%    satrec.a    = (satrec.no*tumin)^(-2/3);                % [er]
+    %     // ---- convert to sgp4 units ----
+    %    satrec.a    = (satrec.no*tumin)^(-2/3);                % [er]
     satrec.ndot = satrec.ndot  / (xpdotp*1440.0);          % [rad/min^2]
     satrec.nddot= satrec.nddot / (xpdotp*1440.0*1440);     % [rad/min^3]
 
-%     // ---- find standard orbital elements ----
+    %     // ---- find standard orbital elements ----
     satrec.inclo = satrec.inclo  * deg2rad;
     satrec.nodeo = satrec.nodeo * deg2rad;
     satrec.argpo = satrec.argpo  * deg2rad;
     satrec.mo    = satrec.mo     *deg2rad;
 
-%       // sgp4fix not needed here
-%    satrec.alta = satrec.a*(1.0 + satrec.ecco) - 1.0;
-%    satrec.altp = satrec.a*(1.0 - satrec.ecco) - 1.0;
+    %       // sgp4fix not needed here
+    %    satrec.alta = satrec.a*(1.0 + satrec.ecco) - 1.0;
+    %    satrec.altp = satrec.a*(1.0 - satrec.ecco) - 1.0;
 
-%     // ----------------------------------------------------------------
-%     // find sgp4epoch time of element set
-%     // remember that sgp4 uses units of days from 0 jan 1950 (sgp4epoch)
-%     // and minutes from the epoch (time)
-%     // --------------------------------------------------------------
+    %     // ----------------------------------------------------------------
+    %     // find sgp4epoch time of element set
+    %     // remember that sgp4 uses units of days from 0 jan 1950 (sgp4epoch)
+    %     // and minutes from the epoch (time)
+    %     // --------------------------------------------------------------
 
-%     // ------------- temp fix for years from 1957-2056 ----------------
-%     // ------ correct fix will occur when year is 4-digit in 2le ------
-     if (satrec.epochyr < 57)
-         year= satrec.epochyr + 2000;
-       else
-         year= satrec.epochyr + 1900;
-     end;
+    %     // ------------- temp fix for years from 1957-2056 ----------------
+    %     // ------ correct fix will occur when year is 4-digit in 2le ------
+    if (satrec.epochyr < 57)
+        year= satrec.epochyr + 2000;
+    else
+        year= satrec.epochyr + 1900;
+    end;
 
-     [mon,day,hr,minute,sec] = days2mdh ( year,satrec.epochdays );
-     [satrec.jdsatepoch, satrec.jdsatepochf] = jday( year,mon,day,hr,minute,sec );
+    [mon,day,hr,minute,sec] = days2mdh ( year,satrec.epochdays );
+    [satrec.jdsatepoch, satrec.jdsatepochf] = jday( year,mon,day,hr,minute,sec );
 
-     % default values
-     %startmfe = 0.0;
-     %stopmfe  = 1440.0;
-     %deltamin = 1.0;
+    % default values
+    %startmfe = 0.0;
+    %stopmfe  = 1440.0;
+    %deltamin = 1.0;
 
-%     // input start stop times manually
-     if ((typerun ~= 'v') && (typerun ~= 'c')  && (typerun ~= 'u'))
-         % ------------- enter start/stop ymd hms values --------------------
-           if (typeinput == 'e')
-               startyear = input('input start year');
-               startmon  = input('input start mon');
-               startday  = input('input start day');
-               starthr   = input('input start hr');
-               startmin  = input('input start min');
-               startsec  = input('input start sec');
-               [jdstart,jdstartf] = jday( startyear,startmon,startday,starthr,startmin,startsec );
+    %     // input start stop times manually
+    if ((typerun ~= 'v') && (typerun ~= 'c')  && (typerun ~= 'u'))
+        % ------------- enter start/stop ymd hms values --------------------
+        if (typeinput == 'e')
+            startyear = input('input start year');
+            startmon  = input('input start mon');
+            startday  = input('input start day');
+            starthr   = input('input start hr');
+            startmin  = input('input start min');
+            startsec  = input('input start sec');
+            [jdstart,jdstartf] = jday( startyear,startmon,startday,starthr,startmin,startsec );
 
-               stopyear = input('input stop year');
-               stopmon  = input('input stop mon');
-               stopday  = input('input stop day');
-               stophr   = input('input stop hr');
-               stopmin  = input('input stop min');
-               stopsec  = input('input stop sec');
-               [jdstop, jdstopf] = jday( stopyear,stopmon,stopday,stophr,stopmin,stopsec );
+            stopyear = input('input stop year');
+            stopmon  = input('input stop mon');
+            stopday  = input('input stop day');
+            stophr   = input('input stop hr');
+            stopmin  = input('input stop min');
+            stopsec  = input('input stop sec');
+            [jdstop, jdstopf] = jday( stopyear,stopmon,stopday,stophr,stopmin,stopsec );
 
-               startmfe = (jdstart + jdstartf - satrec.jdsatepoch - satrec.jdsatepochf) * 1440.0;
-               stopmfe  = (jdstop + jdstopf - satrec.jdsatepoch - satrec.jdsatepochf) * 1440.0;
-               deltamin = input('input time step in minutes ');
-           end;
-           % -------- enter start/stop year and days of year values -----------
-           if (typeinput == 'd')
-               startyear    = input('input start year');
-               startdayofyr = input('input start dayofyr');
-               stopyear     = input('input stop year');
-               stopdayofyr  = input('input stop dayofyr');
+            startmfe = (jdstart + jdstartf - satrec.jdsatepoch - satrec.jdsatepochf) * 1440.0;
+            stopmfe  = (jdstop + jdstopf - satrec.jdsatepoch - satrec.jdsatepochf) * 1440.0;
+            deltamin = input('input time step in minutes ');
+        end;
+        % -------- enter start/stop year and days of year values -----------
+        if (typeinput == 'd')
+            startyear    = input('input start year');
+            startdayofyr = input('input start dayofyr');
+            stopyear     = input('input stop year');
+            stopdayofyr  = input('input stop dayofyr');
 
-               [mon,day,hr,minute,sec] = days2mdh ( startyear,startdayofyr);
-               [jdstart,jdstartf] = jday( startyear,mon,day,hr,minute,sec);
-               [mon,day,hr,minute,sec] = days2mdh ( stopyear,stopdayofyr);
-               [jdstop, jdstopf] = jday( stopyear,mon,day,hr,minute,sec);
+            [mon,day,hr,minute,sec] = days2mdh ( startyear,startdayofyr);
+            [jdstart,jdstartf] = jday( startyear,mon,day,hr,minute,sec);
+            [mon,day,hr,minute,sec] = days2mdh ( stopyear,stopdayofyr);
+            [jdstop, jdstopf] = jday( stopyear,mon,day,hr,minute,sec);
 
-               startmfe = (jdstart + jdstartf - satrec.jdsatepoch - satrec.jdsatepochf) * 1440.0;
-               stopmfe  = (jdstop + jdstopf - satrec.jdsatepoch - satrec.jdsatepochf) * 1440.0;
-               deltamin = input('input time step in minutes ');
-           end;
-           % ------------------ enter start/stop mfe values -------------------
-           if (typeinput == 'm')
-               startmfe = input('input start mfe: ');
-               stopmfe  = input('input stop mfe: ');
-               deltamin = input('input time step in minutes: ');
-           end;
-       end;
-%     // perform complete catalog evaluation
-     if (typerun == 'c')
-         startmfe =  -1440.0;
-         stopmfe  =  1440.0;
-         deltamin = 20.0;
-     end;
-     
-     % user input
-     if (typerun == 'u')
-         startmfe =  0.0;
-         stopmfe  =  14400.0;
-         deltamin = 1440.0;
-     end;
+            startmfe = (jdstart + jdstartf - satrec.jdsatepoch - satrec.jdsatepochf) * 1440.0;
+            stopmfe  = (jdstop + jdstopf - satrec.jdsatepoch - satrec.jdsatepochf) * 1440.0;
+            deltamin = input('input time step in minutes ');
+        end;
+        % ------------------ enter start/stop mfe values -------------------
+        if (typeinput == 'm')
+            startmfe = input('input start mfe: ');
+            stopmfe  = input('input stop mfe: ');
+            deltamin = input('input time step in minutes: ');
+        end;
+        %     // perform complete catalog evaluation
+        if (typerun == 'c')
+            startmfe =  -1440.0;
+            stopmfe  =  1440.0;
+            deltamin = 20.0;
+        end;
 
-%     // ------------- initialize the orbit at sgp4epoch --------------
-     sgp4epoch = satrec.jdsatepoch +satrec.jdsatepochf - 2433281.5; % days since 0 Jan 1950
- 	 [satrec] = sgp4init( whichconst, opsmode, satrec, satrec.jdsatepoch+satrec.jdsatepochf-2433281.5, satrec.bstar, ...
-                satrec.ndot, satrec.nddot, satrec.ecco, satrec.argpo, satrec.inclo, satrec.mo, satrec.no_kozai, ...
-                satrec.nodeo);
+        % user input
+        if (typerun == 'u')
+            startmfe =  0.0;
+            stopmfe  =  14400.0;
+            deltamin = 1440.0;
+        end;
+    end;
 
-     
+    %     // ------------- initialize the orbit at sgp4epoch --------------
+    sgp4epoch = satrec.jdsatepoch +satrec.jdsatepochf - 2433281.5; % days since 0 Jan 1950
+    [satrec] = sgp4init( whichconst, opsmode, satrec, satrec.jdsatepoch+satrec.jdsatepochf-2433281.5, satrec.bstar, ...
+        satrec.ndot, satrec.nddot, satrec.ecco, satrec.argpo, satrec.inclo, satrec.mo, satrec.no_kozai, ...
+        satrec.nodeo);
+

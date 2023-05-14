@@ -77,6 +77,6 @@ function [e0,m] = newtonnu ( ecc,nu );
             if ( m < 0.0  )
                 m= m + 2.0 *pi;
             end
-            e0 = rem( e0,2.0 *pi );
+            e0 = rem( e0,4.0 *pi );
         end
 

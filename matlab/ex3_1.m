@@ -26,8 +26,8 @@
     re = 6378.1363;
     rad = 180.0/pi;
     flat       = 1.0/298.257223563;
-    eccearth = sqrt(2.0*flat - flat^2);
-    eccearthsqrd = eccearth^2;
+    eccearth = sqrt(2.0*flat - flat^2)
+    eccearthsqrd = eccearth^2
 
     % -------------------------  implementation   -----------------
     latgd = 39.586667/rad;
