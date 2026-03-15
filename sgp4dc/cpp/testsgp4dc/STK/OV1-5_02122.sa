@@ -1,0 +1,771 @@
+stk.v.10.0
+WrittenBy    STK_v10.0.1
+
+BEGIN Satellite
+
+Name		OV1-5_02122
+
+BEGIN VehiclePath
+	CentralBody				Earth
+
+    BEGIN Interval
+
+         StartTime            1 Mar 2008 19:00:00.000000000
+         StopTime             15 Mar 2008 19:00:00.000000000
+
+    END Interval
+
+	StoreEphemeris				Yes
+	SmoothInterp				No
+
+    BEGIN SGP4
+
+    VersionIndicator    20080918
+
+    SSCNumber           02122
+    IntlDesignator      1966-025B  
+    UseScenInterval     No
+    EphemSmartInterval
+	BEGIN	EVENTINTERVAL
+			EventInterval
+				BEGIN	EVENTINTERVAL
+					Type	EVENTINTERVAL_LINKTO
+					Name	AnalysisInterval
+					AbsolutePath	Scenario
+				END	EVENTINTERVAL
+			IntervalState	Implicit
+	END	EVENTINTERVAL
+
+    StartTime           1 Mar 2008 19:00:00.000
+    StopTime            15 Mar 2008 19:00:00.000
+    TimeStep            60.000000
+    Use1PtInterpolation Yes
+    Use1PtValidation    No
+    Use1PtInterpWarning No
+    UpdateMode          FromFiles
+    RetrieveMethod      AllTLEs
+    UpdateSwitchMethod  Epoch
+    SourceFile          D:\Codes\LIBRARY\CPP\TestSGP4DC\tough.tle
+
+    Begin TwoLineElement
+
+    Enabled             Yes
+
+    Source              File
+    Filename            D:\Codes\LIBRARY\CPP\TestSGP4DC\tough.tle
+    LastUpdated         7 Nov 2014 13:12:16.000
+
+    SwitchMethod        Epoch
+    SwitchEpoch         4 Mar 2008 09:55:11.068
+
+    TLE
+    1 02122U 66025B   08064.41332255 +.00000272 +00000-0 +19073-4 0 02942
+    2 02122 144.6359 282.1575 0047343 176.9604 183.1357 13.65540224092152
+
+    END TwoLineElement
+
+
+    END SGP4
+
+BEGIN PassDefn
+
+    Break               Ascending
+    CoordSystem         Inertial
+    BreakType           Latitude
+    BreakAngle          0.000000000000e+000
+    PartialPassMethod   ByTime
+    DisplayFlag         Both
+    FirstPass           1
+    FirstPath           1
+    RepeatCycle         1
+    MaintainPassNum     State
+    RangeFirstPass      1
+    RangeLastPass       2147483647
+    DisplayScheme       AllEphemeris
+    ScenarioEpoch       1 Mar 2008 19:00:00.000000
+END PassDefn
+
+END VehiclePath
+
+BEGIN MassProperties
+
+	Mass           1.143000000000e+002
+	InertiaXX      4.500000000000e+003
+	InertiaYX      0.000000000000e+000
+	InertiaYY      4.500000000000e+003
+	InertiaZX      0.000000000000e+000
+	InertiaZY      0.000000000000e+000
+	InertiaZZ      4.500000000000e+003
+
+END MassProperties
+
+BEGIN Attitude
+
+     	ScenarioEpoch		 1 Mar 2008 19:00:00.000000
+
+      BEGIN Profile
+          Name			 ECIVVLH
+          UserNamed			 No
+          StartTime			 0.000000000000e+000
+          BEGIN ECIVVLH
+             	Azimuth		 0.000000000000e+000
+          END ECIVVLH
+      END Profile
+
+END Attitude
+
+BEGIN Swath
+
+    SwathType           ElevAngleEnvelope
+    ElevationAngle      0.000000000000e+000
+    HalfAngle           0.000000000000e+000
+    Distance            0.000000000000e+000
+    RepType             NoSwath
+
+END Swath
+
+BEGIN Eclipse
+
+    Sunlight                Off
+    SunlightColor           #ffff00
+    SunlightLineStyle       0
+    SunlightLineWidth       3
+    SunlightMarkerStyle     15
+
+    Penumbra                Off
+    PenumbraColor           #f0ffff
+    PenumbraLineStyle       0
+    PenumbraLineWidth       3
+    PenumbraMarkerStyle     15
+
+    Umbra                   Off
+    UmbraColor              #0000ff
+    UmbraLineStyle          0
+    UmbraLineWidth          3
+    UmbraMarkerStyle        15
+
+    SunlightPenumbraLine    Off
+    PenumbraUmbraLine       Off
+
+    UseCustomEclipseBodies  No
+
+END Eclipse
+
+BEGIN RealTimeDef
+
+	HistoryDuration     1.800000000000e+003
+	LookAheadDuration   1.800000000000e+003
+
+END RealTimeDef
+
+
+BEGIN Extensions
+    
+    BEGIN Graphics
+
+        BEGIN GenericGraphics
+            ShowPassLabel        Off
+            ShowPathLabel        Off
+            TransformTrajectory  On
+            MinGfxGndTrkTimeStep 0.000000000000e+000
+            MaxGfxGndTrkTimeStep 6.000000000000e+002
+            MinGfxOrbitTimeStep  0.000000000000e+000
+            MaxGfxOrbitTimeStep  6.000000000000e+002
+            ShowGlintPoint       Off
+            ShowGlintColor       #ffffff
+            ShowGlintStyle       2
+        END GenericGraphics
+
+        BEGIN AttributeData
+
+            AttributeType    Basic
+            ScenarioEpoch 1 Mar 2008 19:00:00.000000
+
+            ShowGfx          On
+
+            IntvlHideShowAll Off
+
+            BEGIN DefaultAttributes
+                Show                 On
+                Inherit              On
+                ShowLabel            On
+                ShowGndTrack         On
+                ShowGndMarker        On
+                ShowOrbit            On
+                ShowOrbitMarker      On
+                ShowElsetNum         Off
+                ShowSpecialSwath     On
+                MarkerColor          #ff0000
+                GroundTrackColor     #ff0000
+                SwathColor           #ff0000
+                LabelColor           #ff0000
+                LineStyle            0
+                LineWidth            1.000000
+                MarkerStyle          15
+                FontStyle            0
+                SwathLineStyle       0
+                SpecSwathLineStyle   1
+            END DefaultAttributes
+
+            BEGIN CustomIntervalList
+                BEGIN DefaultAttributes
+                    Show                 On
+                    Inherit              On
+                    ShowLabel            On
+                    ShowGndTrack         On
+                    ShowGndMarker        On
+                    ShowOrbit            On
+                    ShowOrbitMarker      On
+                    ShowElsetNum         Off
+                    ShowSpecialSwath     On
+                    MarkerColor          #ff00ff
+                    GroundTrackColor     #ff00ff
+                    SwathColor           #ff00ff
+                    LabelColor           #ff00ff
+                    LineStyle            0
+                    LineWidth            1.000000
+                    MarkerStyle          4
+                    FontStyle            0
+                    SwathLineStyle       0
+                    SpecSwathLineStyle   1
+                END DefaultAttributes
+            END CustomIntervalList
+
+            BEGIN AccessIntervalsAttributes
+                BEGIN AttrDuringAccess
+                    Show                 On
+                    Inherit              On
+                    ShowLabel            On
+                    ShowGndTrack         On
+                    ShowGndMarker        On
+                    ShowOrbit            On
+                    ShowOrbitMarker      On
+                    ShowElsetNum         Off
+                    ShowSpecialSwath     On
+                    MarkerColor          #ff00ff
+                    GroundTrackColor     #ff00ff
+                    SwathColor           #ff00ff
+                    LabelColor           #ff00ff
+                    LineStyle            0
+                    LineWidth            1.000000
+                    MarkerStyle          4
+                    FontStyle            0
+                    SwathLineStyle       0
+                    SpecSwathLineStyle   1
+                END AttrDuringAccess
+                BEGIN AttrDuringNoAccess
+                    Show                 Off
+                    Inherit              On
+                    ShowLabel            On
+                    ShowGndTrack         On
+                    ShowGndMarker        On
+                    ShowOrbit            On
+                    ShowOrbitMarker      On
+                    ShowElsetNum         Off
+                    ShowSpecialSwath     On
+                    MarkerColor          #ffff00
+                    GroundTrackColor     #ffff00
+                    SwathColor           #ffff00
+                    LabelColor           #ffff00
+                    LineStyle            0
+                    LineWidth            1.000000
+                    MarkerStyle          4
+                    FontStyle            0
+                    SwathLineStyle       0
+                    SpecSwathLineStyle   1
+                END AttrDuringNoAccess
+            END AccessIntervalsAttributes
+
+            BEGIN TimeComponentIntervalsAttributes
+                BEGIN DefaultAttributes
+                    Show                 On
+                    Inherit              On
+                    ShowLabel            On
+                    ShowGndTrack         On
+                    ShowGndMarker        On
+                    ShowOrbit            On
+                    ShowOrbitMarker      On
+                    ShowElsetNum         Off
+                    ShowSpecialSwath     On
+                    MarkerColor          #ff00ff
+                    GroundTrackColor     #ff00ff
+                    SwathColor           #ff00ff
+                    LabelColor           #ff00ff
+                    LineStyle            0
+                    LineWidth            1.000000
+                    MarkerStyle          4
+                    FontStyle            0
+                    SwathLineStyle       0
+                    SpecSwathLineStyle   1
+                END DefaultAttributes
+            END TimeComponentIntervalsAttributes
+
+            BEGIN RealTimeAttributes
+                BEGIN HistoryAttr
+                    Show                 On
+                    Inherit              On
+                    ShowLabel            On
+                    ShowGndTrack         On
+                    ShowGndMarker        On
+                    ShowOrbit            On
+                    ShowOrbitMarker      On
+                    ShowElsetNum         Off
+                    ShowSpecialSwath     On
+                    MarkerColor          #ff00ff
+                    GroundTrackColor     #ff00ff
+                    SwathColor           #ff00ff
+                    LabelColor           #ff00ff
+                    LineStyle            0
+                    LineWidth            1.000000
+                    MarkerStyle          4
+                    FontStyle            0
+                    SwathLineStyle       0
+                    SpecSwathLineStyle   1
+                END HistoryAttr
+                BEGIN SplineAttr
+                    Show                 On
+                    Inherit              On
+                    ShowLabel            On
+                    ShowGndTrack         On
+                    ShowGndMarker        On
+                    ShowOrbit            On
+                    ShowOrbitMarker      On
+                    ShowElsetNum         Off
+                    ShowSpecialSwath     On
+                    MarkerColor          #ffff00
+                    GroundTrackColor     #ffff00
+                    SwathColor           #ffff00
+                    LabelColor           #ffff00
+                    LineStyle            0
+                    LineWidth            1.000000
+                    MarkerStyle          4
+                    FontStyle            0
+                    SwathLineStyle       0
+                    SpecSwathLineStyle   1
+                END SplineAttr
+                BEGIN LookAheadAttr
+                    Show                 On
+                    Inherit              On
+                    ShowLabel            On
+                    ShowGndTrack         On
+                    ShowGndMarker        On
+                    ShowOrbit            On
+                    ShowOrbitMarker      On
+                    ShowElsetNum         Off
+                    ShowSpecialSwath     On
+                    MarkerColor          #ffffff
+                    GroundTrackColor     #ffffff
+                    SwathColor           #ffffff
+                    LabelColor           #ffffff
+                    LineStyle            0
+                    LineWidth            1.000000
+                    MarkerStyle          4
+                    FontStyle            0
+                    SwathLineStyle       0
+                    SpecSwathLineStyle   1
+                END LookAheadAttr
+                BEGIN DropOutAttr
+                    Show                 On
+                    Inherit              On
+                    ShowLabel            On
+                    ShowGndTrack         On
+                    ShowGndMarker        On
+                    ShowOrbit            On
+                    ShowOrbitMarker      On
+                    ShowElsetNum         Off
+                    ShowSpecialSwath     On
+                    MarkerColor          #ff0000
+                    GroundTrackColor     #ff0000
+                    SwathColor           #ff0000
+                    LabelColor           #ff0000
+                    LineStyle            0
+                    LineWidth            1.000000
+                    MarkerStyle          4
+                    FontStyle            0
+                    SwathLineStyle       0
+                    SpecSwathLineStyle   1
+                END DropOutAttr
+            END RealTimeAttributes
+        END AttributeData
+
+        BEGIN LeadTrailData
+                GtLeadingType             OnePass
+                GtTrailingType            OnePass
+                OrbitLeadingType          OnePass
+                OrbitTrailingType         OnePass
+        END LeadTrailData
+            BEGIN SaaData
+               ShowSaa             Off
+               ShowSaaFill         Off
+               SaaFillTranslucency 0.700000
+               TrackSaa            On
+               SaaAltitude         500000.000000
+            END SaaData
+            Begin GroundTracks
+                Begin GroundTrack
+                    CentralBody  Earth
+                End GroundTrack
+            End GroundTracks
+        BEGIN EllipseSetGxData
+            BEGIN DefEllipseSetGx
+                ShowStatic     On
+                ShowDynamic    On
+                UseLastDynPos  Off
+                HoldLastDynPos Off
+                ShowName       Off
+                ShowMarker     On
+                MarkerStyle    0
+                LineStyle      0
+                LineWidth      1.000000
+            END DefEllipseSetGx
+        END EllipseSetGxData
+    END Graphics
+    
+    BEGIN ClsApp
+		RangeConstraint         5000.000
+		ApoPeriPad              30000.000
+		OrbitPathPad            100000.000
+		TimeDistPad             30000.000
+		OutOfDate               2592000.000
+		MaxApoPeriStep          900.000
+		ApoPeriAngle            0.785
+		UseApogeePerigeeFilter  Yes
+		UsePathFilter           No
+		UseTimeFilter           Yes
+		UseOutOfDate            Yes
+		CreateSats              No
+		MaxSatsToCreate         500
+		UseModelScale           No
+		ModelScale              0.000
+		UseCrossRefDb           Yes
+		CollisionDB                     stkAllTLE.tce
+		CollisionCrossRefDB             stkAllTLE.sd
+		ShowLine                Yes
+		AnimHighlight           Yes
+		StaticHighlight         Yes
+		UseLaunchWindow                         No
+		LaunchWindowUseEntireTraj               Yes
+		LaunchWindowTrajMETStart                0.000
+		LaunchWindowTrajMETStop                 900.000
+		LaunchWindowStart                       0.000
+		LaunchWindowStop                        0.000
+		LaunchMETOffset                         0.000
+		LaunchWindowUseSecEphem                 No 
+		LaunchWindowUseScenFolderForSecEphem    Yes
+		LaunchWindowUsePrimEphem                No 
+		LaunchWindowUseScenFolderForPrimEphem   Yes
+    LaunchWindowIntervalPtr
+	BEGIN	EVENTINTERVAL
+			BEGIN Interval
+				Start	1 Mar 2008 19:00:00.000000000
+				Stop	1 Mar 2008 19:00:00.000000000
+			END Interval
+			IntervalState	Explicit
+	END	EVENTINTERVAL
+
+		LaunchWindowUsePrimMTO                  No 
+		GroupLaunches                           No 
+		LWTimeConvergence                       1.000e-003
+		LWRelValueConvergence                   1.000e-008
+		LWTSRTimeConvergence                    1.000e-004
+		LWTSRRelValueConvergence                1.000e-010
+		LaunchWindowStep                        300.000
+		MaxTSRStep                              180.000
+		MaxTSRRelMotion                         20.000
+		UseLaunchArea                           No 
+		LaunchAreaOrientation                   North
+		LaunchAreaAzimuth                       0.000
+		LaunchAreaXLimits                       -10000.000   10000.000
+		LaunchAreaYLimits                       -10000.000   10000.000
+		LaunchAreaNumXIntrPnts                  1
+		LaunchAreaNumYIntrPnts                  1
+		LaunchAreaAltReference                  Ellipsoid
+		TargetSameStop                          No 
+		SkipSurfaceMetric                       No 
+		LWAreaTSRRelValueConvergence            1.000e-010
+		AreaLaunchWindowStep                    300.000
+		AreaMaxTSRStep                          30.000
+		AreaMaxTSRRelMotion                     1.000
+		ShowLaunchArea                          No 
+		ShowBlackoutTracks                      No 
+		BlackoutColor                           #ff0000
+		ShowClearedTracks                       No 
+		UseObjectForClearedColor                No 
+		ClearedColor                             #ffffff
+		ShowTracksSegments                      No 
+		ShowMinRangeTracks                      No 
+		MinRangeTrackTimeStep                   0.500000
+		UsePrimStepForTracks                    Yes
+		GfxTracksTimeStep                       30.000
+		GfxAreaNumXIntrPnts                     1
+		GfxAreaNumYIntrPnts                     1
+		CreateLaunchMTO                         No 
+		CovarianceSigmaScale                    3.000
+		CovarianceMode                          None 
+    END ClsApp
+    
+    BEGIN ExternData
+    END ExternData
+    
+    BEGIN Lifetime
+        Semi_parameter       6.678137000000e+006
+        Eccentricity         0.000000000000e+000
+        Argument_Perigee     0.000000000000e+000
+        RA_Asc_Node          0.000000000000e+000
+        Inclination          4.974188368180e-001
+        UTC_Year             1997
+        UTC_Month            1
+        UTC_Day              1
+        UTC_Hour             0
+        UTC_Minute           0
+        UTC_Second           0.000000000000e+000
+        Limit_Type           OrbitCount
+        Duration_Limit       36525.000000
+        Rev_Count_Limit      99999
+        Revs_Calculation     10
+        Gaussian_Quadratures 1
+        Flux_Sigma_Level     0.000000
+        Gravity_Model_Flag   1
+        Reflection_Coef      1.000000000000e+000
+        Sun_Area             1.543000000000e+001
+        Mass                 -1.000000000000e+000
+        Drag_Coef            2.200000000000e+000
+        Drag_Area            1.365000000000e+001
+        Rotating_Atm_Flag    0
+        Compute_Gamma_Flag   0
+        Initial_Time         0.000000000000e+000
+        Decay_Alt            6.500000000000e+004
+        Solar_Flux_Filename  SolFlx_Schatten.dat
+    END Lifetime
+    
+    BEGIN ADFFileData
+    END ADFFileData
+    
+    BEGIN AccessConstraints
+		LineOfSight   IncludeIntervals 
+    END AccessConstraints
+    
+    BEGIN AttitudeSimulator
+	UseReferenceForAttitude  No
+	UseForAttitude  No
+	UsePctCmplt  Yes
+	PctCmpltDivisor  24
+	PctCmpltTitle  Attitude Simulation
+	UseAnimate  No
+	AnimateSampling 1.0000000000000000e+000
+	StartTime  1 Mar 2008 19:00:00.000000000
+	StopTime  15 Mar 2008 19:00:00.000000000
+	Step  0.0000000000000000e+000
+	InitialTime  1 Mar 2008 19:00:00.000000000
+    SmartEpochPtr
+	BEGIN	EVENT
+			Epoch	1 Mar 2008 19:00:00.000000000
+			EventEpoch
+				BEGIN	EVENT
+					Type	EVENT_LINKTO
+					Name	EphemerisStartTime
+				END	EVENT
+			EpochState	Implicit
+	END	EVENT
+
+    SmartIntervalPtr
+	BEGIN	EVENTINTERVAL
+			EventInterval
+				BEGIN	EVENTINTERVAL
+					Type	EVENTINTERVAL_LINKTO
+					Name	EphemerisTimeSpan
+				END	EVENTINTERVAL
+			IntervalState	Implicit
+	END	EVENTINTERVAL
+
+	BEGIN InitialAttitude
+		0.0000000000000000e+000
+		0.0000000000000000e+000
+		0.0000000000000000e+000
+		1.0000000000000000e+000
+	END InitialAttitude
+	Representation  0
+	Sequence  0
+	BEGIN InitialAngVel
+		0.0000000000000000e+000
+		0.0000000000000000e+000
+		0.0000000000000000e+000
+	END InitialAngVel
+	BEGIN InitialMomentumBias
+		0.0000000000000000e+000
+		0.0000000000000000e+000
+		0.0000000000000000e+000
+	END InitialMomentumBias
+	UseMomentumBias  No
+	BEGIN IntegratedSimulation
+		BEGIN Integrator
+			Type RK78
+			RelTol 1.0000000000000000e-003
+			AbsTol 9.9999999999999995e-007
+			MinStep 9.9999999999999995e-007
+			UseMinStep		No
+			MaxStep 1.0000000000000000e+001
+			UseMaxStep		No
+			NumIter 10
+			UseIter		No
+			UseStat		No
+		END Integrator
+		BEGIN Formulation
+		BEGIN EnvironmentData
+			UseApproxAlt    No
+			MeanFlux    150
+			DailyFlux    150
+			GeoMagIndex       3.0000000000000000
+			RefAlt       0.0000000000000000
+			ScaleAlt    8500.0000000000000000
+			RefDensity       1.2170000000000001
+			DensityModel  Exponential
+		END EnvironmentData
+			BEGIN InitList
+			END InitList
+			BEGIN UpdateList
+			END UpdateList
+			BEGIN PostList
+			END PostList
+			UseInitialUpdateStep  No
+			UseUpdateStep  No
+		END Formulation
+	END IntegratedSimulation
+    END AttitudeSimulator
+    
+    BEGIN ObjectCoverage
+    END ObjectCoverage
+    
+    BEGIN Desc
+        LongText    336
+SSC Number		02122
+Common Name		OV1-5
+Official Name		OV1-5
+International Number	1966-025B
+Owner			US
+Mission			Earth Sci
+Launch Site		AFW
+Launch Date		19660330
+Launch Time		0921
+Deorbit Date		
+Launch Sequence		
+Mass			114.3 kg
+Apogee			1050 km
+Perigee			980 km
+Period			105.4 min
+Inclination		144.6 deg
+Status			Unknown
+
+    END Desc
+    
+    BEGIN RCS
+	Inherited          True
+	LinearClutterCoef        1.000000e+000
+	BEGIN RCSBAND
+		LinearConstantValue      1.000000e+000
+		Swerling      0
+		BandData      2.997920e+006 3.000000e+011
+	END RCSBAND
+    END RCS
+    
+    BEGIN Ellipse
+        TimesTrackVehStartTime Yes
+    END Ellipse
+    
+    BEGIN Reference
+    END Reference
+    
+    BEGIN AcquisitionData
+    DataType                   IIRV9
+    CoordinateSystem           1
+    MassAtEpoch                1000.000000
+    IIRV_MessageID                  0
+    IIRV_MessageClass               10
+    IIRV_MessageOrigin              A
+    IIRV_MessageDestination         GSVL
+    IIRV_VectorType                 1
+    IIRV_VectorSource               1
+    IIRV_SupportID                  0
+    IIRV_VehicleIdentificationCode  1
+    IIRV_CounterStart               1
+    IIRV_Area                       0.000000
+    IIRV_DragCoefficient            2.000000
+    IIRV_SolarReflectivity          0.000000
+    IIRV_OriginRouteMsg             HJSC
+    IIRV9_MessageOrigin              A
+    IIRV9_MessageDestination         GSVL
+    IIRV9_VectorSource               1
+    IIRV9_IRON                       1
+    IIRV9_PerturbationCoeffType      0
+    IIRV9_DragCoefficient            2.000000
+    IIRV9_SRPCoefficient             1.000000
+    IIRV9_Area                       0.000000
+    IIRV9_OriginRouteMsg             HJSC
+    IIRV1_MessageDestination         GSVL
+    IIRV1_VectorType                 1
+    IIRV1_VectorSource               1
+    IIRV1_SupportID                  0
+    IIRV1_VehicleIdentificationCode  5
+    IIRV1_CounterStart               1
+    IIRV1_Area                       0.000000
+    IIRV1_DragCoefficient            2.000000
+    IIRV1_OriginRouteMsg             HJSC
+    EPV_MessageID                  1
+    EPV_MessageClass               10
+    EPV_MessageOrigin              A
+    EPV_MessageDestination         GSVL
+    EPV_VectorType                 1
+    EPV_VectorSource               1
+    EPV_SupportID                  0
+    EPV_VehicleIdentificationCode  1
+    EPV_CounterStart               1
+    NASA_MissionID                  eol
+    NASA_MessageID                  0
+    NASA_MessageClass               10
+    NASA_RoutIndicator              GSVL
+    NASA_VectorType                 1
+    NASA_VectorSource               1
+    NASA_Area                       0.000000
+    NASA_DragCoefficient            2.000000
+    NASA_SolarReflectivity          0.000000
+    NASA_OriginRouteMsg             0
+    END AcquisitionData
+    
+    BEGIN Identification
+    END Identification
+    
+    BEGIN Crdn
+    END Crdn
+    
+    BEGIN DIS
+
+		Begin Input
+
+
+		End Input
+
+
+		Begin Output
+
+			Enable                     Off
+			ForceID                    1
+			EntityID                   0:0:0
+			PriEntityType              0:0:0:0:0:0:0
+			AltEntityType              0:0:0:0:0:0:0
+			DistanceThresh             1.000000
+
+		End Output
+
+    END DIS
+    
+    BEGIN VO
+    END VO
+
+END Extensions
+
+BEGIN SubObjects
+
+END SubObjects
+
+END Satellite
+
